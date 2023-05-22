@@ -1,4 +1,4 @@
-package org.nautilusmc.nautilusmanager.cosmetics.commands;
+package org.nautilusmc.nautilusmanager.cosmetics;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
@@ -170,7 +170,7 @@ public class CosmeticsMenu {
 
         int i = 0;
         for (FancyText.ColorType type : FancyText.ColorType.values()) {
-            String hasAccess = type.hasAccess(sender);
+            Component hasAccess = type.hasAccess(sender);
 
             int k = i;
             page.addComponent(new ButtonGuiComponent()
@@ -193,8 +193,7 @@ public class CosmeticsMenu {
                             null,
                             hasAccess == null ? new Component[]{} :
                                     new Component[]{
-                                            Component.text(hasAccess)
-                                                    .color(NautilusCommand.ERROR_COLOR)
+                                            hasAccess.color(NautilusCommand.ERROR_COLOR)
                                                     .decoration(TextDecoration.ITALIC, false)
                                     }
                     ), (i/3)+1, (i%3)*2+2);

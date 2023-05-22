@@ -173,17 +173,19 @@ public class FancyText {
         }
 
         // returns `null` if `sender` has access, otherwise returns the error string
-        public String hasAccess(CommandSender sender) {
+        public Component hasAccess(CommandSender sender) {
             if (sender instanceof Player player && advancementReq != null) {
                 if (!player.getAdvancementProgress(advancementReq).isDone()) {
-                    return "Complete " + advancementReq.displayName() + " to unlock!";
+                    return Component.text("Complete ")
+                            .append(advancementReq.displayName())
+                            .append(Component.text(" to unlock!"));
                 }
 
                 return null;
             }
 
             if (!sender.hasPermission("nautiluscosmetics.color."+name().toLowerCase())) {
-                return NautilusCommand.SPONSOR_PERM_MESSAGE;
+                return Component.text(NautilusCommand.SPONSOR_PERM_MESSAGE);
             }
 
             return null;

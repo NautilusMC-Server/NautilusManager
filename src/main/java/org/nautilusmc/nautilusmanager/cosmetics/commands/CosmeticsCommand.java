@@ -7,13 +7,12 @@ import net.kyori.adventure.text.format.TextColor;
 import net.minecraft.ChatFormatting;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.cosmetics.CosmeticsMenu;
 import org.nautilusmc.nautilusmanager.cosmetics.NameColor;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.util.FancyText;
@@ -139,13 +138,13 @@ public class CosmeticsCommand extends NautilusCommand {
                 return;
             }
 
-            String hasAccess = colorType.get().hasAccess(sender);
+            Component hasAccess = colorType.get().hasAccess(sender);
             if (hasAccess != null) {
-                sender.sendMessage(Component.text(hasAccess).color(NautilusCommand.ERROR_COLOR));
+                sender.sendMessage(hasAccess.color(NautilusCommand.ERROR_COLOR));
                 return;
             }
 
-            net.minecraft.network.chat.TextColor colors[] = new net.minecraft.network.chat.TextColor[colorType.get().numColors];
+            net.minecraft.network.chat.TextColor[] colors = new net.minecraft.network.chat.TextColor[colorType.get().numColors];
             for (int i = 0; i < colors.length; i++) {
                 colors[i] = net.minecraft.network.chat.TextColor.parseColor(strings[3+i].toLowerCase().replace(' ', '_'));
             }

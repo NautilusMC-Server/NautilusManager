@@ -73,13 +73,13 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent e) {
-        if(!e.hasBlock() || e.getPlayer().isSneaking()) return;
+        if(!e.hasBlock() || (e.getPlayer().isSneaking() && e.hasItem())) return;
 
         Block block = e.getClickedBlock();
         if(isProtected(block.getLocation()) && !isAllowed(e.getPlayer())) {
             Material type = block.getType();
 
-            if (type != Material.CHEST && type != Material.BARREL && type != Material.ENDER_CHEST && !Tag.WOODEN_DOORS.isTagged(type) && !Tag.BUTTONS.isTagged(type) && !Tag.FENCE_GATES.isTagged(type)) {
+            if (type != Material.CHEST && type != Material.BARREL && type != Material.ENDER_CHEST && !Tag.PRESSURE_PLATES.isTagged(type) && !Tag.WOODEN_DOORS.isTagged(type) && !Tag.BUTTONS.isTagged(type) && !Tag.FENCE_GATES.isTagged(type)) {
                 alert(e.getPlayer());
                 e.setCancelled(true);
             }
