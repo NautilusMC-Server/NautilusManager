@@ -112,10 +112,11 @@ public class AfkManager implements Listener {
         removeTimer(e.getPlayer());
     }
 
-    // move or change orientation
     @EventHandler
     public void onMove(PlayerMoveEvent e) {
-        setAFK(e.getPlayer(), false);
+        if (e.hasChangedOrientation()) {
+            setAFK(e.getPlayer(), false);
+        }
     }
 
     @EventHandler

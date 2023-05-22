@@ -38,6 +38,14 @@ public abstract class SQLListener {
     public abstract void updateSQL(ResultSet results) throws SQLException;
 
     public void deleteSQL(UUID uuid) {
+        deleteSQL(uuid.toString());
+    }
+
+    public void setSQL(UUID uuid, Map<String, Object> values) {
+        setSQL(uuid.toString(), values);
+    }
+
+    public void deleteSQL(String uuid) {
         if (!SQL.SQL_ENABLED) return;
 
         try {
@@ -50,7 +58,7 @@ public abstract class SQLListener {
         }
     }
 
-    public void setSQL(UUID uuid, Map<String, Object> values) {
+    public void setSQL(String uuid, Map<String, Object> values) {
         if (!SQL.SQL_ENABLED) return;
 
         StringBuilder command = new StringBuilder("INSERT INTO "+table+" (uuid,");

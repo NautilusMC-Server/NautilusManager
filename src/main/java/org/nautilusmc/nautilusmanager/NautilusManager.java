@@ -13,10 +13,7 @@ import org.nautilusmc.nautilusmanager.cosmetics.NameColor;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.cosmetics.TabListManager;
 import org.nautilusmc.nautilusmanager.cosmetics.commands.*;
-import org.nautilusmc.nautilusmanager.events.AfkManager;
-import org.nautilusmc.nautilusmanager.events.GeneralEventManager;
-import org.nautilusmc.nautilusmanager.events.MessageStyler;
-import org.nautilusmc.nautilusmanager.events.SpawnProtection;
+import org.nautilusmc.nautilusmanager.events.*;
 import org.nautilusmc.nautilusmanager.sql.SQL;
 
 public final class NautilusManager extends JavaPlugin {
@@ -64,6 +61,7 @@ public final class NautilusManager extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new MessageStyler(), this);
 
         Bukkit.getPluginManager().registerEvents(new AfkManager(), this);
+        Bukkit.getPluginManager().registerEvents(new TeleportHandler(), this);
         Bukkit.getPluginManager().registerEvents(new GeneralEventManager(), this);
         Bukkit.getPluginManager().registerEvents(new SpawnProtection(), this);
     }

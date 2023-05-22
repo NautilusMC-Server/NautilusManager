@@ -50,7 +50,7 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onSpawnEvent(EntitySpawnEvent e) {
-        if(isProtected(e.getLocation())) {
+        if (e.getEntity() instanceof LivingEntity && isProtected(e.getLocation())) {
             e.setCancelled(true);
         }
     }

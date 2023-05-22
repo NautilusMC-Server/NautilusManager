@@ -30,6 +30,9 @@ commands:
   afk:
     description: Toggle AFK status
     usage: /afk [player]
+#  home:
+#    description: Manage homes
+#    usage: /home <del|set|tp> <name>
   buyhome:
     description: Trades diamond blocks for another home (max 15)
     usage: /buyhome
