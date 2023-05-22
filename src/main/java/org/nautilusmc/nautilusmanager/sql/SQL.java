@@ -38,17 +38,7 @@ public class SQL {
         SQL_UPDATE_TIME = config.getInt("sql.update_interval");
     }
 
-    public static void executeUpdate(String sql) throws SQLException {
-        Connection conn = DATABASE.getConnection();
-        conn.createStatement().executeUpdate(sql);
-        conn.close();
-    }
-
-    public static ResultSet executeQuery(String sql) throws SQLException {
-        Connection conn = DATABASE.getConnection();
-        ResultSet results = conn.createStatement().executeQuery(sql);
-        conn.close();
-
-        return results;
+    public static Connection getConnection() throws SQLException {
+        return DATABASE.getConnection();
     }
 }

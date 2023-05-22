@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.sql.SQLListener;
 import org.nautilusmc.nautilusmanager.util.FancyText;
 import org.nautilusmc.nautilusmanager.util.Util;
@@ -23,34 +24,41 @@ public class NameColor {
     public static final NameColor DEFAULT_COLOR = new NameColor(FancyText.ColorType.SOLID, TextColor.color(255, 255, 255));
 
     private static final Map<UUID, NameColor> playerColors = new HashMap<>();
-    private static final SQLListener SQL_LISTENER = new SQLListener("name_colors") {
-        @Override
-        public void updateSQL(ResultSet results) throws SQLException {
-            Map<UUID, NameColor> newColors = new HashMap<>();
-            while (results.next()) {
-                FancyText.ColorType type = FancyText.ColorType.values()[results.getInt("color_type")];
-                TextColor[] colors = new TextColor[type.numColors];
+    private static SQLListener SQL_LISTENER;
 
-                for (int i = 0; i < type.numColors; i++) {
-                    colors[i] = TextColor.color(results.getInt("color" + (i + 1)));
+    public static void init() {
+        SQL_LISTENER = new SQLListener("name_colors") {
+            @Override
+            public void updateSQL(ResultSet results) throws SQLException {
+                Map<UUID, NameColor> newColors = new HashMap<>();
+                while (results.next()) {
+                    FancyText.ColorType type = FancyText.ColorType.values()[results.getInt("color_type")];
+                    TextColor[] colors = new TextColor[type.numColors];
+
+                    for (int i = 0; i < type.numColors; i++) {
+                        colors[i] = TextColor.color(results.getInt("color" + (i + 1)));
+                    }
+
+                    newColors.put(UUID.fromString(results.getString("uuid")), new NameColor(type, colors));
                 }
 
-                newColors.put(UUID.fromString(results.getString("uuid")), new NameColor(type, colors));
-            }
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    NameColor oldColor = playerColors.getOrDefault(p.getUniqueId(), DEFAULT_COLOR);
+                    NameColor newColor = newColors.getOrDefault(p.getUniqueId(), DEFAULT_COLOR);
 
-            for (Player p : Bukkit.getOnlinePlayers()) {
-                NameColor oldColor = playerColors.getOrDefault(p.getUniqueId(), DEFAULT_COLOR);
-                NameColor newColor = newColors.getOrDefault(p.getUniqueId(), DEFAULT_COLOR);
-
-                if (!oldColor.equals(newColor)) {
-                    updateNameColor(p, newColor);
+                    if (!oldColor.equals(newColor)) {
+                        updateNameColor(p, newColor);
+                    }
                 }
-            }
 
-            playerColors.clear();
-            playerColors.putAll(newColors);
-        }
-    };;
+                playerColors.clear();
+                Bukkit.broadcastMessage("colors!");
+                playerColors.putAll(newColors);
+            }
+        };
+
+        Bukkit.getPluginManager().registerEvents(new NameColorListener(), NautilusManager.INSTANCE);
+    }
 
     public static NameColor getNameColor(OfflinePlayer player) {
         return playerColors.containsKey(player.getUniqueId()) ? playerColors.get(player.getUniqueId()).copy() : null;

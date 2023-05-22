@@ -47,7 +47,7 @@ public class TabListManager {
                             color2 = NamedTextColor.DARK_AQUA;
                         }
 
-                        health = Component.text(String.valueOf(Math.round(p.getHealth()))).color(color1)
+                        health = Component.text(" "+ Math.round(p.getHealth())).color(color1)
                                 .append(Component.text("♥").color(color2));
                     }
                 }

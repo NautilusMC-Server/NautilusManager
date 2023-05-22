@@ -49,6 +49,8 @@ public class AfkManager implements Listener {
     }
 
     public static void setAFK(Player player, boolean afk) {
+        if (isAfk(player) == afk) return;
+
         String verb;
 
         if (afk) {

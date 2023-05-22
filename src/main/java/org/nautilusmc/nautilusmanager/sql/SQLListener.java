@@ -1,10 +1,13 @@
 package org.nautilusmc.nautilusmanager.sql;
 
+import net.minecraft.stats.Stat;
 import org.bukkit.Bukkit;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -20,7 +23,12 @@ public abstract class SQLListener {
             if (!SQL.SQL_ENABLED) return;
 
             try {
-                updateSQL(SQL.executeQuery("SELECT * FROM "+table));
+                Connection conn = SQL.getConnection();
+                Statement statement = conn.createStatement();
+
+                updateSQL(statement.executeQuery("SELECT * FROM "+table));
+
+                conn.close();
             } catch (SQLException e) {
                 Bukkit.getLogger().log(Level.SEVERE, "Error updating SQL database", e);
             }
@@ -33,7 +41,10 @@ public abstract class SQLListener {
         if (!SQL.SQL_ENABLED) return;
 
         try {
-            SQL.executeUpdate("DELETE FROM "+table+" WHERE uuid='" + uuid + "'");
+            Connection conn = SQL.getConnection();
+            Statement statement = conn.createStatement();
+            statement.executeUpdate("DELETE FROM "+table+" WHERE uuid='" + uuid + "'");
+            conn.close();
         } catch (SQLException e) {
             Bukkit.getLogger().log(Level.SEVERE, "Error deleting from SQL database", e);
         }
@@ -62,9 +73,13 @@ public abstract class SQLListener {
             if (value.getValue() instanceof String) command.append("'").append(value.getValue()).append("',");
             else command.append(value.getValue()).append(",");
         }
+        command.deleteCharAt(command.length() - 1);
 
         try {
-            SQL.executeUpdate(command.toString());
+            Connection conn = SQL.getConnection();
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(command.toString());
+            conn.close();
         } catch (SQLException e) {
             Bukkit.getLogger().log(Level.SEVERE, "Error inserting into SQL database", e);
         }

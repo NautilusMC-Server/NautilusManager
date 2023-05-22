@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
 import org.nautilusmc.nautilusmanager.sql.SQLListener;
 import org.nautilusmc.nautilusmanager.util.Util;
@@ -23,31 +24,37 @@ import java.util.UUID;
 public class Nickname {
 
     private static final BiMap<UUID, String> playerNames = HashBiMap.create();
-    private static final SQLListener SQL_LISTENER = new SQLListener("nicknames") {
-        @Override
-        public void updateSQL(ResultSet results) throws SQLException {
-            playerNames.clear();
-            while (results.next()) {
-                playerNames.put(UUID.fromString(results.getString("uuid")), results.getString("nickname"));
-            }
+    private static SQLListener SQL_LISTENER;
 
-            // reset any invalid nicknames
-            playerNames.forEach((uuid, name) -> {
-                OfflinePlayer p = Bukkit.getOfflinePlayer(uuid);
-                if (validateNickname(p, name) != null) {
-                    setNickname(uuid, null);
+    public static void init() {
+        SQL_LISTENER = new SQLListener("nicknames") {
+            @Override
+            public void updateSQL(ResultSet results) throws SQLException {
+                playerNames.clear();
+                while (results.next()) {
+                    playerNames.put(UUID.fromString(results.getString("uuid")), results.getString("nickname"));
                 }
-            });
 
-            for (Player p : Bukkit.getOnlinePlayers()) {
-                String nickname = playerNames.getOrDefault(p.getUniqueId(), p.getName());
+                // reset any invalid nicknames
+                playerNames.forEach((uuid, name) -> {
+                    OfflinePlayer p = Bukkit.getOfflinePlayer(uuid);
+                    if (validateNickname(p, name) != null) {
+                        setNickname(uuid, null);
+                    }
+                });
 
-                if (!Util.getTextContent(p.displayName()).equals(nickname)) {
-                    updateNickname(p, nickname);
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    String nickname = playerNames.getOrDefault(p.getUniqueId(), p.getName());
+
+                    if (!Util.getTextContent(p.displayName()).equals(nickname)) {
+                        updateNickname(p, nickname);
+                    }
                 }
             }
-        }
-    };
+        };
+
+        Bukkit.getPluginManager().registerEvents(new NicknameListener(), NautilusManager.INSTANCE);
+    }
 
     /**
      * Private helper function to update the map in memory and update the SQL database.

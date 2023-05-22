@@ -23,12 +23,15 @@ public final class NautilusManager extends JavaPlugin {
     public void onEnable() {
         INSTANCE = this;
 
+        initConfig();
+        SQL.init();
+
+        NameColor.init();
+        Nickname.init();
+
         registerCommands();
         registerEvents();
         TabListManager.init();
-        initConfig();
-
-        SQL.init();
     }
 
     private void registerCommands() {
@@ -43,8 +46,6 @@ public final class NautilusManager extends JavaPlugin {
 
     private void registerEvents() {
         Bukkit.getPluginManager().registerEvents(new ChatCommand.ChatListener(), this);
-        Bukkit.getPluginManager().registerEvents(new Nickname.NicknameListener(), this);
-        Bukkit.getPluginManager().registerEvents(new NameColor.NameColorListener(), this);
         Bukkit.getPluginManager().registerEvents(new MessageStyler(), this);
 
         Bukkit.getPluginManager().registerEvents(new AfkManager(), this);
@@ -53,7 +54,8 @@ public final class NautilusManager extends JavaPlugin {
     }
 
     private void initConfig() {
-        FileConfiguration config = INSTANCE.getConfig();
+        FileConfiguration config = this.getConfig();
+
         config.addDefault("sql.update_interval", -1);
         config.addDefault("sql.protocol", "");
         config.addDefault("sql.host", "");
@@ -71,7 +73,7 @@ public final class NautilusManager extends JavaPlugin {
         config.addDefault("spawnProtection.loc2", new Location(Bukkit.getWorlds().get(0), 0, 0, 0));
 
         config.options().copyDefaults(true);
-        INSTANCE.saveConfig();
+        this.saveDefaultConfig();
     }
 
         @Override
