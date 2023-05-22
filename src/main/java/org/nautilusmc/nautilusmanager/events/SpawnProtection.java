@@ -203,6 +203,9 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onPistonExtend(BlockPistonExtendEvent e) {
+        // allow pistons if they're inside; just not outside going in
+        if (isProtected(e.getBlock().getLocation())) return;
+
         for (Block block : e.getBlocks()) {
             if (isProtected(block.getLocation()) || isProtected(block.getLocation().add(e.getDirection().getDirection()))) {
                 e.setCancelled(true);
