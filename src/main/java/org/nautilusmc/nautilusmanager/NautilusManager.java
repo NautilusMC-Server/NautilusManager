@@ -1,10 +1,14 @@
 package org.nautilusmc.nautilusmanager;
 
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.nautilusmc.nautilusmanager.commands.AfkCommand;
+import org.nautilusmc.nautilusmanager.commands.HomeBuyCommand;
 import org.nautilusmc.nautilusmanager.cosmetics.NameColor;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.cosmetics.TabListManager;
@@ -18,6 +22,7 @@ import org.nautilusmc.nautilusmanager.sql.SQL;
 public final class NautilusManager extends JavaPlugin {
 
     public static NautilusManager INSTANCE;
+    public static LuckPerms LUCKPERMS;
 
     @Override
     public void onEnable() {
@@ -28,10 +33,12 @@ public final class NautilusManager extends JavaPlugin {
 
         NameColor.init();
         Nickname.init();
+        HomeBuyCommand.init();
 
         registerCommands();
         registerEvents();
         TabListManager.init();
+        registerAPIs();
     }
 
     private void registerCommands() {
@@ -42,6 +49,14 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("chat").setExecutor(new ChatCommand());
         this.getCommand("reply").setExecutor(new ReplyCommand());
         this.getCommand("afk").setExecutor(new AfkCommand());
+        this.getCommand("buyhome").setExecutor(new HomeBuyCommand());
+    }
+
+    private void registerAPIs() {
+        RegisteredServiceProvider<LuckPerms> luckPerms = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
+        if (luckPerms != null) {
+            LUCKPERMS = luckPerms.getProvider();
+        }
     }
 
     private void registerEvents() {
