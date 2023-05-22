@@ -30,6 +30,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.gui.page.GuiPage;
 import org.nautilusmc.nautilusmanager.util.FancyText;
 import org.nautilusmc.nautilusmanager.util.Util;
 
@@ -167,11 +168,12 @@ public class MessageStyler implements Listener {
 
     @EventHandler
     public void onAnvilPrepare(PrepareAnvilEvent e) {
+        if (e.getInventory().getHolder() instanceof GuiPage) return;
+
         String renameText = e.getInventory().getRenameText();
         ItemStack result = e.getResult();
 
-        // TODO: this clears the name if you type in the original name
-        if (e.getView().getPlayer().hasPermission(NautilusCommand.CHAT_FORMATTING_PERM) && renameText != null && result != null) {
+        if (e.getView().getPlayer().hasPermission(NautilusCommand.CHAT_FORMATTING_PERM) && renameText != null && !renameText.isEmpty() && result != null) {
             ItemMeta meta = result.getItemMeta();
             meta.displayName(FancyText.parseChatFormatting(renameText));
             result.setItemMeta(meta);

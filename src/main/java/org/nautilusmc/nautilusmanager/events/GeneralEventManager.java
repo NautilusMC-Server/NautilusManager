@@ -33,11 +33,10 @@ import java.util.UUID;
 
 public class GeneralEventManager implements Listener {
 
-    // TODO: test this
     @EventHandler
     public void onAnvil(PrepareAnvilEvent e) {
-        if(e.getInventory().getRenameText() != null) {
-            e.getInventory().setRepairCost(e.getInventory().getRepairCostAmount()-1);
+        if(e.getInventory().getRenameText() != null && !e.getInventory().getRenameText().isEmpty()) {
+            e.getInventory().setRepairCost(e.getInventory().getRepairCost()-1);
         }
     }
 
