@@ -29,6 +29,10 @@ public class HomeBuyCommand implements CommandExecutor {
 
         Player player = (Player) commandSender;
         int limit = getHomeLimit(player);
+        if (limit == 0) {
+            LuckPermsUtil.addPermission(player, "essentials.sethome.multiple.two");
+            limit = 2;
+        }
         if (limit >= 15) {
             player.sendMessage(Component.text("Home limit reached!").color(NautilusCommand.ERROR_COLOR));
             return true;
