@@ -36,8 +36,8 @@ public class HomeBuyCommand implements CommandExecutor {
         ItemStack diamondBlockCost = new ItemStack(Material.DIAMOND_BLOCK, limit + 1);
         if (!player.getInventory().contains(diamondBlockCost)) {
             player.sendMessage(Component.text("Not enough diamond blocks!").color(NautilusCommand.ERROR_COLOR));
-            player.sendMessage(Component.text("Next home cost: " + (limit + 1) + "diamond blocks").color(NautilusCommand.ERROR_COLOR));
-            return false;
+            player.sendMessage(Component.text("Next home cost: " + (limit + 1) + " diamond blocks").color(NautilusCommand.ERROR_COLOR));
+            return true;
         }
         player.getInventory().remove(diamondBlockCost);
         incrementHomeLimit(player);
@@ -46,13 +46,28 @@ public class HomeBuyCommand implements CommandExecutor {
     }
 
     public static void init() {
-        for (int i = 2; i <= 15; i++) {
-            homePermissions.put(i, PermissionNode.builder().permission("essentials.sethome.multiple." + i).build());
-        }
+        int i = 1;
+        homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.one").build());
+        homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.two").build());
+        homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.three").build());
+        homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.four").build());
+        homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.five").build());
+        homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.six").build());
+        homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.seven").build());
+        homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.eight").build());
+        homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.nine").build());
+        homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.ten").build());
+        homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.eleven").build());
+        homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.twelve").build());
+        homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.thirteen").build());
+        homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.fourteen").build());
+        homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.fifteen").build());
+
+
     }
     private void setHomeLimit(Player player, int i) {
         if (getHomeLimit(player) != 0) {
-            LuckPermsUtil.removePermission(player, "essentials.sethome.multiple." + getHomeLimit(player));
+            LuckPermsUtil.removePermission(player, homePermissions.get(i).toString());
         }
         LuckPermsUtil.addPermission(player, "essentials.sethome.multiple." + i);
     }
