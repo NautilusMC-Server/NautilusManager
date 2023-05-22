@@ -52,7 +52,6 @@ public class NameColor {
                 }
 
                 playerColors.clear();
-                Bukkit.broadcastMessage("colors!");
                 playerColors.putAll(newColors);
             }
         };
