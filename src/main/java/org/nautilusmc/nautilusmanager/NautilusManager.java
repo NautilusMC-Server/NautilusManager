@@ -15,6 +15,10 @@ import org.nautilusmc.nautilusmanager.cosmetics.TabListManager;
 import org.nautilusmc.nautilusmanager.cosmetics.commands.*;
 import org.nautilusmc.nautilusmanager.events.*;
 import org.nautilusmc.nautilusmanager.sql.SQL;
+import org.nautilusmc.nautilusmanager.teleport.Homes;
+import org.nautilusmc.nautilusmanager.teleport.commands.BackCommand;
+import org.nautilusmc.nautilusmanager.teleport.commands.HomeCommand;
+import org.nautilusmc.nautilusmanager.teleport.commands.SpawnCommand;
 
 public final class NautilusManager extends JavaPlugin {
 
@@ -25,17 +29,18 @@ public final class NautilusManager extends JavaPlugin {
     public void onEnable() {
         INSTANCE = this;
 
-        initConfig();
+        saveDefaultConfig();
         SQL.init();
 
         NameColor.init();
         Nickname.init();
-        HomeBuyCommand.init();
+        Homes.init();
+//        HomeBuyCommand.init();
 
         registerCommands();
         registerEvents();
         TabListManager.init();
-        registerAPIs();
+//        registerAPIs();
     }
 
     private void registerCommands() {
@@ -46,6 +51,9 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("chat").setExecutor(new ChatCommand());
         this.getCommand("reply").setExecutor(new ReplyCommand());
         this.getCommand("afk").setExecutor(new AfkCommand());
+        this.getCommand("home").setExecutor(new HomeCommand());
+        this.getCommand("spawn").setExecutor(new SpawnCommand());
+        this.getCommand("back").setExecutor(new BackCommand());
         this.getCommand("buyhome").setExecutor(new HomeBuyCommand());
     }
 
@@ -66,30 +74,7 @@ public final class NautilusManager extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new SpawnProtection(), this);
     }
 
-    private void initConfig() {
-        FileConfiguration config = this.getConfig();
-
-        config.addDefault("sql.update_interval", -1);
-        config.addDefault("sql.protocol", "");
-        config.addDefault("sql.host", "");
-        config.addDefault("sql.port", 0);
-        config.addDefault("sql.database", "");
-        config.addDefault("sql.username", "");
-        config.addDefault("sql.password", "");
-
-        config.addDefault("afk.timeToAfk", 300);
-        config.addDefault("afk.timeToIgnoreSleep", 300);
-
-        config.addDefault("death.itemDespawnSeconds", 300);
-
-        config.addDefault("spawnProtection.loc1", new Location(Bukkit.getWorlds().get(0), 0, 0, 0));
-        config.addDefault("spawnProtection.loc2", new Location(Bukkit.getWorlds().get(0), 0, 0, 0));
-
-        config.options().copyDefaults(true);
-        this.saveDefaultConfig();
-    }
-
-        @Override
+    @Override
     public void onDisable() {
         // Plugin shutdown logic
     }

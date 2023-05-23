@@ -3,12 +3,11 @@ package org.nautilusmc.nautilusmanager.teleport;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.nautilusmc.nautilusmanager.sql.SQLListener;
+import org.nautilusmc.nautilusmanager.sql.SQLHandler;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -18,27 +17,31 @@ public class Homes {
 
     private static final Map<UUID, Map<String, Location>> playerHomes = new HashMap<>();
 
-    public static final SQLListener SQL_LISTENER = new SQLListener("homes") {
-        @Override
-        public void updateSQL(ResultSet results) throws SQLException {
-            while (results.next()) {
-                String[] uuidName = results.getString("uuid/name").split("/");
-                UUID uuid = UUID.fromString(uuidName[0]);
-                Location loc = new Location(
-                        Bukkit.getWorld(UUID.fromString(results.getString("world"))),
-                        results.getDouble("x"),
-                        results.getDouble("y"),
-                        results.getDouble("z"),
-                        results.getFloat("yaw"),
-                        results.getFloat("pitch")
-                );
+    public static SQLHandler SQL_HANDLER;
 
-                if (!playerHomes.containsKey(uuid)) playerHomes.put(uuid, new HashMap<>());
+    public static void init() {
+        SQL_HANDLER = new SQLHandler("homes", "uuid_name") {
+            @Override
+            public void updateSQL(ResultSet results) throws SQLException {
+                while (results.next()) {
+                    String[] uuidName = results.getString("uuid_name").split("/");
+                    UUID uuid = UUID.fromString(uuidName[0]);
+                    Location loc = new Location(
+                            Bukkit.getWorld(UUID.fromString(results.getString("world"))),
+                            results.getDouble("x"),
+                            results.getDouble("y"),
+                            results.getDouble("z"),
+                            results.getFloat("yaw"),
+                            results.getFloat("pitch")
+                    );
 
-                playerHomes.get(uuid).put(uuidName[1], loc);
+                    if (!playerHomes.containsKey(uuid)) playerHomes.put(uuid, new HashMap<>());
+
+                    playerHomes.get(uuid).put(uuidName[1], loc);
+                }
             }
-        }
-    };
+        };
+    }
 
     public static Location getHome(Player player, String name) {
         UUID uuid = player.getUniqueId();
@@ -55,13 +58,13 @@ public class Homes {
             playerHomes.put(uuid, new HashMap<>());
         }
 
-        String key = uuid + "/" + UUID.randomUUID();
+        String key = uuid + "/" + name;
         if (loc == null) {
             playerHomes.get(uuid).remove(name);
-            SQL_LISTENER.deleteSQL(key);
+            SQL_HANDLER.deleteSQL(key);
         } else {
             playerHomes.get(uuid).put(name, loc);
-            SQL_LISTENER.setSQL(key, locationToMap(loc));
+            SQL_HANDLER.setSQL(key, locationToMap(loc));
         }
     }
 

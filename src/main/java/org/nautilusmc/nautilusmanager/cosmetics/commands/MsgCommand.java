@@ -56,17 +56,17 @@ public class MsgCommand extends NautilusCommand {
 
         recipientPlayer.sendMessage(Component.empty()
                 .append(MessageStyler.getTimeStamp())
-                .append(Util.modifyColor((commandSender instanceof Player p ? p.displayName() : commandSender.name()).decorate(TextDecoration.ITALIC), -30, -30, -30))
+                .append((commandSender instanceof Player p ? p.displayName() : commandSender.name()).decorate(TextDecoration.ITALIC))
                 .append(Component.text(" whispered to you").color(TextColor.color(150, 150, 150)).decorate(TextDecoration.ITALIC))
                 .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
-                .append(msg)
+                .append(msg.decorate(TextDecoration.ITALIC))
         );
         commandSender.sendMessage(Component.empty()
                 .append(MessageStyler.getTimeStamp())
                 .append(Component.text("You whispered to ").color(TextColor.color(150, 150, 150)).decorate(TextDecoration.ITALIC))
-                .append(Util.modifyColor(recipientPlayer.displayName(), -30, -30, -30).decorate(TextDecoration.ITALIC))
+                .append(recipientPlayer.displayName().decorate(TextDecoration.ITALIC))
                 .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
-                .append(msg)
+                .append(msg.decorate(TextDecoration.ITALIC))
         );
 
         return true;

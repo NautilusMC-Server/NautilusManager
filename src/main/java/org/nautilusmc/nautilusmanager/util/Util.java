@@ -81,12 +81,4 @@ public class Util {
             nms.connection.send(addPlayer);
         }
     }
-
-    public static Component modifyColor(Component component, int rMod, int gMod, int bMod) {
-        List<Component> children = new ArrayList<>(component.children());
-        children.replaceAll(c -> modifyColor(c, rMod, gMod, bMod));
-
-        TextColor color = component.color() == null ? TextColor.color(255, 255, 255) : component.color();
-        return component.children(children).color(TextColor.color(color.red()+rMod, color.green()+gMod, color.blue()+bMod));
-    }
 }

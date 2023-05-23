@@ -140,14 +140,16 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onPlayerAttackEvent(EntityDamageByEntityEvent e) {
-        if (!(e.getDamager() instanceof Player player)) {
-            e.setCancelled(true);
-            return;
-        }
+        if(isProtected(e.getEntity().getLocation())) {
+            if (!(e.getDamager() instanceof Player player)) {
+                e.setCancelled(true);
+                return;
+            }
 
-        if(isProtected(e.getEntity().getLocation()) && !isAllowed(player)) {
-            alert(player);
-            e.setCancelled(true);
+            if (!isAllowed(player)) {
+                alert(player);
+                e.setCancelled(true);
+            }
         }
     }
 

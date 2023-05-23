@@ -8,7 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.sql.SQLListener;
+import org.nautilusmc.nautilusmanager.sql.SQLHandler;
 import org.nautilusmc.nautilusmanager.util.FancyText;
 import org.nautilusmc.nautilusmanager.util.Util;
 
@@ -24,10 +24,10 @@ public class NameColor {
     public static final NameColor DEFAULT_COLOR = new NameColor(FancyText.ColorType.SOLID, TextColor.color(255, 255, 255));
 
     private static final Map<UUID, NameColor> playerColors = new HashMap<>();
-    private static SQLListener SQL_LISTENER;
+    private static SQLHandler SQL_HANDLER;
 
     public static void init() {
-        SQL_LISTENER = new SQLListener("name_colors") {
+        SQL_HANDLER = new SQLHandler("name_colors") {
             @Override
             public void updateSQL(ResultSet results) throws SQLException {
                 Map<UUID, NameColor> newColors = new HashMap<>();
@@ -83,7 +83,7 @@ public class NameColor {
     private static void setNameColor(UUID uuid, NameColor color) {
         if (color == null) {
             playerColors.remove(uuid);
-            SQL_LISTENER.deleteSQL(uuid);
+            SQL_HANDLER.deleteSQL(uuid);
         }
         else {
             playerColors.put(uuid, color);
@@ -91,7 +91,7 @@ public class NameColor {
             Map<String, Object> values = new HashMap<>();
             values.put("color_type", color.type.ordinal());
             for (int i = 0; i < color.type.numColors; i++) values.put("color" + (i + 1), color.colors[i].value());
-            SQL_LISTENER.setSQL(uuid, values);
+            SQL_HANDLER.setSQL(uuid, values);
         }
     }
 

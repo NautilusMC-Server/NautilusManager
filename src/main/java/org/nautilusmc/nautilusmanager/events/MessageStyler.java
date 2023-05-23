@@ -46,7 +46,8 @@ public class MessageStyler implements Listener {
         List<Component> args = new ArrayList<>(message.args());
 
         for (int i = 0; i < args.size(); i++) {
-            TextComponent component = (TextComponent) args.get(i);
+            if (!(args.get(i) instanceof TextComponent component)) continue;
+
             Player player = Bukkit.getPlayerExact(component.content());
 
             if (player != null) {
@@ -121,7 +122,7 @@ public class MessageStyler implements Listener {
     @EventHandler
     public void onRespawn(PlayerRespawnEvent e) {
         e.getPlayer().sendMessage(Component.text("Your coordinates: (" + Math.round(e.getPlayer().getLocation().getX()) + ", " +
-                Math.round(e.getPlayer().getLocation().getZ()) + ")").color(TextColor.color(118, 118, 118)));
+                Math.round(e.getPlayer().getLocation().getZ()) + ")").color(TextColor.color(200, 200, 200)).decorate(TextDecoration.BOLD));
     }
 
     @EventHandler(priority=EventPriority.HIGHEST)

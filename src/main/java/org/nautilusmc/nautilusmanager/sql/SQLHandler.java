@@ -1,6 +1,5 @@
 package org.nautilusmc.nautilusmanager.sql;
 
-import net.minecraft.stats.Stat;
 import org.bukkit.Bukkit;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 
@@ -12,12 +11,18 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public abstract class SQLListener {
+public abstract class SQLHandler {
 
     private final String table;
+    private final String primaryKey;
 
-    public SQLListener(String table) {
+    public SQLHandler(String table) {
+        this(table, "uuid");
+    }
+
+    public SQLHandler(String table, String primaryKey) {
         this.table = table;
+        this.primaryKey = primaryKey;
 
         Bukkit.getScheduler().runTaskTimerAsynchronously(NautilusManager.INSTANCE, () -> {
             if (!SQL.SQL_ENABLED) return;
@@ -35,7 +40,11 @@ public abstract class SQLListener {
         }, 0, SQL.SQL_UPDATE_TIME * 20L);
     }
 
-    public abstract void updateSQL(ResultSet results) throws SQLException;
+    public void updateSQL(ResultSet results) throws SQLException {};
+
+    public ResultSet getSQL(UUID uuid) {
+        return getSQL(uuid.toString());
+    }
 
     public void deleteSQL(UUID uuid) {
         deleteSQL(uuid.toString());
@@ -51,17 +60,33 @@ public abstract class SQLListener {
         try {
             Connection conn = SQL.getConnection();
             Statement statement = conn.createStatement();
-            statement.executeUpdate("DELETE FROM "+table+" WHERE uuid='" + uuid + "'");
+            statement.executeUpdate("DELETE FROM "+table+" WHERE "+primaryKey+"='" + uuid + "'");
             conn.close();
         } catch (SQLException e) {
             Bukkit.getLogger().log(Level.SEVERE, "Error deleting from SQL database", e);
         }
     }
 
+    public ResultSet getSQL(String uuid) {
+        if (!SQL.SQL_ENABLED) return null;
+
+        try {
+            Connection conn = SQL.getConnection();
+            Statement statement = conn.createStatement();
+            ResultSet results = statement.executeQuery("SELECT * FROM "+table+" WHERE "+primaryKey+"='" + uuid + "'");
+            conn.close();
+            return results;
+        } catch (SQLException e) {
+            Bukkit.getLogger().log(Level.SEVERE, "Error getting from SQL database", e);
+        }
+
+        return null;
+    }
+
     public void setSQL(String uuid, Map<String, Object> values) {
         if (!SQL.SQL_ENABLED) return;
 
-        StringBuilder command = new StringBuilder("INSERT INTO "+table+" (uuid,");
+        StringBuilder command = new StringBuilder("INSERT INTO "+table+" ("+primaryKey+",");
 
         for (String key : values.keySet()) command.append(key).append(",");
         command.deleteCharAt(command.length() - 1);

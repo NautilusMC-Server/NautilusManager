@@ -11,7 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
-import org.nautilusmc.nautilusmanager.sql.SQLListener;
+import org.nautilusmc.nautilusmanager.sql.SQLHandler;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.sql.ResultSet;
@@ -24,10 +24,10 @@ import java.util.UUID;
 public class Nickname {
 
     private static final BiMap<UUID, String> playerNames = HashBiMap.create();
-    private static SQLListener SQL_LISTENER;
+    private static SQLHandler SQL_HANDLER;
 
     public static void init() {
-        SQL_LISTENER = new SQLListener("nicknames") {
+        SQL_HANDLER = new SQLHandler("nicknames") {
             @Override
             public void updateSQL(ResultSet results) throws SQLException {
                 playerNames.clear();
@@ -62,11 +62,11 @@ public class Nickname {
     private static void setNickname(UUID uuid, String nickname) {
         if (nickname == null) {
             playerNames.remove(uuid);
-            SQL_LISTENER.deleteSQL(uuid);
+            SQL_HANDLER.deleteSQL(uuid);
         }
         else {
             playerNames.put(uuid, nickname);
-            SQL_LISTENER.setSQL(uuid, Map.of("nickname", nickname));
+            SQL_HANDLER.setSQL(uuid, Map.of("nickname", nickname));
         }
     }
 

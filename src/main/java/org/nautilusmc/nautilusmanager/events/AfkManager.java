@@ -70,20 +70,22 @@ public class AfkManager implements Listener {
             resetTimer(player);
         }
 
-        player.sendMessage(Component.text("You are "+verb+" AFK.")
-                .color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p == player) continue;
-            p.sendMessage(Component.text("* ")
-                    .append(Util.modifyColor(player.displayName(), -30, -30, -30))
-                    .append(Component.text(" is "+verb+" AFK"))
-                    .color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
-        }
+//        player.sendMessage(Component.text("You are "+verb+" AFK.")
+//                .color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
+//        for (Player p : Bukkit.getOnlinePlayers()) {
+//            if (p == player) continue;
+//            p.sendMessage(Component.text("* ")
+//                    .append(Util.modifyColor(player.displayName(), -30, -30, -30))
+//                    .append(Component.text(" is "+verb+" AFK"))
+//                    .color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
+//        }
     }
 
     private static void removeTimer(Player player) {
         BukkitRunnable timer = AFK_TIMERS.get(player.getUniqueId());
         if (timer != null) timer.cancel();
+
+        AFK_TIMERS.remove(player.getUniqueId());
     }
 
     private static void resetTimer(Player player) {
