@@ -14,7 +14,7 @@ import org.nautilusmc.nautilusmanager.util.Util;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TpHereCommand extends NautilusCommand {
+public class TpaHereCommand extends NautilusCommand {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player player)) {

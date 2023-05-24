@@ -60,7 +60,7 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("back").setExecutor(new BackCommand());
         this.getCommand("buyhome").setExecutor(new BuyHomeCommand());
         this.getCommand("tpa").setExecutor(new TpaCommand());
-        this.getCommand("tphere").setExecutor(new TpHereCommand());
+        this.getCommand("tpahere").setExecutor(new TpaHereCommand());
         this.getCommand("tpaccept").setExecutor(new TpAcceptCommand());
         this.getCommand("tpdeny").setExecutor(new TpDenyCommand());
         this.getCommand("tpcancel").setExecutor(new TpCancel());

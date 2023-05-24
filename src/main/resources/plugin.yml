@@ -64,7 +64,7 @@ commands:
   tpa:
     description: Requests to teleport to a player
     usage: /tpa <player>
-  tphere:
+  tpahere:
     description: Requests a player to teleport to you
     usage: /tpahere <player>
   tpaccept:

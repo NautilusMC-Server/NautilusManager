@@ -25,6 +25,7 @@ public class BackCommand extends NautilusCommand {
         Location lastLoc = TeleportHandler.getLastTeleportLocation(player);
         if (lastLoc == null) {
             commandSender.sendMessage(Component.text("Nowhere to return to!").color(NautilusCommand.ERROR_COLOR));
+            return true;
         }
 
         TeleportHandler.teleportAfterDelay(player, lastLoc, 100);
