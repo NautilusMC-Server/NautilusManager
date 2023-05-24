@@ -1,6 +1,5 @@
 package org.nautilusmc.nautilusmanager.commands;
 
-import com.google.common.collect.BiMap;
 import net.kyori.adventure.text.Component;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
@@ -12,10 +11,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.util.LuckPermsUtil;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class HomeBuyCommand implements CommandExecutor {

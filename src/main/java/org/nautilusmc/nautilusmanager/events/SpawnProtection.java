@@ -17,12 +17,9 @@ import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.BoundingBox;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.spigotmc.event.entity.EntityDismountEvent;
 
 public class SpawnProtection implements Listener {
 
@@ -140,14 +137,16 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onPlayerAttackEvent(EntityDamageByEntityEvent e) {
-        if (!(e.getDamager() instanceof Player player)) {
-            e.setCancelled(true);
-            return;
-        }
+        if(isProtected(e.getEntity().getLocation())) {
+            if (!(e.getDamager() instanceof Player player)) {
+                e.setCancelled(true);
+                return;
+            }
 
-        if(isProtected(e.getEntity().getLocation()) && !isAllowed(player)) {
-            alert(player);
-            e.setCancelled(true);
+            if (!isAllowed(player)) {
+                alert(player);
+                e.setCancelled(true);
+            }
         }
     }
 

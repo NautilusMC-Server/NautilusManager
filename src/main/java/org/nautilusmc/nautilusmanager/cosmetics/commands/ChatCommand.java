@@ -6,9 +6,7 @@ import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -60,7 +58,7 @@ public class ChatCommand extends NautilusCommand {
         out.add("all");
 
         if (strings.length == 1) {
-            out.addAll(Bukkit.getOnlinePlayers().stream().map((p) -> Util.getTextContent(p.displayName())).toList());
+            out.addAll(Bukkit.getOnlinePlayers().stream().map(Util::getName).toList());
         }
 
         return out.stream().filter(str->str.toLowerCase().startsWith(strings[strings.length-1].toLowerCase())).toList();

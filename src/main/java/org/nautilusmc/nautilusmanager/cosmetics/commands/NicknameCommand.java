@@ -6,9 +6,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +24,7 @@ public class NicknameCommand extends NautilusCommand {
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!commandSender.hasPermission("nautiluscosmetics.nickname.view")) {
+        if (!commandSender.hasPermission(NautilusCommand.NICKNAME_LIST_PERM)) {
             commandSender.sendMessage(Component.text("You do not have permission to use this command").color(NautilusCommand.ERROR_COLOR));
             return true;
         }

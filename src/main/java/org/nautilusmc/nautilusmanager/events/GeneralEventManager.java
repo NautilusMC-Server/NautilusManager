@@ -28,7 +28,6 @@ import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.util.Util;
 import org.spigotmc.event.entity.EntityDismountEvent;
 
-import java.util.Map;
 import java.util.UUID;
 
 public class GeneralEventManager implements Listener {
@@ -55,7 +54,6 @@ public class GeneralEventManager implements Listener {
 
     private static final String OWNER_KEY = "owner";
     private static final String SLOT_KEY = "slot";
-    private static final Map<UUID, ItemStack[]> DEATH_ITEMS = new java.util.HashMap<>();
 
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
@@ -96,6 +94,7 @@ public class GeneralEventManager implements Listener {
     public void onItemPickup(EntityPickupItemEvent e) {
         ItemStack item = e.getItem().getItemStack();
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
         PersistentDataContainer container = meta.getPersistentDataContainer();
 
         if (!container.has(new NamespacedKey(NautilusManager.INSTANCE, SLOT_KEY), PersistentDataType.INTEGER)) return;

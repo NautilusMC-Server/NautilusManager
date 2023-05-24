@@ -11,7 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
-import org.nautilusmc.nautilusmanager.sql.SQLListener;
+import org.nautilusmc.nautilusmanager.sql.SQLHandler;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.sql.ResultSet;
@@ -24,10 +24,10 @@ import java.util.UUID;
 public class Nickname {
 
     private static final BiMap<UUID, String> playerNames = HashBiMap.create();
-    private static SQLListener SQL_LISTENER;
+    private static SQLHandler SQL_HANDLER;
 
     public static void init() {
-        SQL_LISTENER = new SQLListener("nicknames") {
+        SQL_HANDLER = new SQLHandler("nicknames") {
             @Override
             public void updateSQL(ResultSet results) throws SQLException {
                 playerNames.clear();
@@ -62,11 +62,11 @@ public class Nickname {
     private static void setNickname(UUID uuid, String nickname) {
         if (nickname == null) {
             playerNames.remove(uuid);
-            SQL_LISTENER.deleteSQL(uuid);
+            SQL_HANDLER.deleteSQL(uuid);
         }
         else {
             playerNames.put(uuid, nickname);
-            SQL_LISTENER.setSQL(uuid, Map.of("nickname", nickname));
+            SQL_HANDLER.setSQL(uuid, Map.of("nickname", nickname));
         }
     }
 
@@ -125,6 +125,7 @@ public class Nickname {
         if (name.length() > 16) return "That nickname is too long";
         if (name.length() < 3) return "That nickname is too short";
         if (!name.matches("[a-zA-Z0-9_]+") && p.isOnline() && !p.getPlayer().hasPermission(NautilusCommand.NICKNAME_SPECIAL_CHAR_PERM)) return "Become a supporter to unlock non-alphanumeric characters";
+        if (name.contains(" ")) return "Nicknames cannot contain spaces";
         if (!playerNames.inverse().getOrDefault(name, p.getUniqueId()).equals(p.getUniqueId()) || (!name.equals(p.getName()) && Bukkit.getOfflinePlayerIfCached(name) != null)) return "That nickname is already taken";
 
         return null;

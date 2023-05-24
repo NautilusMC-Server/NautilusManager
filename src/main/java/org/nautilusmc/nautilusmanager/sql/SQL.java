@@ -6,7 +6,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 
@@ -29,10 +28,11 @@ public class SQL {
                 config.getString("sql.database")));
         DATABASE.setMaxWaitMillis(2000); // just error out if it can't connect
 
-        if (DATABASE.isClosed()) {
-            Bukkit.getLogger().log(Level.WARNING, "Can't connect to SQL server! Data will not be saved.");
-        } else {
+        try {
+            getConnection().close();
             SQL_ENABLED = true;
+        } catch (SQLException ignored) {
+            Bukkit.getLogger().log(Level.WARNING, "Can't connect to SQL server! Data will not be saved.");
         }
 
         SQL_UPDATE_TIME = config.getInt("sql.update_interval");

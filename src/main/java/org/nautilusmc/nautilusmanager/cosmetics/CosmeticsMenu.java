@@ -16,8 +16,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
-import org.nautilusmc.nautilusmanager.cosmetics.NameColor;
-import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.gui.Gui;
 import org.nautilusmc.nautilusmanager.gui.components.BackGuiComponent;
 import org.nautilusmc.nautilusmanager.gui.components.ButtonGuiComponent;

@@ -17,9 +17,23 @@ import java.util.UUID;
 
 public class TeleportHandler implements Listener {
 
+    private static final Map<UUID, Location> lastTeleportLocs = new HashMap<>();
+
     private static final Map<UUID, BukkitRunnable> teleporting = new HashMap<>();
 
+    public static Location getLastTeleportLocation(Player player) {
+        return lastTeleportLocs.get(player.getUniqueId());
+    }
+
+    public static void setLastTeleportLoc(Player player, Location loc) {
+        lastTeleportLocs.put(player.getUniqueId(), loc);
+    }
+
     public static void teleportAfterDelay(Player player, Location loc, int ticks) {
+        teleportAfterDelay(player, loc, ticks, null);
+    }
+
+    public static void teleportAfterDelay(Player player, Location loc, int ticks, Runnable failCallback) {
         TextColor color = TextColor.color(255, 194, 0);
 
         player.sendMessage(Component.text("Teleporting in "+Math.round(ticks/20f)+" seconds. Don't move!").color(color));
@@ -27,14 +41,20 @@ public class TeleportHandler implements Listener {
         BukkitRunnable runnable = new BukkitRunnable() {
             @Override
             public void run() {
-                player.sendMessage(Component.text("Teleporting...").color(color));
+                player.sendMessage(Component.text("Whoosh!").color(color));
+                setLastTeleportLoc(player, player.getLocation());
                 player.teleport(loc);
+
+                teleporting.remove(player.getUniqueId());
             }
 
             @Override
             public void cancel() {
                 player.sendMessage(Component.text("Teleport canceled!").color(NautilusCommand.ERROR_COLOR));
+                teleporting.remove(player.getUniqueId());
                 super.cancel();
+
+                if (failCallback != null) failCallback.run();
             }
         };
         runnable.runTaskLater(NautilusManager.INSTANCE, ticks);
@@ -43,6 +63,8 @@ public class TeleportHandler implements Listener {
 
     @EventHandler
     public void onMove(PlayerMoveEvent e) {
+        if (!e.hasChangedPosition()) return;
+
         BukkitRunnable runnable;
         if ((runnable = teleporting.get(e.getPlayer().getUniqueId())) == null) return;
 

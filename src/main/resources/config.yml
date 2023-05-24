@@ -1,0 +1,39 @@
+sql:
+  update_interval: 60
+  protocol: mysql
+  host: ''
+  port: 3306
+  database: ''
+  username: ''
+  password: ''
+afk:
+  timeToAfk: 300
+  timeToIgnoreSleep: 300
+death:
+  itemDespawnSeconds: 300
+spawnProtection:
+  loc1:
+    ==: org.bukkit.Location
+    world: world
+    x: 0
+    y: 0
+    z: 0
+    pitch: 0
+    yaw: 0
+  loc2:
+    ==: org.bukkit.Location
+    world: world
+    x: 0
+    y: 0
+    z: 0
+    pitch: 0
+    yaw: 0
+spawn:
+  tpLocation:
+    ==: org.bukkit.Location
+    world: world
+    x: 0
+    y: 0
+    z: 0
+    pitch: 0
+    yaw: 0
