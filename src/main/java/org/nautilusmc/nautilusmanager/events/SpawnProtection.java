@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.player.PlayerBucketEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -62,6 +63,14 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent e) {
+        if(isProtected(e.getBlock().getLocation()) && !isAllowed(e.getPlayer())) {
+            alert(e.getPlayer());
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerBucket(PlayerBucketEvent e) {
         if(isProtected(e.getBlock().getLocation()) && !isAllowed(e.getPlayer())) {
             alert(e.getPlayer());
             e.setCancelled(true);

@@ -168,7 +168,7 @@ public class CosmeticsCommand extends NautilusCommand {
                 return;
             }
 
-            String error = Nickname.validateNickname((Player) sender, strings[2]);
+            String error = Nickname.validateNickname(player, strings[2]);
             if (error != null) {
                 sender.sendMessage(Component.text(error).style(Style.style(NautilusCommand.ERROR_COLOR)));
                 return;
