@@ -90,11 +90,11 @@ public class NicknameCommand extends NautilusCommand {
             out.add("player");
             out.add("nickname");
         } else if (strings.length == 2) {
-            if (strings[0].equals("player")) {
+            if (strings[0].equalsIgnoreCase("player")) {
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     out.add(p.getName());
                 }
-            } else if (strings[0].equals("nickname")) {
+            } else if (strings[0].equalsIgnoreCase("nickname")) {
                 for (String n : Nickname.getNicknames()) {
                     out.add(n);
                 }

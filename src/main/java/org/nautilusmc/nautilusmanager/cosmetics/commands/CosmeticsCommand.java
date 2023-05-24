@@ -104,7 +104,7 @@ public class CosmeticsCommand extends NautilusCommand {
         int playerIdx = SUBCOMMANDS.containsKey(strings[1]) ? SUBCOMMANDS.get(strings[1])+3 : -1;
 
         Optional<FancyText.ColorType> colorType = Optional.empty();
-        if (playerIdx != -1 && strings.length > 2 && strings[1].equals("color")) {
+        if (playerIdx != -1 && strings.length > 2 && strings[1].equalsIgnoreCase("color")) {
             if (!(colorType = Arrays.stream(FancyText.ColorType.values()).filter(t->t.name().equalsIgnoreCase(strings[2])).findFirst()).isPresent()) {
                 sender.sendMessage(getUsageMessage(strings));
                 return;
@@ -132,7 +132,7 @@ public class CosmeticsCommand extends NautilusCommand {
             player = (Player) sender;
         }
 
-        if (strings[1].equals("color")) {
+        if (strings[1].equalsIgnoreCase("color")) {
             if (colorType.isEmpty() || strings.length < 3+colorType.get().numColors) {
                 sender.sendMessage(getUsageMessage(strings));
                 return;
@@ -157,7 +157,7 @@ public class CosmeticsCommand extends NautilusCommand {
             NameColor.setNameColor(player, colorType.get(), true, Arrays.stream(colors).map(c->TextColor.color(c.getValue())).toArray(TextColor[]::new));
 
             return;
-        } else if (strings[1].equals("nickname")) {
+        } else if (strings[1].equalsIgnoreCase("nickname")) {
             if (!sender.hasPermission(NautilusCommand.NICKNAME_PERM)) {
                 sender.sendMessage(Component.text(NautilusCommand.SPONSOR_PERM_MESSAGE).color(NautilusCommand.ERROR_COLOR));
                 return;
@@ -189,7 +189,7 @@ public class CosmeticsCommand extends NautilusCommand {
         };
 
         Player player = null;
-        if (strings[0].equals("clear")) {
+        if (strings[0].equalsIgnoreCase("clear")) {
             if (strings.length > 2) {
                 if (!sender.hasPermission(NautilusCommand.MODIFY_OTHER_PERM)) {
                     sender.sendMessage(Component.text("Not enough permissions").style(Style.style(NautilusCommand.ERROR_COLOR)));
@@ -211,10 +211,10 @@ public class CosmeticsCommand extends NautilusCommand {
             player = (Player) sender;
         }
 
-        if (strings[1].equals("color")) {
+        if (strings[1].equalsIgnoreCase("color")) {
             NameColor.setNameColor(player, true, NameColor.DEFAULT_COLOR);
             return;
-        } else if (strings[1].equals("nickname")) {
+        } else if (strings[1].equalsIgnoreCase("nickname")) {
             Nickname.setNickname(player, player.getName(), true);
             return;
         }
@@ -231,12 +231,12 @@ public class CosmeticsCommand extends NautilusCommand {
             out.add("set");
             out.add("clear");
         } else if (strings.length == 2) {
-            if (strings[0].equals("set") || strings[0].equals("clear")) {
+            if (strings[0].equalsIgnoreCase("set") || strings[0].equalsIgnoreCase("clear")) {
                 out.addAll(SUBCOMMANDS.keySet());
             }
         } else if (strings.length == 3) {
-            if (strings[0].equals("set")) {
-                if (strings[1].equals("color")) {
+            if (strings[0].equalsIgnoreCase("set")) {
+                if (strings[1].equalsIgnoreCase("color")) {
                     for (FancyText.ColorType type : FancyText.ColorType.values()) {
                         if (type.hasAccess(commandSender) == null) out.add(type.name().toLowerCase());
                     }
@@ -247,7 +247,7 @@ public class CosmeticsCommand extends NautilusCommand {
         int idx = strings.length >= 2 && SUBCOMMANDS.containsKey(strings[1]) ? SUBCOMMANDS.get(strings[1])+3 : -1;
 
         Optional<FancyText.ColorType> type;
-        if (idx != -1 && strings.length > 2 && strings[1].equals("color") && (type = Arrays.stream(FancyText.ColorType.values()).filter(t->t.name().equalsIgnoreCase(strings[2])).findFirst()).isPresent()) {
+        if (idx != -1 && strings.length > 2 && strings[1].equalsIgnoreCase("color") && (type = Arrays.stream(FancyText.ColorType.values()).filter(t->t.name().equalsIgnoreCase(strings[2])).findFirst()).isPresent()) {
             idx += type.get().numColors-1;
             if (strings.length-3 <= type.get().numColors) {
                 out.addAll(Arrays.stream(ChatFormatting.values()).filter(ChatFormatting::isColor).map(ChatFormatting::getName).toList());
@@ -255,7 +255,7 @@ public class CosmeticsCommand extends NautilusCommand {
             }
         }
 
-        if (idx != -1 && (strings[0].equals("set") || strings[0].equals("clear")) && strings.length == idx && commandSender.hasPermission(NautilusCommand.MODIFY_OTHER_PERM)
+        if (idx != -1 && (strings[0].equalsIgnoreCase("set") || strings[0].equalsIgnoreCase("clear")) && strings.length == idx && commandSender.hasPermission(NautilusCommand.MODIFY_OTHER_PERM)
         ) {
             out.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
         }

@@ -47,7 +47,7 @@ public class MessageStyler implements Listener {
     public static final Pattern URL_PATTERN = Pattern.compile("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)");
     public static final TimeZone TIME_ZONE = TimeZone.getTimeZone("CST");
 
-    public EvictingQueue<Component> runningMessages = EvictingQueue.create(50);
+    public static EvictingQueue<Component> runningMessages = EvictingQueue.create(50);
 
     private static TranslatableComponent styleMessage(TranslatableComponent message) {
         List<Component> args = new ArrayList<>(message.args());
@@ -192,14 +192,18 @@ public class MessageStyler implements Listener {
     public void onMessage(AsyncChatEvent e) {
         e.setCancelled(true);
 
-        Component message = Component.empty()
-                .append(getTimeStamp())
-                .append(e.getPlayer().displayName())
-                .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
-                .append(formatUserMessage(e.getPlayer(), e.message()).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
+        sendMessageAsUser(e.getPlayer(), e.message());
+    }
 
-        Bukkit.broadcast(message);
-        runningMessages.add(message);
+    public static void sendMessageAsUser(Player player, Component message) {
+        Component m = Component.empty()
+                .append(getTimeStamp())
+                .append(player.displayName())
+                .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
+                .append(formatUserMessage(player, message).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
+
+        Bukkit.broadcast(m);
+        runningMessages.add(m);
     }
 
     public static Component formatUserMessage(CommandSender player, Component message) {

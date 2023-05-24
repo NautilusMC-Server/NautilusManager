@@ -29,7 +29,7 @@ public class FormattingCommand extends NautilusCommand {
         }
 
         if (strings.length > 0) {
-            if (!strings[0].equals("codes") && !strings[0].equals("names")) return false;
+            if (!strings[0].equalsIgnoreCase("codes") && !strings[0].equalsIgnoreCase("names")) return false;
 
             int pageMax = (int) Math.ceil((double) ChatFormatting.values().length/PAGE_SIZE);
             int page = strings.length > 1 ? Math.min(Integer.parseInt(strings[1]), pageMax) : 1;
@@ -47,16 +47,16 @@ public class FormattingCommand extends NautilusCommand {
 
                 ChatFormatting formatting = ChatFormatting.values()[idx];
 
-                String string = strings[0].equals("codes") ? "`"+formatting.getChar() : "``"+formatting.getName().toLowerCase();
+                String string = strings[0].equalsIgnoreCase("codes") ? "`"+formatting.getChar() : "``"+formatting.getName().toLowerCase();
 
                 Component message = Component.empty().append(Component.text(" - ").color(COLOR)).append(Util.nmsFormat(Component.text(string).color(COLOR), formatting));
                 if (formatting == ChatFormatting.OBFUSCATED) message = message.append(Component.text(" ("+string+")").color(COLOR));
                 commandSender.sendMessage(message);
             }
 
-            if (strings[0].equals("codes")) {
+            if (strings[0].equalsIgnoreCase("codes")) {
                 return true;
-            } else if (strings[0].equals("names")) {
+            } else if (strings[0].equalsIgnoreCase("names")) {
                 // TODO: implement
                 return true;
             }

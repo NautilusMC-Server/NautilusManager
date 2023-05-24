@@ -14,7 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.nautilusmc.nautilusmanager.NautilusManager;
+import org.nautilusmc.nautilusmanager.commands.ChatMsgCommand;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.util.Util;
@@ -23,7 +23,7 @@ import java.util.*;
 
 public class ChatCommand extends NautilusCommand {
 
-    private static Map<UUID, UUID> CHATS = new HashMap<>();
+    private static final Map<UUID, ChatType> CHATS = new HashMap<>();
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
@@ -32,44 +32,61 @@ public class ChatCommand extends NautilusCommand {
             return true;
         }
 
-        if (strings.length == 0 || strings[0].equals("all")) {
+        if (strings.length == 0 || strings[0].equalsIgnoreCase("all")) {
             player.sendMessage(Component.text("Now chatting with all players").color(TextColor.color(255, 211, 41)));
             CHATS.remove(player.getUniqueId());
             return true;
-        }
+        } else if (strings[0].equalsIgnoreCase("player")) {
+            OfflinePlayer chat = Nickname.getPlayerFromNickname(strings[0]);
+            if (chat == null) chat = Bukkit.getPlayerExact(strings[0]);
 
-        OfflinePlayer chat = Nickname.getPlayerFromNickname(strings[0]);
-        if (chat == null) chat = Bukkit.getPlayerExact(strings[0]);
+            if (chat == null || !chat.isOnline()) {
+                commandSender.sendMessage(Component.text("Player not found").color(NautilusCommand.ERROR_COLOR));
+                return true;
+            }
 
-        if (chat == null || !chat.isOnline()) {
-            commandSender.sendMessage(Component.text("Player not found").color(NautilusCommand.ERROR_COLOR));
+            player.sendMessage(Component.text("Now chatting with ").append(chat.getPlayer().displayName()).color(TextColor.color(255, 211, 41)));
+            CHATS.put(player.getUniqueId(), new ChatType("player", chat.getUniqueId()));
             return true;
+        } else if (strings[0].equalsIgnoreCase("staff")) {
+            if (!commandSender.hasPermission(NautilusCommand.STAFF_CHAT_PERM)) {
+                commandSender.sendMessage(Component.text("Not enough permissions").color(NautilusCommand.ERROR_COLOR));
+                return true;
+            }
+
+            player.sendMessage(Component.text("Now in staff chat").color(TextColor.color(255, 211, 41)));
+            CHATS.put(player.getUniqueId(), ChatType.STAFF);
+            return true;
+
         }
 
-        player.sendMessage(Component.text("Now chatting with ").append(chat.getPlayer().displayName()).color(TextColor.color(255, 211, 41)));
-        CHATS.put(player.getUniqueId(), chat.getUniqueId());
-
-        return true;
+        return false;
     }
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        List<String> out = new ArrayList<>();
-        out.add("all");
+        // lazy but sure?
+        return new ChatMsgCommand().onTabComplete(commandSender, command, s, strings);
+    }
 
-        if (strings.length == 1) {
-            out.addAll(Bukkit.getOnlinePlayers().stream().map(Util::getName).toList());
+    private static class ChatType {
+        public static final ChatType STAFF = new ChatType("staff", null);
+
+        public final String commandOption;
+        public final UUID uuid;
+
+        public ChatType(String commandOption, UUID uuid) {
+            this.commandOption = commandOption;
+            this.uuid = uuid;
         }
-
-        return out.stream().filter(str->str.toLowerCase().startsWith(strings[strings.length-1].toLowerCase())).toList();
     }
 
     public static class ChatListener implements Listener {
 
         @EventHandler
         public void onQuit(PlayerQuitEvent e) {
-            for (Map.Entry<UUID, UUID> entry : CHATS.entrySet()) {
-                if (entry.getValue().equals(e.getPlayer().getUniqueId())) {
+            for (Map.Entry<UUID, ChatType> entry : CHATS.entrySet()) {
+                if (entry.getValue().uuid.equals(e.getPlayer().getUniqueId())) {
                     CHATS.remove(entry.getKey());
                 }
             }
@@ -79,12 +96,12 @@ public class ChatCommand extends NautilusCommand {
 
         @EventHandler(priority = EventPriority.LOWEST)
         public void onChat(AsyncChatEvent e) {
-            UUID chat = CHATS.get(e.getPlayer().getUniqueId());
+            ChatType chat = CHATS.get(e.getPlayer().getUniqueId());
             if (chat != null) {
                 e.setCancelled(true);
 
-                Player recipient = Bukkit.getPlayer(chat);
-                Bukkit.getScheduler().runTask(NautilusManager.INSTANCE, () -> e.getPlayer().performCommand("msg " + recipient.getName() + " " + Util.getTextContent(e.originalMessage())));
+                String name = chat.uuid != null ? " "+Util.getName(Bukkit.getPlayer(chat.uuid)) : "";
+                e.getPlayer().performCommand("chatmessage "+chat.commandOption+name+" "+Util.getTextContent(e.originalMessage()));
             }
         }
     }

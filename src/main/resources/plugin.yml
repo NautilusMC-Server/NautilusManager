@@ -29,6 +29,11 @@ commands:
     aliases:
       - tell
       - w
+  chatmsg:
+    description: Sends a message to a specific chat
+    usage: /chatmsg <chat> <message>
+    aliases:
+      - cm
   afk:
     description: Toggle AFK status
     usage: /afk [player]

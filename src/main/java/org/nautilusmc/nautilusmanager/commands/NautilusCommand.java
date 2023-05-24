@@ -20,7 +20,9 @@ public abstract class NautilusCommand implements CommandExecutor, TabCompleter {
     public static final String NICKNAME_PERM = "nautiluscosmetics.nickname";
     public static final String NICKNAME_LIST_PERM = "nautiluscosmetics.nickname.view";
     public static final String NICKNAME_SPECIAL_CHAR_PERM = "nautiluscosmetics.nickname.special_characters";
-    public static final String CHAT_FORMATTING_PERM = "nautiluscosmetics.chat_formatting";
+    public static final String CHAT_FORMATTING_PERM = "nautiluscosmetics.chat.formatting";
+    public static final String VANISH_PERM = "nautilusmanager.vanish";
+    public static final String STAFF_CHAT_PERM = "nautilusmanager.chat.staff";
     public static final String RELOAD_PERM = "nautilusmanager.reload";
 
     //teleport
@@ -30,7 +32,6 @@ public abstract class NautilusCommand implements CommandExecutor, TabCompleter {
     public static final String CREATE_WARPS_PERM = "nautilusmanager.warp.create";
 
     //crews
-    public static final String VANISH_PERM = "nautilusmanager.vanish";
     public static final String CREATE_CREW_PERM = "nautilusmanager.crew.create";
     public static final String JOIN_CREW_PERM = "nautilusmanager.crew.join";
     public static final String LEAVE_CREW_PERM = "nautilusmanager.crew.leave";
