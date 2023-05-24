@@ -39,7 +39,7 @@ public class CrewCommand extends NautilusCommand {
         }
         Player player = (Player) commandSender;
         if (strings.length == 0) {
-            player.sendMessage(Component.text(help()).color(NautilusCommand.DEFAULT_CHAT_TEXT_COLOR));
+            player.sendMessage(Component.text(help()).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
             return true;
         }
         switch (strings[0]) {
@@ -54,7 +54,7 @@ public class CrewCommand extends NautilusCommand {
             case "close" -> closeCrew(player);
             case "invite" -> invite(player, strings[1]);
             case "info" -> crewInfo(player, strings);
-            default -> player.sendMessage(Component.text(help()).color(DEFAULT_CHAT_TEXT_COLOR));
+            default -> player.sendMessage(Component.text(help()).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
         }
         return true;
     }
@@ -81,7 +81,7 @@ public class CrewCommand extends NautilusCommand {
             }
         }
         CrewHandler.registerCrew(new Crew(player, name));
-        player.sendMessage(Component.text("Crew \"" + name + "\" created!").color(DEFAULT_CHAT_TEXT_COLOR));
+        player.sendMessage(Component.text("Crew \"" + name + "\" created!").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
         //TODO: Add player to crew perm group
     }
 
@@ -98,7 +98,7 @@ public class CrewCommand extends NautilusCommand {
         ConfirmationMessage.sendConfirmationMessage(player, "delete your crew", new BukkitRunnable() {
             @Override
             public void run() {
-                player.sendMessage(Component.text("Crew \"" + crew.getName() + "\" deleted!").color(DEFAULT_CHAT_TEXT_COLOR));
+                player.sendMessage(Component.text("Crew \"" + crew.getName() + "\" deleted!").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
                 CrewHandler.deleteCrew(crew);
                 CrewHandler.updateSQL();
             }
@@ -116,7 +116,7 @@ public class CrewCommand extends NautilusCommand {
             error(player, "You are not part of any crew!");
             return;
         }
-        player.sendMessage(Component.text(crew.toString()).color(DEFAULT_CHAT_TEXT_COLOR));
+        player.sendMessage(Component.text(crew.toString()).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
     }
 
     public static void joinCrew(Player player, String[] strings) {
@@ -155,7 +155,7 @@ public class CrewCommand extends NautilusCommand {
             return;
         }
         //TODO: add confirmation message later
-        player.sendMessage(Component.text("You left \"" + crew.getName() + "\"").color(DEFAULT_CHAT_TEXT_COLOR));
+        player.sendMessage(Component.text("You left \"" + crew.getName() + "\"").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
         crew.getMembers().remove(player);
         CrewHandler.updateSQL();
         //TODO: Remove player from crew perm group
@@ -181,9 +181,9 @@ public class CrewCommand extends NautilusCommand {
             return;
         }
         //TODO: add confirmation message later
-        player.sendMessage(Component.text(name + " was kicked from your crew").color(DEFAULT_CHAT_TEXT_COLOR));
+        player.sendMessage(Component.text(name + " was kicked from your crew").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
         if (kicked.isOnline()) {
-            kicked.sendMessage(Component.text("You were kicked from your crew!").color(DEFAULT_CHAT_TEXT_COLOR));
+            kicked.sendMessage(Component.text("You were kicked from your crew!").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
         }
         crew.getMembers().remove(kicked);
         CrewHandler.updateSQL();
@@ -209,9 +209,9 @@ public class CrewCommand extends NautilusCommand {
             return;
         }
         //TODO: add confirmation message later
-        player.sendMessage(Component.text(name + " is now the captain of your crew").color(DEFAULT_CHAT_TEXT_COLOR));
+        player.sendMessage(Component.text(name + " is now the captain of your crew").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
         if (newCaptain.isOnline()) {
-            newCaptain.sendMessage(Component.text("You are now the captain of your crew!").color(DEFAULT_CHAT_TEXT_COLOR));
+            newCaptain.sendMessage(Component.text("You are now the captain of your crew!").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
         }
         crew.setCaptain(newCaptain);
         CrewHandler.updateSQL();
@@ -237,7 +237,7 @@ public class CrewCommand extends NautilusCommand {
             return;
         }
         crew.setOpen(true);
-        player.sendMessage(Component.text("Crew set to open!").color(DEFAULT_CHAT_TEXT_COLOR));
+        player.sendMessage(Component.text("Crew set to open!").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
         CrewHandler.updateSQL();
     }
 
@@ -252,7 +252,7 @@ public class CrewCommand extends NautilusCommand {
             return;
         }
         crew.setOpen(false);
-        player.sendMessage(Component.text("Crew set to closed!").color(DEFAULT_CHAT_TEXT_COLOR));
+        player.sendMessage(Component.text("Crew set to closed!").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
         CrewHandler.updateSQL();
     }
 
@@ -271,7 +271,7 @@ public class CrewCommand extends NautilusCommand {
                 error(player, "You are not part of any crew!");
                 return;
             }
-            player.sendMessage(Component.text(crew.toString()).color(DEFAULT_CHAT_TEXT_COLOR));
+            player.sendMessage(Component.text(crew.toString()).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
         } else {
             String name = getFormattedArgs(args, 1);
             Crew crew = CrewHandler.getCrew(name);
@@ -279,7 +279,7 @@ public class CrewCommand extends NautilusCommand {
                 error(player, "Crew \"" + name + "\" does not exist!");
                 return;
             }
-            player.sendMessage(Component.text(crew.toString()).color(DEFAULT_CHAT_TEXT_COLOR));
+            player.sendMessage(Component.text(crew.toString()).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
         }
     }
 

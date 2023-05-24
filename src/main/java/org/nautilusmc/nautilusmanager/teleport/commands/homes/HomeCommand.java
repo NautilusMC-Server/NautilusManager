@@ -16,9 +16,6 @@ import java.util.List;
 
 public class HomeCommand extends NautilusCommand {
 
-    public static final TextColor COLOR_1 = TextColor.color(255, 188, 0);
-    public static final TextColor COLOR_2 = TextColor.color(255, 252, 162);
-
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player player)) {

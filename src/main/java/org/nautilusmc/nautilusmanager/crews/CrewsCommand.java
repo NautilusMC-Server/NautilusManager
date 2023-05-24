@@ -5,6 +5,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
+import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
 
 import java.util.ArrayList;
@@ -21,10 +22,10 @@ public class CrewsCommand implements CommandExecutor {
             }
         }
         if (out.equals("")) {
-            commandSender.sendMessage(Component.text("No crews on the server").color(NautilusCommand.DEFAULT_CHAT_TEXT_COLOR));
+            commandSender.sendMessage(Component.text("No crews on the server").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
             return true;
         }
-        commandSender.sendMessage(Component.text(out).color(NautilusCommand.DEFAULT_CHAT_TEXT_COLOR));
+        commandSender.sendMessage(Component.text(out).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
         return true;
     }
 }

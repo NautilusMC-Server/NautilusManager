@@ -38,31 +38,42 @@ public class SetHomeCommand extends NautilusCommand {
             return true;
         }
 
-        if (Homes.getHome(player, strings[0]) != null && !confirming.contains(player.getUniqueId())) {
+        boolean overriding = Homes.getHome(player, strings[0]) != null;
+        if (overriding && !confirming.contains(player.getUniqueId())) {
             player.sendMessage(Component.text("You already have a home with that name, run ")
-                    .append(Util.clickableCommand("/sethome "+strings[0]).color(HomeCommand.COLOR_2))
+                    .append(Util.clickableCommand("/sethome "+strings[0], true).color(NautilusCommand.ACCENT_COLOR))
                     .append(Component.text(" again to overwrite it"))
-                    .color(HomeCommand.COLOR_1));
+                    .color(NautilusCommand.MAIN_COLOR));
             confirming.add(player.getUniqueId());
             return true;
         }
         confirming.remove(player.getUniqueId());
 
+        if (!overriding && Homes.getHomes(player).size() >= Homes.getMaxHomes(player)) {
+            player.sendMessage(Component.text("You already have the maximum amount of homes, ")
+                    .append(Util.clickableCommand("/delhome ", false).color(NautilusCommand.ACCENT_COLOR))
+                    .append(Component.text("to remove one or "))
+                    .append(Util.clickableCommand("/buyhome ", false).color(NautilusCommand.ACCENT_COLOR))
+                    .append(Component.text("to buy a new one."))
+                    .color(NautilusCommand.MAIN_COLOR));
+            return true;
+        }
+
         Location loc = player.getLocation();
 
         player.sendMessage(Component.text("Set home ")
                 .append(Component.text(strings[0])
-                        .color(HomeCommand.COLOR_2))
+                        .color(NautilusCommand.ACCENT_COLOR))
                 .append(Component.text(" at "))
                 .append(Component.text(Integer.toString(loc.getBlockX()))
-                        .color(HomeCommand.COLOR_2))
+                        .color(NautilusCommand.ACCENT_COLOR))
                 .append(Component.text(", "))
                 .append(Component.text(Integer.toString(loc.getBlockY()))
-                        .color(HomeCommand.COLOR_2))
+                        .color(NautilusCommand.ACCENT_COLOR))
                 .append(Component.text(", "))
                 .append(Component.text(Integer.toString(loc.getBlockZ()))
-                        .color(HomeCommand.COLOR_2))
-                .color(HomeCommand.COLOR_1));
+                        .color(NautilusCommand.ACCENT_COLOR))
+                .color(NautilusCommand.MAIN_COLOR));
         Homes.setHome(player, strings[0], loc);
         return true;
     }

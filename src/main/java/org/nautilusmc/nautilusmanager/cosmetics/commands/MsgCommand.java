@@ -37,7 +37,7 @@ public class MsgCommand extends NautilusCommand {
         String message = String.join(" ", Arrays.copyOfRange(strings, 1, strings.length));
 
         Component msg = MessageStyler.formatUserMessage(commandSender, Component.text(message))
-                .color(NautilusCommand.DEFAULT_CHAT_TEXT_COLOR)
+                .color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR)
                 .decorate(TextDecoration.ITALIC);
 
         if (commandSender instanceof Player player) {

@@ -1,11 +1,10 @@
 package org.nautilusmc.nautilusmanager;
 
-import net.luckperms.api.LuckPerms;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.nautilusmc.nautilusmanager.commands.AfkCommand;
-import org.nautilusmc.nautilusmanager.commands.HomeBuyCommand;
+import org.nautilusmc.nautilusmanager.teleport.commands.homes.BuyHomeCommand;
 import org.nautilusmc.nautilusmanager.commands.ReloadCommand;
 import org.nautilusmc.nautilusmanager.cosmetics.NameColor;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
@@ -28,7 +27,7 @@ import org.nautilusmc.nautilusmanager.teleport.commands.warp.*;
 public final class NautilusManager extends JavaPlugin {
 
     public static NautilusManager INSTANCE;
-    public static LuckPerms LUCKPERMS;
+    public static final TextColor DEFAULT_CHAT_TEXT_COLOR = TextColor.color(200, 200, 200);
 
     @Override
     public void onEnable() {
@@ -41,12 +40,10 @@ public final class NautilusManager extends JavaPlugin {
         Nickname.init();
         Homes.init();
         Warps.init();
-//        HomeBuyCommand.init();
 
         registerCommands();
         registerEvents();
         TabListManager.init();
-//        registerAPIs();
     }
 
     private void registerCommands() {
@@ -63,7 +60,7 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("homes").setExecutor(new HomesCommand());
         this.getCommand("spawn").setExecutor(new SpawnCommand());
         this.getCommand("back").setExecutor(new BackCommand());
-        this.getCommand("buyhome").setExecutor(new HomeBuyCommand());
+        this.getCommand("buyhome").setExecutor(new BuyHomeCommand());
         this.getCommand("tpa").setExecutor(new TpaCommand());
         this.getCommand("tphere").setExecutor(new TpHereCommand());
         this.getCommand("tpaccept").setExecutor(new TpAcceptCommand());
@@ -77,13 +74,6 @@ public final class NautilusManager extends JavaPlugin {
         //this.getCommand("crew").setExecutor(new CrewCommand());
         //this.getCommand("confirm").setExecutor(new ConfirmCommand());
         //this.getCommand("deny").setExecutor(new DenyCommand());
-    }
-
-    private void registerAPIs() {
-        RegisteredServiceProvider<LuckPerms> luckPerms = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
-        if (luckPerms != null) {
-            LUCKPERMS = luckPerms.getProvider();
-        }
     }
 
     private void registerEvents() {

@@ -34,8 +34,8 @@ public class DelHomeCommand extends NautilusCommand {
 
         player.sendMessage(Component.text("Removed home ")
                 .append(Component.text(strings[0])
-                        .color(HomeCommand.COLOR_2))
-                .color(HomeCommand.COLOR_1));
+                        .color(NautilusCommand.ACCENT_COLOR))
+                .color(NautilusCommand.MAIN_COLOR));
         Homes.setHome(player, strings[0], null);
 
         return true;

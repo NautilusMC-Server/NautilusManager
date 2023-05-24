@@ -7,9 +7,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
-import org.nautilusmc.nautilusmanager.teleport.Homes;
 import org.nautilusmc.nautilusmanager.teleport.Warps;
-import org.nautilusmc.nautilusmanager.teleport.commands.homes.HomeCommand;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
@@ -41,9 +39,9 @@ public class CreateWarpCommand extends NautilusCommand {
 
         if (Warps.getWarp(strings[0]) != null && !confirming.contains(player.getUniqueId())) {
             player.sendMessage(Component.text("There is already a warp with that name, run ")
-                    .append(Util.clickableCommand("/createwarp "+strings[0]).color(HomeCommand.COLOR_2))
+                    .append(Util.clickableCommand("/createwarp "+strings[0], true).color(NautilusCommand.ACCENT_COLOR))
                     .append(Component.text(" again to overwrite it"))
-                    .color(HomeCommand.COLOR_1));
+                    .color(NautilusCommand.MAIN_COLOR));
             confirming.add(player.getUniqueId());
             return true;
         }
@@ -52,8 +50,8 @@ public class CreateWarpCommand extends NautilusCommand {
 
         Warps.newWarp(strings[0], player.getLocation());
         player.sendMessage(Component.text("Created warp ")
-                .append(Component.text(strings[0]).color(HomeCommand.COLOR_2))
-                .color(HomeCommand.COLOR_1));
+                .append(Component.text(strings[0]).color(NautilusCommand.ACCENT_COLOR))
+                .color(NautilusCommand.MAIN_COLOR));
 
         return true;
     }

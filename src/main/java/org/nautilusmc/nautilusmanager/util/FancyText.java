@@ -2,6 +2,7 @@ package org.nautilusmc.nautilusmanager.util;
 
 import com.google.common.collect.ImmutableMap;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -95,8 +96,8 @@ public class FancyText {
     }
 
     public static Component parseChatFormatting(String message) {
-        Component component = Component.empty();
-        Component building = Component.empty();
+        TextComponent component = Component.empty();
+        TextComponent building = Component.empty();
 
         for (int i = 0; i < message.length(); i++) {
             boolean consumed = false;
@@ -105,7 +106,10 @@ public class FancyText {
                 if (message.charAt(i+1) == 'x') {
                     try {
                         int hex = Integer.parseInt(message.substring(i+2, i+8), 16);
-                        component = component.append(building);
+                        if (!building.content().isEmpty()) {
+                            if (component.content().isEmpty()) component = building;
+                            else component = component.append(building);
+                        }
                         building = Component.empty().style(building.style()).color(TextColor.color(hex));
                         i += 7;
                         consumed = true;
@@ -124,8 +128,11 @@ public class FancyText {
                     }
 
                     if (formatting != null) {
-                        component = component.append(building);
-                        building = Util.nmsFormat(Component.empty().style(formatting != ChatFormatting.RESET ? building.style() : Style.empty()), formatting);
+                        if (!building.content().isEmpty()) {
+                            if (component.content().isEmpty()) component = building;
+                            else component = component.append(building);
+                        }
+                        building = (TextComponent) Util.nmsFormat(Component.empty().style(formatting != ChatFormatting.RESET ? building.style() : Style.empty()), formatting);
 
                         i++;
                         consumed = true;
@@ -134,11 +141,11 @@ public class FancyText {
             }
 
             if (!consumed) {
-                building = building.append(Component.text(message.charAt(i)));
+                building = building.content(building.content()+message.charAt(i));
             }
         }
         
-        return component.append(building);
+        return component.content().isEmpty() ? building : component.append(building);
     }
 
     public enum ColorType {

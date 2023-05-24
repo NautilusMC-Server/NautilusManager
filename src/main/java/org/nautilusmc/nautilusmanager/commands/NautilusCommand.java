@@ -9,7 +9,9 @@ import org.bukkit.entity.Player;
 public abstract class NautilusCommand implements CommandExecutor, TabCompleter {
 
     public static final TextColor ERROR_COLOR = TextColor.color(255, 42, 52);
-    public static final TextColor DEFAULT_CHAT_TEXT_COLOR = TextColor.color(200, 200, 200);
+    public static final TextColor MAIN_COLOR = TextColor.color(255, 188, 0);
+    public static final TextColor ACCENT_COLOR = TextColor.color(255, 252, 162);
+
     public static final String DEFAULT_PERM_MESSAGE = "You do not have permission to use that command!";
     public static final String SPONSOR_PERM_MESSAGE = "Become a sponsor to unlock!";
 

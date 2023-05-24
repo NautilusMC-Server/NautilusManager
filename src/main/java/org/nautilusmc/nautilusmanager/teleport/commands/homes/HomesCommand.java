@@ -27,15 +27,15 @@ public class HomesCommand extends NautilusCommand {
             return true;
         }
 
-        player.sendMessage(Component.text("Homes: ").color(HomeCommand.COLOR_1));
+        player.sendMessage(Component.text("Homes: ").color(NautilusCommand.MAIN_COLOR));
         if (Homes.getHomes(player) == null || Homes.getHomes(player).isEmpty()) {
-            player.sendMessage(Component.text("  Nothing to see here yet, run ").color(HomeCommand.COLOR_1)
-                    .append(Component.text("/sethome <name>").color(HomeCommand.COLOR_2))
+            player.sendMessage(Component.text("  Nothing to see here yet, run ").color(NautilusCommand.MAIN_COLOR)
+                    .append(Component.text("/sethome <name>").color(NautilusCommand.ACCENT_COLOR))
                     .append(Component.text("!")));
         } else {
             for (Map.Entry<String, Location> home : Homes.getHomes(player).entrySet()) {
                 Location loc = home.getValue();
-                player.sendMessage(Component.text(" - ").color(HomeCommand.COLOR_1).append(Component.text(home.getKey()).color(HomeCommand.COLOR_2))
+                player.sendMessage(Component.text(" - ").color(NautilusCommand.MAIN_COLOR).append(Component.text(home.getKey()).color(NautilusCommand.ACCENT_COLOR))
                         .append(Component.text(" (%d,%d,%d)".formatted(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()))));
             }
         }

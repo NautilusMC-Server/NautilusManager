@@ -6,6 +6,7 @@ import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.minecraft.ChatFormatting;
@@ -15,6 +16,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundPlayerCombatKillPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.scores.Team;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
@@ -42,7 +44,7 @@ import java.util.regex.Pattern;
 @SuppressWarnings("UnstableApiUsage")
 public class MessageStyler implements Listener {
 
-    public static final Pattern URL_PATTERN = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)\n");
+    public static final Pattern URL_PATTERN = Pattern.compile("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)");
     public static final TimeZone TIME_ZONE = TimeZone.getTimeZone("CST");
 
     public EvictingQueue<Component> runningMessages = EvictingQueue.create(50);
@@ -194,7 +196,7 @@ public class MessageStyler implements Listener {
                 .append(getTimeStamp())
                 .append(e.getPlayer().displayName())
                 .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
-                .append(formatUserMessage(e.getPlayer(), e.message()).color(NautilusCommand.DEFAULT_CHAT_TEXT_COLOR));
+                .append(formatUserMessage(e.getPlayer(), e.message()).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
 
         Bukkit.broadcast(message);
         runningMessages.add(message);
@@ -205,20 +207,68 @@ public class MessageStyler implements Listener {
             message = FancyText.parseChatFormatting(Util.getTextContent(message));
         }
 
-        return styleURL(message, 0, null);
+        return styleURL(message, null, null);
     }
 
-    // call as styleURL(message, 0, null)
-    private static Component styleURL(Component component, int index, Map<Map.Entry<Integer, Integer>, String> urls) {
+    // call as styleURL(message, null, null)
+    private static Component styleURL(Component component, MutableInt index, Map<Map.Entry<Integer, Integer>, String> urls) {
+        if (index == null) index = new MutableInt(0);
         if (urls == null) {
             Matcher matcher = URL_PATTERN.matcher(Util.getTextContent(component));
+            urls = new HashMap<>();
             while (matcher.find()) {
                 urls.put(Map.entry(matcher.start(), matcher.end()), matcher.group());
             }
         }
 
-        // todo: make this style the URLs
-        return component;
+        List<Component> children = new ArrayList<>(component.children());
+        List<TextComponent> linkChildren = new ArrayList<>();
+
+        if (component instanceof TextComponent text) {
+            component = text.content("");
+            String contents = text.content();
+            TextComponent building = Component.empty();
+            boolean inUrl = false;
+
+            for (char c : contents.toCharArray()) {
+                for (Map.Entry<Map.Entry<Integer, Integer>, String> entry : urls.entrySet()) {
+                    if (entry.getKey().getKey() <= index.getValue() && index.getValue() < entry.getKey().getValue()) {
+                        if (!inUrl) {
+                            linkChildren.add(building);
+                            building = Component.empty().clickEvent(ClickEvent.openUrl(entry.getValue()))
+                                    .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Go to "+entry.getValue())))
+                                    .color(TextColor.color(57, 195, 255))
+                                    .decorate(TextDecoration.UNDERLINED);
+                            inUrl = true;
+                        }
+                    } else if (inUrl) {
+                        linkChildren.add(building);
+                        building = Component.empty();
+                        inUrl = false;
+                    }
+
+                    if (entry.getKey().getValue() >= index.getValue()) {
+                        break;
+                    }
+                }
+
+                building = building.content(building.content() + c);
+
+                index.increment();
+            }
+
+
+            linkChildren.add(building);
+            linkChildren.removeIf(c -> c.content().isEmpty());
+        }
+
+        for (int i = 0; i < children.size(); i++) {
+            children.set(i, styleURL(children.get(i), index, urls));
+        }
+
+
+        children.addAll(0, linkChildren);
+        return component.children(children);
     }
 
     public static Component getTimeStamp() {

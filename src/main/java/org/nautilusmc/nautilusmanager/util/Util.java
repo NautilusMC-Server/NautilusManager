@@ -18,6 +18,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.cosmetics.NameColor;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
@@ -49,9 +50,9 @@ public class Util {
         return nickname == null ? player.getName() : nickname;
     }
 
-    public static Component clickableCommand(String command) {
+    public static Component clickableCommand(String command, boolean run) {
         return Component.text(command)
-                .clickEvent(ClickEvent.runCommand(command))
+                .clickEvent(run ? ClickEvent.runCommand(command) : ClickEvent.suggestCommand(command))
                 .hoverEvent(HoverEvent.showText(Component.text("Run "+command)));
     }
 

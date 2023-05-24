@@ -31,26 +31,26 @@ public class TpaManager implements Listener {
         lastRequests.put(requested.getUniqueId(), requester.getUniqueId());
 
         requester.sendMessage(Component.text("Sent a request to ")
-                .append(Component.empty().color(HomeCommand.COLOR_2).append(requested.displayName()))
-                .color(HomeCommand.COLOR_1));
-        requester.sendMessage(Util.clickableCommand("/tpcancel").color(HomeCommand.COLOR_2)
-                .append(Component.text(" to cancel").color(HomeCommand.COLOR_1)));
+                .append(Component.empty().color(NautilusCommand.ACCENT_COLOR).append(requested.displayName()))
+                .color(NautilusCommand.MAIN_COLOR));
+        requester.sendMessage(Util.clickableCommand("/tpcancel", true).color(NautilusCommand.ACCENT_COLOR)
+                .append(Component.text(" to cancel").color(NautilusCommand.MAIN_COLOR)));
 
-        requested.sendMessage(Component.empty().color(HomeCommand.COLOR_2).append(requester.displayName())
+        requested.sendMessage(Component.empty().color(NautilusCommand.ACCENT_COLOR).append(requester.displayName())
                 .append(Component.text(" has requested " + type.message))
-                .color(HomeCommand.COLOR_1));
-        requested.sendMessage(Util.clickableCommand("/tpaccept").color(HomeCommand.COLOR_2)
-                .append(Component.text(" to accept or ").color(HomeCommand.COLOR_1))
-                .append(Util.clickableCommand("/tpdeny").color(HomeCommand.COLOR_2))
-                .append(Component.text(" to deny").color(HomeCommand.COLOR_1)));
+                .color(NautilusCommand.MAIN_COLOR));
+        requested.sendMessage(Util.clickableCommand("/tpaccept", true).color(NautilusCommand.ACCENT_COLOR)
+                .append(Component.text(" to accept or ").color(NautilusCommand.MAIN_COLOR))
+                .append(Util.clickableCommand("/tpdeny", true).color(NautilusCommand.ACCENT_COLOR))
+                .append(Component.text(" to deny").color(NautilusCommand.MAIN_COLOR)));
 
         Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> {
             if (requests.get(requester.getUniqueId()) == entry) {
-                requested.sendMessage(Component.empty().color(HomeCommand.COLOR_2).append(requester.displayName())
+                requested.sendMessage(Component.empty().color(NautilusCommand.ACCENT_COLOR).append(requester.displayName())
                         .append(Component.text("'s request timed out"))
-                        .color(HomeCommand.COLOR_1));
+                        .color(NautilusCommand.MAIN_COLOR));
 
-                requester.sendMessage(Component.text("Request timed out").color(HomeCommand.COLOR_1));
+                requester.sendMessage(Component.text("Request timed out").color(NautilusCommand.MAIN_COLOR));
 
                 removeRequest(requester, requested);
             }
@@ -116,12 +116,12 @@ public class TpaManager implements Listener {
 
 
         requested.sendMessage(Component.text("Accepted ")
-                .append(Component.empty().color(HomeCommand.COLOR_2).append(requesterPlayer.displayName()))
+                .append(Component.empty().color(NautilusCommand.ACCENT_COLOR).append(requesterPlayer.displayName()))
                 .append(Component.text("'s request"))
-                .color(HomeCommand.COLOR_1));
-        requesterPlayer.getPlayer().sendMessage(Component.empty().color(HomeCommand.COLOR_2).append(requested.displayName())
+                .color(NautilusCommand.MAIN_COLOR));
+        requesterPlayer.getPlayer().sendMessage(Component.empty().color(NautilusCommand.ACCENT_COLOR).append(requested.displayName())
                 .append(Component.text(" has accepted the request"))
-                .color(HomeCommand.COLOR_1));
+                .color(NautilusCommand.MAIN_COLOR));
 
         removeRequest(requesterPlayer, requested);
     }
@@ -131,13 +131,13 @@ public class TpaManager implements Listener {
         if (requesterPlayer == null) return;
 
         requested.sendMessage(Component.text("Denied ")
-                .append(Component.empty().color(HomeCommand.COLOR_2).append(requesterPlayer.displayName()))
+                .append(Component.empty().color(NautilusCommand.ACCENT_COLOR).append(requesterPlayer.displayName()))
                 .append(Component.text("'s request"))
-                .color(HomeCommand.COLOR_1));
+                .color(NautilusCommand.MAIN_COLOR));
 
-        requesterPlayer.sendMessage(Component.empty().color(HomeCommand.COLOR_2).append(requested.displayName())
+        requesterPlayer.sendMessage(Component.empty().color(NautilusCommand.ACCENT_COLOR).append(requested.displayName())
                 .append(Component.text(" has denied the request"))
-                .color(HomeCommand.COLOR_1));
+                .color(NautilusCommand.MAIN_COLOR));
 
         removeRequest(requesterPlayer, requested);
     }
@@ -151,12 +151,12 @@ public class TpaManager implements Listener {
         Player requested = Bukkit.getPlayer(requestedUUID);
 
         requester.sendMessage(Component.text("Canceled your request to ")
-                .append(Component.empty().color(HomeCommand.COLOR_2).append(requested.displayName()))
-                .color(HomeCommand.COLOR_1));
+                .append(Component.empty().color(NautilusCommand.ACCENT_COLOR).append(requested.displayName()))
+                .color(NautilusCommand.MAIN_COLOR));
 
-        requested.sendMessage(Component.empty().color(HomeCommand.COLOR_2).append(requester.displayName())
+        requested.sendMessage(Component.empty().color(NautilusCommand.ACCENT_COLOR).append(requester.displayName())
                 .append(Component.text(" has canceled the request"))
-                .color(HomeCommand.COLOR_1));
+                .color(NautilusCommand.MAIN_COLOR));
 
         removeRequest(requester, requested);
     }

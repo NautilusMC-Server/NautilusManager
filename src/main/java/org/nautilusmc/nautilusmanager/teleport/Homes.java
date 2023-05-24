@@ -3,6 +3,7 @@ package org.nautilusmc.nautilusmanager.teleport;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.sql.SQLHandler;
 
 import java.sql.ResultSet;
@@ -16,11 +17,13 @@ public class Homes {
     public static final int MAX_NAME_LEN = 16;
 
     private static final Map<UUID, Map<String, Location>> playerHomes = new HashMap<>();
+    private static final Map<UUID, Integer> playerHomeAmts = new HashMap<>();
 
-    public static SQLHandler SQL_HANDLER;
+    public static SQLHandler HOME_LOC_SQL;
+    public static SQLHandler HOME_AMT_SQL;
 
     public static void init() {
-        SQL_HANDLER = new SQLHandler("homes", "uuid_name") {
+        HOME_LOC_SQL = new SQLHandler("homes", "uuid_name") {
             @Override
             public void updateSQL(ResultSet results) throws SQLException {
                 while (results.next()) {
@@ -38,6 +41,15 @@ public class Homes {
                     if (!playerHomes.containsKey(uuid)) playerHomes.put(uuid, new HashMap<>());
 
                     playerHomes.get(uuid).put(uuidName[1], loc);
+                }
+            }
+        };
+
+        HOME_AMT_SQL = new SQLHandler("home_amounts", "uuid") {
+            @Override
+            public void updateSQL(ResultSet results) throws SQLException {
+                while (results.next()) {
+                    playerHomeAmts.put(UUID.fromString(results.getString("uuid")), results.getInt("amount"));
                 }
             }
         };
@@ -61,11 +73,20 @@ public class Homes {
         String key = uuid + "/" + name;
         if (loc == null) {
             playerHomes.get(uuid).remove(name);
-            SQL_HANDLER.deleteSQL(key);
+            HOME_LOC_SQL.deleteSQL(key);
         } else {
             playerHomes.get(uuid).put(name, loc);
-            SQL_HANDLER.setSQL(key, locationToMap(loc));
+            HOME_LOC_SQL.setSQL(key, locationToMap(loc));
         }
+    }
+
+    public static void setMaxHomes(Player player, int homes) {
+        playerHomeAmts.put(player.getUniqueId(), homes);
+        HOME_AMT_SQL.setSQL(player.getUniqueId().toString(), Map.of("amount", homes));
+    }
+
+    public static int getMaxHomes(Player player) {
+        return playerHomeAmts.getOrDefault(player.getUniqueId(), NautilusManager.INSTANCE.getConfig().getInt("homes.startingAmount"));
     }
 
     private static Map<String, Object> locationToMap(Location loc) {

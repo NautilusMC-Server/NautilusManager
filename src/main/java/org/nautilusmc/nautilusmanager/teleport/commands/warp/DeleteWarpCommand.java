@@ -7,9 +7,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
-import org.nautilusmc.nautilusmanager.teleport.Homes;
 import org.nautilusmc.nautilusmanager.teleport.Warps;
-import org.nautilusmc.nautilusmanager.teleport.commands.homes.HomeCommand;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +34,8 @@ public class DeleteWarpCommand extends NautilusCommand {
 
         Warps.removeWarp(strings[0]);
         player.sendMessage(Component.text("Removed warp ")
-                .append(Component.text(strings[0]).color(HomeCommand.COLOR_2))
-                .color(HomeCommand.COLOR_1));
+                .append(Component.text(strings[0]).color(NautilusCommand.ACCENT_COLOR))
+                .color(NautilusCommand.MAIN_COLOR));
 
         return true;
     }
