@@ -49,7 +49,7 @@ public class SetHomeCommand extends NautilusCommand {
         }
         confirming.remove(player.getUniqueId());
 
-        if (!overriding && Homes.getHomes(player).size() >= Homes.getMaxHomes(player)) {
+        if (!overriding && (Homes.getHomes(player) != null && Homes.getHomes(player).size() >= Homes.getMaxHomes(player))) {
             player.sendMessage(Component.text("You already have the maximum amount of homes, ")
                     .append(Util.clickableCommand("/delhome ", false).color(NautilusCommand.ACCENT_COLOR))
                     .append(Component.text("to remove one or "))
