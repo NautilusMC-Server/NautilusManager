@@ -84,3 +84,6 @@ commands:
   delwarp:
     description: Admin command to remove public warps.
     usage: /delwarp <name>
+  crews:
+    description: Lists all crews
+    usage: /crews

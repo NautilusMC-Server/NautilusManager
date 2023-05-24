@@ -11,6 +11,7 @@ import org.nautilusmc.nautilusmanager.cosmetics.NameColor;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.cosmetics.TabListManager;
 import org.nautilusmc.nautilusmanager.cosmetics.commands.*;
+import org.nautilusmc.nautilusmanager.crews.CrewsCommand;
 import org.nautilusmc.nautilusmanager.events.*;
 import org.nautilusmc.nautilusmanager.sql.SQL;
 import org.nautilusmc.nautilusmanager.teleport.Homes;
@@ -72,6 +73,7 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("warp").setExecutor(new WarpCommand());
         this.getCommand("createwarp").setExecutor(new CreateWarpCommand());
         this.getCommand("delwarp").setExecutor(new DeleteWarpCommand());
+        this.getCommand("crews").setExecutor(new CrewsCommand());
     }
 
     private void registerAPIs() {

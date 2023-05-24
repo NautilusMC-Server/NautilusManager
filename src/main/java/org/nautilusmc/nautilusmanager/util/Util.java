@@ -18,8 +18,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.nautilusmc.nautilusmanager.NautilusManager;
+import org.nautilusmc.nautilusmanager.cosmetics.NameColor;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -100,5 +103,13 @@ public class Util {
             nms.connection.send(addTeam);
             nms.connection.send(addPlayer);
         }
+    }
+    public static ArrayList<String> getOnlineNames() {
+        ArrayList<String> names = new ArrayList<>();
+        for (Player player : NautilusManager.INSTANCE.getServer().getOnlinePlayers()) {
+            names.add(player.getName());
+            names.add(Nickname.getNickname(player));
+        }
+        return names;
     }
 }

@@ -63,8 +63,6 @@ public class HomeBuyCommand implements CommandExecutor {
         homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.thirteen").build());
         homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.fourteen").build());
         homePermissions.put(i++, PermissionNode.builder().permission("essentials.sethome.multiple.fifteen").build());
-
-
     }
     private void setHomeLimit(Player player, int i) {
         if (getHomeLimit(player) != 0) {
