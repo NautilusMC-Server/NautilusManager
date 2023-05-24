@@ -3,6 +3,9 @@ package org.nautilusmc.nautilusmanager.events;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.minecraft.world.entity.item.ItemEntity;
 import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.Bisected;
+import org.bukkit.block.data.type.Stairs;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftItem;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Egg;
@@ -24,10 +27,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.Vector;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.util.Util;
 import org.spigotmc.event.entity.EntityDismountEvent;
 
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 public class GeneralEventManager implements Listener {
@@ -121,51 +127,100 @@ public class GeneralEventManager implements Listener {
     }
 
     // chairs cause why not
+    private boolean isValidChair(Block block) {
+        // not sure if checking the material AND block data type is redundant but might as well
+        return Tag.STAIRS.isTagged(block.getType()) && block.getBlockData() instanceof Stairs stairData && stairData.getHalf().equals(Bisected.Half.BOTTOM);
+    }
+
     @EventHandler
-    public void onPlayerSit(PlayerInteractEvent e) {
-        if (e.getClickedBlock() != null && e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getHand().equals(EquipmentSlot.HAND) &&
-                e.getPlayer().getInventory().getItemInMainHand().getType().equals(Material.AIR) &&
-                (Tag.STAIRS.isTagged(e.getClickedBlock().getType()))) {
-            for(Entity entity : e.getClickedBlock().getLocation().getNearbyEntities(1.5, 1.5, 1.5)) {
-                if(entity instanceof Egg) return;
-            }
+    public void onPlayerInteractWithChair(PlayerInteractEvent e) {
+        if (e.getClickedBlock() != null && e.getAction() == Action.RIGHT_CLICK_BLOCK && Objects.equals(e.getHand(), EquipmentSlot.HAND) &&
+                e.getPlayer().getInventory().getItemInMainHand().getType().equals(Material.AIR) && isValidChair(e.getClickedBlock())) {
             if (e.getPlayer().isInsideVehicle()) return;
+            for (Entity entity : e.getClickedBlock().getLocation().getNearbyEntities(0.5, 0.5, 0.5)) {
+                if (entity instanceof Egg) return;
+            }
 
-            Egg toSitOn = (Egg) e.getClickedBlock().getLocation().getWorld().spawn(
-                    e.getClickedBlock().getLocation().add(0.5, 0.2, 0.5), Egg.class, (settings) -> {
-                        settings.setGravity(false);
-                        settings.setInvulnerable(true);
+            Egg seat = e.getClickedBlock().getLocation().getWorld().spawn(
+                    e.getClickedBlock().getLocation().add(0.5, 0.1, 0.5), Egg.class, (egg) -> {
+                        egg.setGravity(false);
+                        egg.setInvulnerable(true);
                     });
-            toSitOn.addPassenger(e.getPlayer());
-
+            seat.addPassenger(e.getPlayer());
         }
     }
 
     @EventHandler
-    public void onEntityDismount(EntityDismountEvent e) {
-        if(e.getDismounted() instanceof Egg) {
+    public void onChairDismount(EntityDismountEvent e) {
+        if (e.getDismounted() instanceof Egg) {
+            Location center = e.getDismounted().getLocation().toBlockLocation().add(0.5, 0.0, 0.5);
+            center.setDirection(e.getEntity().getLocation().getDirection());
             e.getDismounted().remove();
+            Block chair = center.getBlock();
+            if (isValidChair(chair)) {
+                // is there a better way to do this? probably
+                Vector frontOffset = ((Stairs) chair.getBlockData()).getFacing().getOppositeFace().getDirection();
+                Vector leftOffset = frontOffset.clone().rotateAroundY(Math.PI * 0.5);
+                Location front = center.clone().add(frontOffset);
+                Location frontLeft = front.clone().add(leftOffset);
+                Location frontRight = front.clone().subtract(leftOffset);
+                Location left = center.clone().add(leftOffset);
+                Location right = center.clone().subtract(leftOffset);
+                Location back = center.clone().subtract(frontOffset);
+                Location backLeft = back.clone().add(leftOffset);
+                Location backRight = back.clone().subtract(leftOffset);
+                Location top = center.clone().add(0, 1, 0);
+                if (!e.getEntity().collidesAt(front)) {
+                    e.getEntity().teleport(front);
+                } else if (!e.getEntity().collidesAt(frontLeft)) {
+                    e.getEntity().teleport(frontLeft);
+                } else if (!e.getEntity().collidesAt(frontRight)) {
+                    e.getEntity().teleport(frontRight);
+                } else if (!e.getEntity().collidesAt(left)) {
+                    e.getEntity().teleport(left);
+                } else if (!e.getEntity().collidesAt(right)) {
+                    e.getEntity().teleport(right);
+                } else if (!e.getEntity().collidesAt(backLeft)) {
+                    e.getEntity().teleport(backLeft);
+                } else if (!e.getEntity().collidesAt(backRight)) {
+                    e.getEntity().teleport(backRight);
+                } else if (!e.getEntity().collidesAt(back)) {
+                    e.getEntity().teleport(back);
+                } else if (!e.getEntity().collidesAt(top)) {
+                    e.getEntity().teleport(top);
+                } else {
+                    // they really got themselves in a pickle
+                    e.getEntity().teleport(center);
+                }
+            } else {
+                e.getEntity().teleport(center);
+            }
         }
     }
 
     @EventHandler
     public void onPlayerTeleportOffChair(PlayerTeleportEvent e) {
-        if(e.getPlayer().getVehicle() instanceof Egg) {
+        if (e.getPlayer().getVehicle() instanceof Egg) {
             e.getPlayer().getVehicle().remove();
         }
     }
 
     @EventHandler
     public void onPlayerDeathOnChair(PlayerDeathEvent e) {
-        if(e.getPlayer().getVehicle() instanceof Egg) {
+        if (e.getPlayer().getVehicle() instanceof Egg) {
             e.getPlayer().getVehicle().remove();
         }
     }
 
     @EventHandler
     public void onChairBreak(BlockBreakEvent e) {
-        for(Entity entity : e.getBlock().getLocation().getNearbyEntities(1.5, 1.5, 1.5)) {
-            if(entity instanceof Egg) entity.remove();
+        if (isValidChair(e.getBlock())) {
+            for (Entity entity : e.getBlock().getLocation().getNearbyEntities(0.5, 0.5, 0.5)) {
+                if (entity instanceof Egg) {
+                    entity.eject();
+                    entity.remove();
+                }
+            }
         }
     }
 }
