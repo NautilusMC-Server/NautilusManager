@@ -1,33 +1,31 @@
-package org.nautilusmc.nautilusmanager.teleport.commands;
+package org.nautilusmc.nautilusmanager.teleport.commands.tpa;
 
 import net.kyori.adventure.text.Component;
-import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
-import org.nautilusmc.nautilusmanager.events.TeleportHandler;
+import org.nautilusmc.nautilusmanager.teleport.TpaManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BackCommand extends NautilusCommand {
-
+public class TpCancel extends NautilusCommand {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Component.text("Only players can use this command!").color(NautilusCommand.ERROR_COLOR));
+            commandSender.sendMessage(Component.text("Only players can use this command.").color(NautilusCommand.ERROR_COLOR));
             return true;
         }
 
-        Location lastLoc = TeleportHandler.getLastTeleportLocation(player);
-        if (lastLoc == null) {
-            commandSender.sendMessage(Component.text("Nowhere to return to!").color(NautilusCommand.ERROR_COLOR));
+        if (!player.hasPermission(TPA_PERM)) {
+            player.sendMessage(Component.text("Not enough permissions!").color(NautilusCommand.ERROR_COLOR));
+            return true;
         }
 
-        TeleportHandler.teleportAfterDelay(player, lastLoc, 100);
+        TpaManager.cancelRequest(player);
 
         return true;
     }

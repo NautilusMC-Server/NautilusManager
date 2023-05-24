@@ -125,6 +125,7 @@ public class Nickname {
         if (name.length() > 16) return "That nickname is too long";
         if (name.length() < 3) return "That nickname is too short";
         if (!name.matches("[a-zA-Z0-9_]+") && p.isOnline() && !p.getPlayer().hasPermission(NautilusCommand.NICKNAME_SPECIAL_CHAR_PERM)) return "Become a supporter to unlock non-alphanumeric characters";
+        if (name.contains(" ")) return "Nicknames cannot contain spaces";
         if (!playerNames.inverse().getOrDefault(name, p.getUniqueId()).equals(p.getUniqueId()) || (!name.equals(p.getName()) && Bukkit.getOfflinePlayerIfCached(name) != null)) return "That nickname is already taken";
 
         return null;

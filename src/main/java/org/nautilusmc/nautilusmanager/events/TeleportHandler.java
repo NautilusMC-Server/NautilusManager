@@ -2,7 +2,6 @@ package org.nautilusmc.nautilusmanager.events;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -11,10 +10,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
-import org.nautilusmc.nautilusmanager.sql.SQLHandler;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -34,6 +30,10 @@ public class TeleportHandler implements Listener {
     }
 
     public static void teleportAfterDelay(Player player, Location loc, int ticks) {
+        teleportAfterDelay(player, loc, ticks, null);
+    }
+
+    public static void teleportAfterDelay(Player player, Location loc, int ticks, Runnable failCallback) {
         TextColor color = TextColor.color(255, 194, 0);
 
         player.sendMessage(Component.text("Teleporting in "+Math.round(ticks/20f)+" seconds. Don't move!").color(color));
@@ -41,7 +41,7 @@ public class TeleportHandler implements Listener {
         BukkitRunnable runnable = new BukkitRunnable() {
             @Override
             public void run() {
-                player.sendMessage(Component.text("Teleporting...").color(color));
+                player.sendMessage(Component.text("Whoosh!").color(color));
                 setLastTeleportLoc(player, player.getLocation());
                 player.teleport(loc);
 
@@ -53,6 +53,8 @@ public class TeleportHandler implements Listener {
                 player.sendMessage(Component.text("Teleport canceled!").color(NautilusCommand.ERROR_COLOR));
                 teleporting.remove(player.getUniqueId());
                 super.cancel();
+
+                if (failCallback != null) failCallback.run();
             }
         };
         runnable.runTaskLater(NautilusManager.INSTANCE, ticks);

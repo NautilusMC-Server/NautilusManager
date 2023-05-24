@@ -11,6 +11,7 @@ import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
 import org.nautilusmc.nautilusmanager.events.TeleportHandler;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SpawnCommand extends NautilusCommand {
@@ -33,6 +34,6 @@ public class SpawnCommand extends NautilusCommand {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        return null;
+        return new ArrayList<>();
     }
 }

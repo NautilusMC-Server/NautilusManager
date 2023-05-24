@@ -4,7 +4,8 @@ import com.mojang.authlib.GameProfile;
 import io.papermc.paper.adventure.PaperAdventure;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
@@ -14,10 +15,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -30,6 +32,24 @@ public class Util {
         for (Component child : component.children()) out += getTextContent(child);
 
         return out;
+    }
+
+    public static Player getOnlinePlayer(String nickname) {
+        OfflinePlayer p = Nickname.getPlayerFromNickname(nickname);
+        if (p == null) p = Bukkit.getOfflinePlayer(nickname);
+
+        return p.isOnline() ? p.getPlayer() : null;
+    }
+
+    public static String getName(Player player) {
+        String nickname = Nickname.getNickname(player);
+        return nickname == null ? player.getName() : nickname;
+    }
+
+    public static Component clickableCommand(String command) {
+        return Component.text(command)
+                .clickEvent(ClickEvent.runCommand(command))
+                .hoverEvent(HoverEvent.showText(Component.text("Run "+command)));
     }
 
     public static Component nmsFormat(Component component, ChatFormatting formatting) {

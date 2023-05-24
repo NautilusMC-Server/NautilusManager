@@ -28,45 +28,42 @@ public class MsgCommand extends NautilusCommand {
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if (strings.length < 2) return false;
 
-        OfflinePlayer recipient = Nickname.getPlayerFromNickname(strings[0]);
-        if (recipient == null) recipient = Bukkit.getPlayerExact(strings[0]);
-
-        if (recipient == null || !recipient.isOnline()) {
+        Player recipient = Util.getOnlinePlayer(strings[0]);
+        if (recipient == null) {
             commandSender.sendMessage(Component.text("Player not found").color(NautilusCommand.ERROR_COLOR));
             return true;
         }
 
         String message = String.join(" ", Arrays.copyOfRange(strings, 1, strings.length));
 
-        Component msg = (commandSender.hasPermission(NautilusCommand.CHAT_FORMATTING_PERM) ?
-                FancyText.parseChatFormatting(message) :
-                Component.text(message)).color(NautilusCommand.DEFAULT_CHAT_TEXT_COLOR);
+        Component msg = MessageStyler.formatUserMessage(commandSender, Component.text(message))
+                .color(NautilusCommand.DEFAULT_CHAT_TEXT_COLOR)
+                .decorate(TextDecoration.ITALIC);
 
         if (commandSender instanceof Player player) {
             ReplyCommand.messaged(player.getUniqueId(), recipient.getUniqueId());
         }
 
-        Player recipientPlayer = recipient.getPlayer();
-        if (AfkManager.isAfk(recipientPlayer)) {
-            recipientPlayer.playSound(recipientPlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 2);
+        if (AfkManager.isAfk(recipient)) {
+            recipient.playSound(recipient.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 2);
             Bukkit.getScheduler().scheduleSyncDelayedTask(NautilusManager.INSTANCE, () -> {
-                recipientPlayer.playSound(recipientPlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 4F);
+                recipient.playSound(recipient.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 4F);
             }, 2);
         }
 
-        recipientPlayer.sendMessage(Component.empty()
+        recipient.sendMessage(Component.empty()
                 .append(MessageStyler.getTimeStamp())
                 .append((commandSender instanceof Player p ? p.displayName() : commandSender.name()).decorate(TextDecoration.ITALIC))
                 .append(Component.text(" whispered to you").color(TextColor.color(150, 150, 150)).decorate(TextDecoration.ITALIC))
                 .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
-                .append(msg.decorate(TextDecoration.ITALIC))
+                .append(msg)
         );
         commandSender.sendMessage(Component.empty()
                 .append(MessageStyler.getTimeStamp())
                 .append(Component.text("You whispered to ").color(TextColor.color(150, 150, 150)).decorate(TextDecoration.ITALIC))
-                .append(recipientPlayer.displayName().decorate(TextDecoration.ITALIC))
+                .append(recipient.displayName().decorate(TextDecoration.ITALIC))
                 .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
-                .append(msg.decorate(TextDecoration.ITALIC))
+                .append(msg)
         );
 
         return true;
@@ -77,7 +74,7 @@ public class MsgCommand extends NautilusCommand {
         List<String> out = new ArrayList<>();
 
         if (strings.length == 1) {
-            out.addAll(Bukkit.getOnlinePlayers().stream().map((p) -> Util.getTextContent(p.displayName())).toList());
+            out.addAll(Bukkit.getOnlinePlayers().stream().map(Util::getName).toList());
         }
 
         return out.stream().filter(str->str.toLowerCase().startsWith(strings[strings.length-1].toLowerCase())).toList();

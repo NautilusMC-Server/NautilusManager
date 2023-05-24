@@ -4,6 +4,8 @@ main: org.nautilusmc.nautilusmanager.NautilusManager
 api-version: 1.19
 authors: [MaliciousFiles, longbread, Pants]
 description: Runs the Nautilus Minecraft server.
+depend:
+  - PluginManager
 commands:
   cosmetics:
     description: Base command for cosmetics.
@@ -31,8 +33,17 @@ commands:
     description: Toggle AFK status
     usage: /afk [player]
   home:
-    description: Manage homes
-    usage: /home <del|set|tp> <name>
+    description: Teleport to a set home
+    usage: /home <name>
+  sethome:
+    description: Create a new home
+    usage: /sethome <name>
+  delhome:
+    description: Delete an existing home
+    usage: /delhome <name>
+  homes:
+    description: List all homes
+    usage: /homes
   spawn:
     description: Teleport to spawn
     usage: /spawn
@@ -42,3 +53,34 @@ commands:
   buyhome:
     description: Trades diamond blocks for another home (max 15)
     usage: /buyhome
+  reloadnautilus:
+    description: Reloads the plugin. Devs only.
+    usage: /reloadnautilus
+  tpa:
+    description: Requests to teleport to a player
+    usage: /tpa <player>
+  tphere:
+    description: Requests a player to teleport to you
+    usage: /tpahere <player>
+  tpaccept:
+    description: Accepts a teleport request
+    usage: /tpaccept [player]
+    aliases:
+      - tpyes
+  tpdeny:
+    description: Denies a teleport request
+    usage: /tpdeny [player]
+    aliases:
+      - tpno
+  tpcancel:
+    description: Cancels a teleport request
+    usage: /tpcancel
+  warp:
+    description: Warp to a publicly available warp
+    usage: /warp <name>
+  createwarp:
+    description: Admin command to create public warps.
+    usage: /createwarp <name>
+  delwarp:
+    description: Admin command to remove public warps.
+    usage: /delwarp <name>

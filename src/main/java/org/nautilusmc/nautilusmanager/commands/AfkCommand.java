@@ -8,12 +8,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.events.AfkManager;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class AfkCommand extends NautilusCommand {
 
@@ -47,7 +47,7 @@ public class AfkCommand extends NautilusCommand {
         List<String> out = new ArrayList<>();
 
         if (strings.length == 1 && commandSender.hasPermission(NautilusCommand.MODIFY_OTHER_PERM)) {
-            out.addAll(Bukkit.getOnlinePlayers().stream().map((p) -> Util.getTextContent(p.displayName())).toList());
+            out.addAll(Bukkit.getOnlinePlayers().stream().map(Util::getName).toList());
         }
 
         return out.stream().filter(str->str.toLowerCase().startsWith(strings[strings.length-1].toLowerCase())).toList();

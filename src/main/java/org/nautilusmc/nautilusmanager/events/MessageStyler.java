@@ -16,6 +16,7 @@ import net.minecraft.network.protocol.game.ClientboundPlayerCombatKillPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.scores.Team;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -35,9 +36,13 @@ import org.nautilusmc.nautilusmanager.util.FancyText;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+@SuppressWarnings("UnstableApiUsage")
 public class MessageStyler implements Listener {
 
+    public static final Pattern URL_PATTERN = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)\n");
     public static final TimeZone TIME_ZONE = TimeZone.getTimeZone("CST");
 
     public EvictingQueue<Component> runningMessages = EvictingQueue.create(50);
@@ -184,18 +189,36 @@ public class MessageStyler implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onMessage(AsyncChatEvent e) {
         e.setCancelled(true);
-        if (e.getPlayer().hasPermission(NautilusCommand.CHAT_FORMATTING_PERM)) {
-            e.message(FancyText.parseChatFormatting(Util.getTextContent(e.message())));
-        }
 
         Component message = Component.empty()
                 .append(getTimeStamp())
                 .append(e.getPlayer().displayName())
                 .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
-                .append(e.message().color(NautilusCommand.DEFAULT_CHAT_TEXT_COLOR));
+                .append(formatUserMessage(e.getPlayer(), e.message()).color(NautilusCommand.DEFAULT_CHAT_TEXT_COLOR));
 
         Bukkit.broadcast(message);
         runningMessages.add(message);
+    }
+
+    public static Component formatUserMessage(CommandSender player, Component message) {
+        if (player.hasPermission(NautilusCommand.CHAT_FORMATTING_PERM)) {
+            message = FancyText.parseChatFormatting(Util.getTextContent(message));
+        }
+
+        return styleURL(message, 0, null);
+    }
+
+    // call as styleURL(message, 0, null)
+    private static Component styleURL(Component component, int index, Map<Map.Entry<Integer, Integer>, String> urls) {
+        if (urls == null) {
+            Matcher matcher = URL_PATTERN.matcher(Util.getTextContent(component));
+            while (matcher.find()) {
+                urls.put(Map.entry(matcher.start(), matcher.end()), matcher.group());
+            }
+        }
+
+        // todo: make this style the URLs
+        return component;
     }
 
     public static Component getTimeStamp() {

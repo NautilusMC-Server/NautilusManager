@@ -4,18 +4,13 @@ import io.papermc.paper.event.player.PlayerArmSwingEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.players.SleepStatus;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryInteractEvent;
-import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -23,10 +18,9 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.util.Util;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.time.Clock;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class AfkManager implements Listener {
 
@@ -49,6 +43,7 @@ public class AfkManager implements Listener {
     }
 
     public static void setAFK(Player player, boolean afk) {
+        if (!afk) resetTimer(player);
         if (isAfk(player) == afk) return;
 
         String verb;
@@ -67,18 +62,17 @@ public class AfkManager implements Listener {
         } else {
             AFK.remove(player.getUniqueId());
             verb = "no longer";
-            resetTimer(player);
         }
 
-//        player.sendMessage(Component.text("You are "+verb+" AFK.")
-//                .color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
-//        for (Player p : Bukkit.getOnlinePlayers()) {
-//            if (p == player) continue;
-//            p.sendMessage(Component.text("* ")
-//                    .append(Util.modifyColor(player.displayName(), -30, -30, -30))
-//                    .append(Component.text(" is "+verb+" AFK"))
-//                    .color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
-//        }
+        player.sendMessage(Component.text("You are "+verb+" AFK.")
+                .color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p == player) continue;
+            p.sendMessage(Component.text("* ")
+                    .append(player.displayName())
+                    .append(Component.text(" is "+verb+" AFK"))
+                    .color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
+        }
     }
 
     private static void removeTimer(Player player) {

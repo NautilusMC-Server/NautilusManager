@@ -6,7 +6,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 
