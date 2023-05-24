@@ -4,6 +4,7 @@ import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.nautilusmc.nautilusmanager.commands.AfkCommand;
+import org.nautilusmc.nautilusmanager.commands.VanishCommand;
 import org.nautilusmc.nautilusmanager.teleport.commands.homes.BuyHomeCommand;
 import org.nautilusmc.nautilusmanager.commands.ReloadCommand;
 import org.nautilusmc.nautilusmanager.cosmetics.NameColor;
@@ -70,6 +71,7 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("warp").setExecutor(new WarpCommand());
         this.getCommand("createwarp").setExecutor(new CreateWarpCommand());
         this.getCommand("delwarp").setExecutor(new DeleteWarpCommand());
+        this.getCommand("vanish").setExecutor(new VanishCommand());
         //this.getCommand("crews").setExecutor(new CrewsCommand());
         //this.getCommand("crew").setExecutor(new CrewCommand());
         //this.getCommand("confirm").setExecutor(new ConfirmCommand());
@@ -81,6 +83,7 @@ public final class NautilusManager extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new MessageStyler(), this);
 
         Bukkit.getPluginManager().registerEvents(new AfkManager(), this);
+        Bukkit.getPluginManager().registerEvents(new VanishManager(), this);
         Bukkit.getPluginManager().registerEvents(new TeleportHandler(), this);
         Bukkit.getPluginManager().registerEvents(new GeneralEventManager(), this);
         Bukkit.getPluginManager().registerEvents(new SpawnProtection(), this);
@@ -88,6 +91,6 @@ public final class NautilusManager extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        VanishManager.unload();
     }
 }

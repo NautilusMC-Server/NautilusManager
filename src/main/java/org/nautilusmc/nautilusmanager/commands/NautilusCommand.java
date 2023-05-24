@@ -30,6 +30,7 @@ public abstract class NautilusCommand implements CommandExecutor, TabCompleter {
     public static final String CREATE_WARPS_PERM = "nautilusmanager.warp.create";
 
     //crews
+    public static final String VANISH_PERM = "nautilusmanager.vanish";
     public static final String CREATE_CREW_PERM = "nautilusmanager.crew.create";
     public static final String JOIN_CREW_PERM = "nautilusmanager.crew.join";
     public static final String LEAVE_CREW_PERM = "nautilusmanager.crew.leave";

@@ -25,6 +25,7 @@ import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 public class Util {
@@ -89,6 +90,10 @@ public class Util {
     public static void updateNameTag(Player player, Component name, Collection<? extends Player> players) {
         String text = "%08x".formatted(player.getEntityId()).replaceAll("(.)", "§$1");
 
+        players = new ArrayList<>(players);
+        players.removeIf(p -> !p.canSee(player) || p == player);
+        if (players.isEmpty()) return;
+
         setNameTagName(player, text, players);
 
         PlayerTeam team = new PlayerTeam(new Scoreboard(), player.getName());
@@ -98,7 +103,6 @@ public class Util {
         ClientboundSetPlayerTeamPacket addPlayer = ClientboundSetPlayerTeamPacket.createPlayerPacket(team, text, ClientboundSetPlayerTeamPacket.Action.ADD);
 
         for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p == player) continue;
             ServerPlayer nms = ((CraftPlayer) p).getHandle();
 
             nms.connection.send(addTeam);
