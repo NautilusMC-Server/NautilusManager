@@ -37,6 +37,12 @@ public abstract class NautilusCommand implements CommandExecutor, TabCompleter {
     public static final String CLOSE_CREW_PERM = "nautilusmanager.crew.close";
     public static final String OPEN_CREW_PERM = "nautilusmanager.crew.open";
     public static final String MAKECAPTAIN_CREW_PERM = "nautilusmanager.crew.makecaptain";
+    public static final String CREW_INVITE_PERM = "nautilusmanager.crew.invite";
+    public static final String CREW_INFO_PERM = "nautilusmanager.crew.invite";
+
+    //Other
+    public static final String DENY_PERM = "nautilusmanager.deny";
+    public static final String CONFIRM_PERM = "nautilusmanager.confirm";
 
 
 

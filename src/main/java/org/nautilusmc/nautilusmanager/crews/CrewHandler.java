@@ -35,4 +35,14 @@ public class CrewHandler {
         }
         return returned;
     }
+
+    public static Crew getCrew(String name) {
+        Crew returned = null;
+        for (int i = 0; i < crews.size(); i++) {
+            if (crews.get(i).getName().equals(name)) {
+                returned = crews.get(i);
+            }
+        }
+        return returned;
+    }
 }

@@ -4,10 +4,12 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.util.ConfirmationMessage;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 
@@ -22,6 +24,7 @@ public class CrewCommand extends NautilusCommand {
             "listplayers",
             "join",
             "leave",
+            "info",
             "delete", //captains
             "kick", //captains
             "makecaptain", //captains
@@ -45,11 +48,12 @@ public class CrewCommand extends NautilusCommand {
             case "listplayers" -> listPlayers(player);
             case "join" -> joinCrew(player, strings);
             case "leave" -> leaveCrew(player);
-            case "kick" -> kickMemeber(player, strings[1]);
+            case "kick" -> kickMember(player, strings[1]);
             case "makecaptain" -> makeCaptain(player, strings[1]);
             case "open" -> openCrew(player);
             case "close" -> closeCrew(player);
             case "invite" -> invite(player, strings[1]);
+            case "info" -> crewInfo(player, strings);
             default -> player.sendMessage(Component.text(help()).color(DEFAULT_CHAT_TEXT_COLOR));
         }
         return true;
@@ -60,7 +64,7 @@ public class CrewCommand extends NautilusCommand {
         return null;
     }
 
-    private void createCrew(Player player, String[] strings) {
+    public static void createCrew(Player player, String[] strings) {
         if (!(player.hasPermission(CREATE_CREW_PERM))) {
             error(player, DEFAULT_PERM_MESSAGE);
             return;
@@ -81,7 +85,7 @@ public class CrewCommand extends NautilusCommand {
         //TODO: Add player to crew perm group
     }
 
-    private void deleteCrew(Player player) {
+    public static void deleteCrew(Player player) {
         if (!(player.hasPermission(DELETE_CREW_PERM))) {
             error(player, CAPTAIN_PERM_MESSAGE);
             return;
@@ -91,14 +95,18 @@ public class CrewCommand extends NautilusCommand {
             error(player, "You are not part of any crew!");
             return;
         }
-        //TODO: add confirmation message later
-        player.sendMessage(Component.text("Crew \"" + crew.getName() + "\" deleted!").color(DEFAULT_CHAT_TEXT_COLOR));
-        CrewHandler.deleteCrew(crew);
-        CrewHandler.updateSQL();
+        ConfirmationMessage.sendConfirmationMessage(player, "delete your crew", new BukkitRunnable() {
+            @Override
+            public void run() {
+                player.sendMessage(Component.text("Crew \"" + crew.getName() + "\" deleted!").color(DEFAULT_CHAT_TEXT_COLOR));
+                CrewHandler.deleteCrew(crew);
+                CrewHandler.updateSQL();
+            }
+        });
         //TODO: Remove players from crew and captain perm groups
     }
 
-    private void listPlayers(Player player) {
+    public static void listPlayers(Player player) {
         if (!(player.hasPermission(LIST_CREW_PERM))) {
             error(player, CREW_PERM_MESSAGE);
             return;
@@ -111,7 +119,7 @@ public class CrewCommand extends NautilusCommand {
         player.sendMessage(Component.text(crew.toString()).color(DEFAULT_CHAT_TEXT_COLOR));
     }
 
-    public void joinCrew(Player player, String[] strings) {
+    public static void joinCrew(Player player, String[] strings) {
         if (!(player.hasPermission(JOIN_CREW_PERM))) {
             error(player, DEFAULT_PERM_MESSAGE);
             return;
@@ -136,7 +144,7 @@ public class CrewCommand extends NautilusCommand {
         error(player, "Crew \"" + getFormattedArgs(strings, 1) + "\" does not exist!");
     }
 
-    public void leaveCrew(Player player) {
+    public static void leaveCrew(Player player) {
         if (!(player.hasPermission(LEAVE_CREW_PERM))) {
             error(player, CREW_PERM_MESSAGE);
             return;
@@ -153,7 +161,7 @@ public class CrewCommand extends NautilusCommand {
         //TODO: Remove player from crew perm group
     }
 
-    public void kickMemeber(Player player, String name) {
+    public static void kickMember(Player player, String name) {
         if (!(player.hasPermission(KICK_CREW_PERM))) {
             error(player, CAPTAIN_PERM_MESSAGE);
             return;
@@ -181,7 +189,7 @@ public class CrewCommand extends NautilusCommand {
         CrewHandler.updateSQL();
         //TODO: Remove player from crew perm group
     }
-    public void makeCaptain(Player player, String name) {
+    public static void makeCaptain(Player player, String name) {
         if (!(player.hasPermission(MAKECAPTAIN_CREW_PERM))) {
             error(player, CAPTAIN_PERM_MESSAGE);
             return;
@@ -209,7 +217,7 @@ public class CrewCommand extends NautilusCommand {
         CrewHandler.updateSQL();
         //TODO: Change player perm groups
     }
-    private String help() {
+    public static String help() {
         String out = "--------------------------------\n";;
         for (String subcommand : subcommands) {
             out += getSubcommandUsage(subcommand) + "\n";
@@ -218,7 +226,7 @@ public class CrewCommand extends NautilusCommand {
         return out;
     }
 
-    public void openCrew(Player player) {
+    public static void openCrew(Player player) {
         if (!(player.hasPermission(OPEN_CREW_PERM))) {
             error(player, CAPTAIN_PERM_MESSAGE);
             return;
@@ -233,8 +241,8 @@ public class CrewCommand extends NautilusCommand {
         CrewHandler.updateSQL();
     }
 
-    public void closeCrew(Player player) {
-        if (!(player.hasPermission(OPEN_CREW_PERM))) {
+    public static void closeCrew(Player player) {
+        if (!(player.hasPermission(CLOSE_CREW_PERM))) {
             error(player, CAPTAIN_PERM_MESSAGE);
             return;
         }
@@ -248,11 +256,34 @@ public class CrewCommand extends NautilusCommand {
         CrewHandler.updateSQL();
     }
 
-    public void invite(Player player, String name) {
+    public static void invite(Player player, String name) {
         //TODO: All of this
     }
 
-    private String getSubcommandUsage(String subcommand) {
+    public static void crewInfo(Player player, String[] args) {
+        if (!(player.hasPermission(CREW_INFO_PERM))) {
+            error(player, DEFAULT_PERM_MESSAGE);
+            return;
+        }
+        if (args.length == 1) {
+            Crew crew = CrewHandler.getCrew(player);
+            if (crew == null) {
+                error(player, "You are not part of any crew!");
+                return;
+            }
+            player.sendMessage(Component.text(crew.toString()).color(DEFAULT_CHAT_TEXT_COLOR));
+        } else {
+            String name = getFormattedArgs(args, 1);
+            Crew crew = CrewHandler.getCrew(name);
+            if (crew == null) {
+                error(player, "Crew \"" + name + "\" does not exist!");
+                return;
+            }
+            player.sendMessage(Component.text(crew.toString()).color(DEFAULT_CHAT_TEXT_COLOR));
+        }
+    }
+
+    private static String getSubcommandUsage(String subcommand) {
         switch (subcommand) {
             case "create" : return "/crew create <name> - Creates a new crew with specified name";
             case "delete" : return "/crew delete - Deletes your crew (Captain Only)";
@@ -264,6 +295,7 @@ public class CrewCommand extends NautilusCommand {
             case "open" : return "/crew open - Opens crew for anyone to join (Captains Only)";
             case "close" : return "/crew close - Closes crew for invitation only (Captains Only)";
             case "invite" : return "/crew invite - Invites a player to your crew";
+            case "info" : return "/crew info <name> - Sends crew information";
             default : return "You shouldn't see this";
         }
     }

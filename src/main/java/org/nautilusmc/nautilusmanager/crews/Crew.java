@@ -81,7 +81,7 @@ public class Crew {
     }
 
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder("Name: " + name + "\nCaptain: " + Util.getName(captain) + "\n");
+        StringBuilder stringBuilder = new StringBuilder("Name: " + name + "\nCaptain: " + Util.getName(captain) + "\nMembers: ");
         Player member;
         for (int i = 0; i < members.size(); i++) {
             member = members.get(i);
@@ -93,5 +93,6 @@ public class Crew {
             }
         }
         return stringBuilder.toString();
+        //TODO: Turn this into component with better formatting
     }
 }
