@@ -37,10 +37,9 @@ public class ChatCommand extends NautilusCommand {
             CHATS.remove(player.getUniqueId());
             return true;
         } else if (strings[0].equalsIgnoreCase("player")) {
-            OfflinePlayer chat = Nickname.getPlayerFromNickname(strings[0]);
-            if (chat == null) chat = Bukkit.getPlayerExact(strings[0]);
+            Player chat = Util.getOnlinePlayer(strings[1]);
 
-            if (chat == null || !chat.isOnline()) {
+            if (chat == null) {
                 commandSender.sendMessage(Component.text("Player not found").color(NautilusCommand.ERROR_COLOR));
                 return true;
             }
