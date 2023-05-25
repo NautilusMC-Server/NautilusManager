@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.ChatMsgCommand;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
@@ -100,7 +101,7 @@ public class ChatCommand extends NautilusCommand {
                 e.setCancelled(true);
 
                 String name = chat.uuid != null ? " "+Util.getName(Bukkit.getPlayer(chat.uuid)) : "";
-                e.getPlayer().performCommand("chatmessage "+chat.commandOption+name+" "+Util.getTextContent(e.originalMessage()));
+                Bukkit.getScheduler().runTask(NautilusManager.INSTANCE, () -> e.getPlayer().performCommand("chatmessage "+chat.commandOption+name+" "+Util.getTextContent(e.originalMessage())));
             }
         }
     }
