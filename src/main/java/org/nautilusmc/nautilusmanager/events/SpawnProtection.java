@@ -75,6 +75,14 @@ public class SpawnProtection implements Listener {
     }
 
     @EventHandler
+    public void onPlayerBucket(PlayerBucketEmptyEvent e) {
+        if(isProtected(e.getBlock().getLocation()) && !isAllowed(e.getPlayer())) {
+            alert(e.getPlayer());
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
     public void onPlayerInteract(PlayerInteractEvent e) {
         if(!e.hasBlock() || (e.getPlayer().isSneaking() && e.hasItem())) return;
 
