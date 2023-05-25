@@ -44,7 +44,7 @@ public class GeneralEventManager implements Listener {
     public void onAnvil(PrepareAnvilEvent e) {
         ItemStack firstItem = e.getInventory().getFirstItem();
         if (firstItem == null) return;
-        String currentName = firstItem.hasItemMeta() ? Util.getTextContent(firstItem.getItemMeta().displayName()) : "";
+        String currentName = firstItem.hasItemMeta() && firstItem.getItemMeta().displayName() != null ? Util.getTextContent(firstItem.getItemMeta().displayName()) : "";
 
         if (!currentName.equals(e.getInventory().getRenameText())) {
             int baseRepairCost = CraftItemStack.asNMSCopy(firstItem).getBaseRepairCost();

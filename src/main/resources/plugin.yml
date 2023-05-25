@@ -95,6 +95,11 @@ commands:
   suicide:
     description: Kill yourself.
     usage: /suicide
+  sponsor:
+    description: Get the link to become a sponsor.
+    usage: /sponsor
+  itemname:
+    description: Set the
   #crews:
     #description: Lists all crews
     #usage: /crews
