@@ -106,10 +106,7 @@ public class FancyText {
                 if (message.charAt(i+1) == 'x') {
                     try {
                         int hex = Integer.parseInt(message.substring(i+2, i+8), 16);
-                        if (!building.content().isEmpty()) {
-                            if (component.content().isEmpty()) component = building;
-                            else component = component.append(building);
-                        }
+                        component = component.append(building);
                         building = Component.empty().style(building.style()).color(TextColor.color(hex));
                         i += 7;
                         consumed = true;
@@ -128,10 +125,7 @@ public class FancyText {
                     }
 
                     if (formatting != null) {
-                        if (!building.content().isEmpty()) {
-                            if (component.content().isEmpty()) component = building;
-                            else component = component.append(building);
-                        }
+                        component = component.append(building);
                         building = (TextComponent) Util.nmsFormat(Component.empty().style(formatting != ChatFormatting.RESET ? building.style() : Style.empty()), formatting);
 
                         i++;
@@ -144,8 +138,8 @@ public class FancyText {
                 building = building.content(building.content()+message.charAt(i));
             }
         }
-        
-        return component.content().isEmpty() ? building : component.append(building);
+
+        return component.append(building);
     }
 
     public enum ColorType {

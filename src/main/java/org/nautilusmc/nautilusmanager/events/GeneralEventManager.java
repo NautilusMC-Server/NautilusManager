@@ -8,6 +8,7 @@ import org.bukkit.block.data.Bisected;
 import org.bukkit.block.data.type.Stairs;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftItem;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Egg;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -41,8 +42,15 @@ public class GeneralEventManager implements Listener {
 
     @EventHandler
     public void onAnvil(PrepareAnvilEvent e) {
-        if(e.getInventory().getRenameText() != null && !e.getInventory().getRenameText().isEmpty()) {
-            e.getInventory().setRepairCost(e.getInventory().getRepairCost()-1);
+        ItemStack firstItem = e.getInventory().getFirstItem();
+        if (firstItem == null) return;
+        String currentName = firstItem.hasItemMeta() ? Util.getTextContent(firstItem.getItemMeta().displayName()) : "";
+
+        if (!currentName.equals(e.getInventory().getRenameText())) {
+            int baseRepairCost = CraftItemStack.asNMSCopy(firstItem).getBaseRepairCost();
+            if (e.getInventory().getSecondItem() != null) baseRepairCost = 0;
+
+            e.getInventory().setRepairCost(e.getInventory().getRepairCost()-1-baseRepairCost);
         }
     }
 

@@ -12,7 +12,7 @@ commands:
     usage: /cosmetics <subcommand> [args]
   nickname:
     description: Gets a player's nickname. Only available to staff.
-    usage: /nickname <list|original|nickname> [page|name]
+    usage: /nickname <list|original|nickname|set> [page|name]
   formatting:
     description: Help command for sponsor chat formatting.
     usage: /formatting [code|name] [page]

@@ -26,6 +26,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
+import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -133,6 +134,13 @@ public class MessageStyler implements Listener {
 
         e.deathMessage(null);
     }
+
+    // e.message() is null sooo idk what to do
+//    @EventHandler
+//    public void onAdvancement(PlayerAdvancementDoneEvent e) {
+//        e.message(styleMessage((TranslatableComponent) e.message()));
+//        runningMessages.add(e.message());
+//    }
 
     @EventHandler
     public void onRespawn(PlayerRespawnEvent e) {
