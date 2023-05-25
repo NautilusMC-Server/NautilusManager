@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.sql.SQLHandler;
+import org.nautilusmc.nautilusmanager.util.CaseInsensitiveMap;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -38,7 +39,7 @@ public class Homes {
                             results.getFloat("pitch")
                     );
 
-                    if (!playerHomes.containsKey(uuid)) playerHomes.put(uuid, new HashMap<>());
+                    if (!playerHomes.containsKey(uuid)) playerHomes.put(uuid, new CaseInsensitiveMap<>());
 
                     playerHomes.get(uuid).put(uuidName[1], loc);
                 }
@@ -67,7 +68,7 @@ public class Homes {
     public static void setHome(Player player, String name, Location loc) {
         UUID uuid = player.getUniqueId();
         if (!playerHomes.containsKey(player.getUniqueId())) {
-            playerHomes.put(uuid, new HashMap<>());
+            playerHomes.put(uuid, new CaseInsensitiveMap<>());
         }
 
         String key = uuid + "/" + name;

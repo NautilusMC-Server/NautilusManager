@@ -19,7 +19,7 @@ public class TeleportHandler implements Listener {
 
     private static final Map<UUID, Location> lastTeleportLocs = new HashMap<>();
 
-    private static final Map<UUID, BukkitRunnable> teleporting = new HashMap<>();
+    private static final Map<UUID, Map.Entry<Location, BukkitRunnable>> teleporting = new HashMap<>(); // map of Player to starting Location and Runnable that is going to teleport them
 
     public static Location getLastTeleportLocation(Player player) {
         return lastTeleportLocs.get(player.getUniqueId());
@@ -58,16 +58,16 @@ public class TeleportHandler implements Listener {
             }
         };
         runnable.runTaskLater(NautilusManager.INSTANCE, ticks);
-        teleporting.put(player.getUniqueId(), runnable);
+        teleporting.put(player.getUniqueId(), Map.entry(player.getLocation(), runnable));
     }
 
     @EventHandler
     public void onMove(PlayerMoveEvent e) {
-        if (!e.hasChangedPosition()) return;
+        Map.Entry<Location, BukkitRunnable> entry = teleporting.get(e.getPlayer().getUniqueId());
+        if (entry == null ||
+                entry.getKey().getWorld().equals(e.getPlayer().getWorld()) &&
+                        entry.getKey().distanceSquared(e.getPlayer().getLocation()) < 0.01) return;
 
-        BukkitRunnable runnable;
-        if ((runnable = teleporting.get(e.getPlayer().getUniqueId())) == null) return;
-
-        runnable.cancel();
+        entry.getValue().cancel();
     }
 }

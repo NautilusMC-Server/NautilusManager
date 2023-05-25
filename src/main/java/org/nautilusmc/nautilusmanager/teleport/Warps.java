@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.nautilusmc.nautilusmanager.sql.SQLHandler;
+import org.nautilusmc.nautilusmanager.util.CaseInsensitiveMap;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,7 +14,7 @@ public class Warps {
 
     public static final int MAX_NAME_LEN = 16;
 
-    private static final Map<String, Location> warps = new HashMap<>();
+    private static final Map<String, Location> warps = new CaseInsensitiveMap<>();
 
     public static SQLHandler SQL_HANDLER;
 

@@ -23,13 +23,11 @@ public class ReloadCommand extends NautilusCommand {
             return true;
         }
 
-        Bukkit.broadcast(Component.text("Reloading the server in 15 seconds to update. /reply and /back will reset.").color(TextColor.color(255, 0, 15)).decorate(TextDecoration.BOLD));
+        Bukkit.broadcast(Component.text("Reloading the plugin in 15 seconds to update. Server will stay online, but /reply and /back will reset.").color(TextColor.color(255, 0, 15)));
         Bukkit.getScheduler().runTaskLater(PluginManager.getInstance(), ()-> {
-            Bukkit.getOnlinePlayers().stream().filter(p->p.hasPermission(NautilusCommand.RELOAD_PERM))
-                    .forEach(p->p.sendMessage(Component.text("Reloading...").color(TextColor.color(255, 85, 60))));
+            Bukkit.broadcast(Component.text("Reloading...").color(TextColor.color(255, 85, 60)));
             PluginManager.getInstance().getPluginUtils().reloadPlugin(NautilusManager.INSTANCE);
-            Bukkit.getOnlinePlayers().stream().filter(p->p.hasPermission(NautilusCommand.RELOAD_PERM))
-                    .forEach(p->p.sendMessage(Component.text("Done!").color(TextColor.color(255, 85, 60))));
+            Bukkit.broadcast(Component.text("Done!").color(TextColor.color(255, 85, 60)));
         }, 15 * 20L);
         return true;
     }
