@@ -70,6 +70,7 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("delwarp").setExecutor(new DeleteWarpCommand());
         this.getCommand("vanish").setExecutor(new VanishCommand());
         this.getCommand("chatmsg").setExecutor(new ChatMsgCommand());
+        this.getCommand("suicide").setExecutor(new SuicideCommand());
         //this.getCommand("crews").setExecutor(new CrewsCommand());
         //this.getCommand("crew").setExecutor(new CrewCommand());
         //this.getCommand("confirm").setExecutor(new ConfirmCommand());

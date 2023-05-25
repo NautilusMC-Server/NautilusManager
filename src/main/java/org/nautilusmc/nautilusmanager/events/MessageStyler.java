@@ -33,6 +33,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.SuicideCommand;
 import org.nautilusmc.nautilusmanager.gui.page.GuiPage;
 import org.nautilusmc.nautilusmanager.util.FancyText;
 import org.nautilusmc.nautilusmanager.util.Util;
@@ -83,7 +84,14 @@ public class MessageStyler implements Listener {
     public void onDeath(PlayerDeathEvent e) {
         if (e.deathMessage() == null) return;
 
-        Component styledDeathMessage = styleMessage((TranslatableComponent) e.deathMessage());
+        Component styledDeathMessage;
+        if (e.deathMessage() instanceof TranslatableComponent t && t.key().equals(SuicideCommand.SUICIDE_TRANSLATION_KEY)) {
+            styledDeathMessage = e.getPlayer().displayName()
+                    .append(Component.text(" took the easy way out"));
+        } else {
+            styledDeathMessage = styleMessage((TranslatableComponent) e.deathMessage());
+        }
+
         Component deathMessage = Component.empty()
                 .append(Component.empty()
                         .append(Component.text("Death"))

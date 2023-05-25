@@ -92,6 +92,9 @@ commands:
   vanish:
     description: Admin command to vanish to other players.
     usage: /vanish
+  suicide:
+    description: Kill yourself.
+    usage: /suicide
   #crews:
     #description: Lists all crews
     #usage: /crews
