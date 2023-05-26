@@ -48,7 +48,7 @@ public class ConfirmationMessage {
                 .append(Component.text(" to confirm").color(NautilusCommand.MAIN_COLOR)));
 
         player.sendMessage(Util.clickableCommand("/deny", true).color(NautilusCommand.ACCENT_COLOR)
-                .append(Component.text(" to confirm").color(NautilusCommand.MAIN_COLOR)));
+                .append(Component.text(" to deny").color(NautilusCommand.MAIN_COLOR)));
 
         UUID uuid = player.getUniqueId();
         if (!PENDING.containsKey(uuid)) {

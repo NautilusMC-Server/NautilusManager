@@ -91,7 +91,9 @@ public class Invite {
         if (stack.isEmpty()) {
             PENDING.remove(uuid);
         }
-        stack.pop();
+        Invite invite = stack.pop();
+        invite.getSender().sendMessage(player.displayName()
+                .append(Component.text(" declined your invite!").color(NautilusCommand.ERROR_COLOR)));
         player.sendMessage(Component.text("Invitation declined!").color(NautilusCommand.ERROR_COLOR));
     }
 

@@ -414,6 +414,9 @@ public class CrewCommand extends NautilusCommand {
             error(player, "Player already in crew!");
             return;
         }
+        player.sendMessage(Component.text("Invited ").color(MAIN_COLOR)
+                .append(invited.displayName())
+                .append(Component.text(" to your crew").color(MAIN_COLOR)));
         Invite.sendInvite(player, invited);
     }
 
