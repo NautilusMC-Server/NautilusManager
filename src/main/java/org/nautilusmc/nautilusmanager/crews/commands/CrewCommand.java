@@ -58,7 +58,7 @@ public class CrewCommand extends NautilusCommand {
         }
         switch (strings[0]) {
             case "create" -> createCrew(player, strings);
-            case "delete" -> deleteCrew(player);
+            case "delete" -> deleteCrew(player, strings);
             case "join" -> joinCrew(player, strings);
             case "leave" -> leaveCrew(player);
             case "kick" -> kickMember(player, strings);
@@ -95,6 +95,9 @@ public class CrewCommand extends NautilusCommand {
                 case "makecaptain" -> tabCompletions.addAll(CrewHandler.getCrew(player).getMembers().stream().map(Util::getName).toList());
                 case "invite" -> tabCompletions.addAll(getOnlineNames());
                 case "info" -> tabCompletions.addAll(CrewHandler.getCrews().stream().map(Crew::getName).toList());
+                case "delete" -> {
+                    if (player.hasPermission(DELETE_OTHER_CREW_PERM)) tabCompletions.addAll(CrewHandler.getCrews().stream().map(Crew::getName).toList());
+                }
             }
         }
         return tabCompletions;
@@ -135,7 +138,7 @@ public class CrewCommand extends NautilusCommand {
         PermsUtil.addGroup(player, "captain");
     }
 
-    public static void deleteCrew(Player player) {
+    public static void deleteCrew(Player player,String[] strings) {
         if (!(player.hasPermission(DELETE_CREW_PERM))) {
             error(player, CAPTAIN_PERM_MESSAGE);
             return;
@@ -145,22 +148,53 @@ public class CrewCommand extends NautilusCommand {
             error(player, CREW_PERM_MESSAGE);
             return;
         }
-        ConfirmationMessage.sendConfirmationMessage(player, Component.text("delete your crew").color(NautilusCommand.MAIN_COLOR), new BukkitRunnable() {
-            @Override
-            public void run() {
-                //remove perms
-                PermsUtil.removeGroup(crew.getCaptain(), "captain");
-                for (Player p : crew.getMembers()) {
-                    if (!crew.getCaptain().equals(p)) {
-                        PermsUtil.removeGroup(p, "crewmember");
+        if (strings.length == 1) {
+            ConfirmationMessage.sendConfirmationMessage(player, Component.text("delete your crew").color(NautilusCommand.MAIN_COLOR), new BukkitRunnable() {
+                @Override
+                public void run() {
+                    //remove perms
+                    PermsUtil.removeGroup(crew.getCaptain(), "captain");
+                    for (Player p : crew.getMembers()) {
+                        if (!crew.getCaptain().equals(p)) {
+                            PermsUtil.removeGroup(p, "crewmember");
+                        }
                     }
+                    //delete crew
+                    crew.sendMessageToMembers(Component.text(crew.getName()).color(ACCENT_COLOR)
+                            .append(Component.text(" was deleted").color(MAIN_COLOR)));
+                    CrewHandler.deleteCrew(crew);
                 }
-                //delete crew
-                crew.sendMessageToMembers(Component.text(crew.getName()).color(ACCENT_COLOR)
-                        .append(Component.text(" was deleted").color(MAIN_COLOR)));
-                CrewHandler.deleteCrew(crew);
+            });
+        } else /*delete other*/ {
+            if (!player.hasPermission(DELETE_OTHER_CREW_PERM)) {
+                error(player, DEFAULT_PERM_MESSAGE);
+                return;
             }
-        });
+            String name = getFormattedArgs(strings, 1);
+            Crew otherCrew = CrewHandler.getCrew(name);
+            if (otherCrew == null) {
+                error(player, "Crew does not exist!");
+                return;
+            }
+            ConfirmationMessage.sendConfirmationMessage(player, Component.text("delete ").color(NautilusCommand.MAIN_COLOR)
+                    .append(Component.text("\"" + otherCrew.getName() + "\"").color(ACCENT_COLOR)), new BukkitRunnable() {
+                @Override
+                public void run() {
+                    //remove perms
+                    PermsUtil.removeGroup(crew.getCaptain(), "captain");
+                    for (Player p : crew.getMembers()) {
+                        if (!crew.getCaptain().equals(p)) {
+                            PermsUtil.removeGroup(p, "crewmember");
+                        }
+                    }
+                    //delete crew
+                    crew.sendMessageToMembers(Component.text(crew.getName()).color(ACCENT_COLOR)
+                            .append(Component.text(" was deleted").color(MAIN_COLOR)));
+                    CrewHandler.deleteCrew(crew);
+                }
+            });
+        }
+
     }
 
     public static void joinCrew(Player player, String[] strings) {

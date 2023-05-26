@@ -42,7 +42,6 @@ public abstract class NautilusCommand implements CommandExecutor, TabCompleter {
     public static final String CREATE_CREW_PERM = "nautilusmanager.crew.create";
     public static final String JOIN_CREW_PERM = "nautilusmanager.crew.join";
     public static final String LEAVE_CREW_PERM = "nautilusmanager.crew.leave";
-    public static final String LIST_CREW_PERM = "nautilusmanager.crew.list";
     public static final String DELETE_CREW_PERM = "nautilusmanager.crew.delete";
     public static final String KICK_CREW_PERM = "nautilusmanager.crew.kick";
     public static final String CLOSE_CREW_PERM = "nautilusmanager.crew.close";
@@ -51,9 +50,7 @@ public abstract class NautilusCommand implements CommandExecutor, TabCompleter {
     public static final String CREW_INVITE_PERM = "nautilusmanager.crew.invite";
     public static final String CREW_CLOSED_INVITE_PERM = "nautilusmanager.crew.closedinvite";
     public static final String CREW_INFO_PERM = "nautilusmanager.crew.info";
-
-    //admin
-
+    public static final String DELETE_OTHER_CREW_PERM = "nautilusmanager.crew.delete.other";
 
     //Other
     public static final String DENY_PERM = "nautilusmanager.deny";
