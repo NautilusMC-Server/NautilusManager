@@ -236,10 +236,11 @@ public class CrewCommand extends NautilusCommand {
                 } else {
                     crew.getMembers().remove(player);
                     PermsUtil.removeGroup(player, "crewmember");
+                    crew.sendMessageToMembers(player.displayName()
+                            .append(Component.text(" left the crew!").color(NautilusCommand.MAIN_COLOR)));
                     CrewHandler.updateSQL();
                 }
-                crew.sendMessageToMembers(player.displayName()
-                        .append(Component.text(" left the crew!").color(NautilusCommand.MAIN_COLOR)));
+
             }
         });
     }
