@@ -292,10 +292,10 @@ public class CrewCommand extends NautilusCommand {
         }
         ConfirmationMessage.sendConfirmationMessage(player, Component.text("kick ").color(NautilusCommand.MAIN_COLOR)
                 .append(kicked.isOnline() ? kicked.displayName() : Component.text(kicked.getName()).color(ACCENT_COLOR))
-                .append(Component.text(" out of your crew?")).color(NautilusCommand.MAIN_COLOR) , new BukkitRunnable() {
+                .append(Component.text(" out of your crew")).color(NautilusCommand.MAIN_COLOR) , new BukkitRunnable() {
             @Override
             public void run() {
-                crew.sendMessageToMembers(player.displayName()
+                crew.sendMessageToMembers(kicked.displayName()
                         .append(Component.text(" was kicked from the crew!").color(NautilusCommand.MAIN_COLOR)));
                 if (kicked.isOnline()) {
                     kicked.sendMessage(Component.text("You were kicked from ").color(MAIN_COLOR)
