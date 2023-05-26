@@ -13,17 +13,12 @@ import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.players.GameProfileCache;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.craftbukkit.v1_19_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.cosmetics.NameColor;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 
 import java.util.*;
@@ -31,12 +26,16 @@ import java.util.*;
 public class Util {
 
     public static String getTextContent(Component component) {
-        String out = "";
+        StringBuilder out = new StringBuilder();
 
-        if (component instanceof TextComponent text) out += text.content();
-        for (Component child : component.children()) out += getTextContent(child);
+        if (component instanceof TextComponent text) {
+            out.append(text.content());
+        }
+        for (Component child : component.children()) {
+            out.append(getTextContent(child));
+        }
 
-        return out;
+        return out.toString();
     }
 
     public static Player getOnlinePlayer(String nickname) {

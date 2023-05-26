@@ -138,6 +138,7 @@ public class GeneralEventManager implements Listener {
     // chairs cause why not
 
     // yuck. boolean flag
+    // I couldn't find a better way to prevent the dismount event from being called in calls to e.g. seat.remove()
     private boolean enableChairDismountEvent = true;
 
     private boolean isValidChair(@NotNull Block block) {

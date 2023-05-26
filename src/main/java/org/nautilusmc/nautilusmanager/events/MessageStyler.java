@@ -32,10 +32,12 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
 import org.nautilusmc.nautilusmanager.commands.SuicideCommand;
 import org.nautilusmc.nautilusmanager.gui.page.GuiPage;
+import org.nautilusmc.nautilusmanager.util.Emoji;
 import org.nautilusmc.nautilusmanager.util.FancyText;
 import org.nautilusmc.nautilusmanager.util.Util;
 
@@ -95,12 +97,11 @@ public class MessageStyler implements Listener {
         }
 
         Component deathMessage = Component.empty()
-                .append(Component.empty()
-                        .append(Component.text("Death"))
-                        .append(Component.text(" ☠"))
-                        .color(TextColor.color(46, 230, 255))
-                        .decorate(TextDecoration.BOLD))
-                .append(Component.text(" | ").color(TextColor.color(87, 87, 87)))
+                .append(Component.text(Emoji.SKULL.getRaw())
+                        .append(Component.text(" Death").decorate(TextDecoration.BOLD))
+                        .color(TextColor.color(46, 230, 255)))
+                .append(Component.text(" | ")
+                        .color(TextColor.color(87, 87, 87)))
                 .append(styledDeathMessage);
 
         ServerPlayer nms = ((CraftPlayer) e.getPlayer()).getHandle();
@@ -215,6 +216,7 @@ public class MessageStyler implements Listener {
     public static void sendMessageAsUser(Player player, Component message) {
         Component m = Component.empty()
                 .append(getTimeStamp())
+                .append(Component.text(" "))
                 .append(player.displayName())
                 .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
                 .append(formatUserMessage(player, message).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
@@ -224,31 +226,33 @@ public class MessageStyler implements Listener {
     }
 
     public static Component formatUserMessage(CommandSender player, Component message) {
+        // convert emojis
+        message = Component.text(Emoji.parseText(Util.getTextContent(message)));
+        // apply formatting tags
         if (player.hasPermission(NautilusCommand.CHAT_FORMATTING_PERM)) {
             message = FancyText.parseChatFormatting(Util.getTextContent(message));
         }
-
-        return styleURL(message, null, null);
+        // detect URLs
+        return styleURL(message);
     }
 
     public static Component styleURL(Component component, String url) {
         return component.clickEvent(ClickEvent.openUrl(url))
-                .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Go to "+url)))
+                .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Go to " + url)))
                 .color(TextColor.color(57, 195, 255))
                 .decorate(TextDecoration.UNDERLINED);
     }
 
-    // call as styleURL(message, null, null)
-    public static Component styleURL(Component component, MutableInt index, Map<Map.Entry<Integer, Integer>, String> urls) {
-        if (index == null) index = new MutableInt(0);
-        if (urls == null) {
-            Matcher matcher = URL_PATTERN.matcher(Util.getTextContent(component));
-            urls = new HashMap<>();
-            while (matcher.find()) {
-                urls.put(Map.entry(matcher.start(), matcher.end()), matcher.group());
-            }
+    public static Component styleURL(Component component) {
+        Matcher matcher = URL_PATTERN.matcher(Util.getTextContent(component));
+        Map<Map.Entry<Integer, Integer>, String> urls = new HashMap<>();
+        while (matcher.find()) {
+            urls.put(Map.entry(matcher.start(), matcher.end()), matcher.group());
         }
+        return styleURL(component, new MutableInt(0), urls);
+    }
 
+    private static Component styleURL(Component component, @NotNull MutableInt index, @NotNull Map<Map.Entry<Integer, Integer>, String> urls) {
         List<Component> children = new ArrayList<>(component.children());
         List<TextComponent> linkChildren = new ArrayList<>();
 
@@ -282,23 +286,21 @@ public class MessageStyler implements Listener {
                 index.increment();
             }
 
-
             linkChildren.add(building);
-            linkChildren.removeIf(c -> c.content().isEmpty());
+            linkChildren.removeIf(child -> child.content().isEmpty());
         }
 
-        for (int i = 0; i < children.size(); i++) {
-            children.set(i, styleURL(children.get(i), index, urls));
-        }
-
+        children.replaceAll(child -> styleURL(child, index, urls));
 
         children.addAll(0, linkChildren);
         return component.children(children);
     }
 
     public static Component getTimeStamp() {
-        Calendar c = GregorianCalendar.getInstance(TIME_ZONE);
-
-        return Component.text("%2d:%02d".formatted(c.get(Calendar.HOUR), c.get(Calendar.MINUTE))+" ").color(TextColor.color(34, 150, 155));
+        Calendar calendar = GregorianCalendar.getInstance(TIME_ZONE);
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int minute = calendar.get(Calendar.MINUTE);
+        return Component.text("%2d:%02d".formatted(hour, minute))
+                .color(TextColor.color(34, 150, 155));
     }
 }

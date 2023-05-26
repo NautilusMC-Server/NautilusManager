@@ -44,14 +44,18 @@ public class FancyText {
 
     public static Material getClosestDye(TextColor color) {
         Material closest = Material.WHITE_DYE;
-        double closestDist = Double.MAX_VALUE;
+        // since we don't need the value of the distance, we can skip the square root and compare distance^2
+        int smallestSquaredDist = Integer.MAX_VALUE;
 
         for (Map.Entry<Material, TextColor> entry : DYE_COLORS.entrySet()) {
-            double dist = Math.sqrt(Math.pow(color.red() - entry.getValue().red(), 2) + Math.pow(color.green() - entry.getValue().green(), 2) + Math.pow(color.blue() - entry.getValue().blue(), 2));
+            int redDist = color.red() - entry.getValue().red();
+            int greenDist = color.green() - entry.getValue().green();
+            int blueDist = color.blue() - entry.getValue().blue();
+            int squaredDist = redDist * redDist + greenDist * greenDist + blueDist * blueDist;
 
-            if (dist < closestDist) {
+            if (squaredDist < smallestSquaredDist) {
                 closest = entry.getKey();
-                closestDist = dist;
+                smallestSquaredDist = squaredDist;
             }
         }
 
@@ -59,7 +63,7 @@ public class FancyText {
     }
 
     public static Component colorText(ColorType type, String text, TextColor... colors) {
-        switch(type) {
+        switch (type) {
             case GRADIENT -> {
                 Component out = Component.empty();
 

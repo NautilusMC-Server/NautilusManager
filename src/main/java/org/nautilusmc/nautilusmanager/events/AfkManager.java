@@ -70,7 +70,7 @@ public class AfkManager implements Listener {
             if (p == player) continue;
             p.sendMessage(Component.text("* ")
                     .append(player.displayName())
-                    .append(Component.text(" is "+verb+" AFK"))
+                    .append(Component.text(" is "+verb+" AFK."))
                     .color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
         }
     }

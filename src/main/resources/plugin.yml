@@ -2,10 +2,11 @@ name: NautilusManager
 version: '${project.version}'
 main: org.nautilusmc.nautilusmanager.NautilusManager
 api-version: 1.19
-authors: [MaliciousFiles, longbread, Pants]
+authors: [MaliciousFiles, longbread, Pants, xarkenz]
 description: Runs the Nautilus Minecraft server.
 depend:
   - PluginManager
+  - LuckPerms
 commands:
   cosmetics:
     description: Base command for cosmetics.
@@ -20,7 +21,7 @@ commands:
     description: Toggles between individual chats and global chat.
     usage: /chat [name]
   reply:
-    description: Replies to last msg
+    description: Replies to the last message
     usage: /reply
     aliases: r
   msg:
