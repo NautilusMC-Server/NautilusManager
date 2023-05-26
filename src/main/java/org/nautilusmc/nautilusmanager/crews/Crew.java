@@ -8,6 +8,7 @@ import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
 
 public class Crew {
@@ -58,6 +59,13 @@ public class Crew {
     public ArrayList<Player> getMembers() {
         return members;
     }
+    public ArrayList<Player> getMembers(boolean excludeCaptain) {
+        ArrayList<Player> returned = members;
+        if (excludeCaptain) {
+            returned.remove(captain);
+        }
+        return returned;
+    }
 
     public void setMembers(ArrayList<Player> members) {
         this.members = members;
@@ -92,13 +100,12 @@ public class Crew {
                 .appendNewline()
                 .append(Component.text("Members: ").color(NautilusCommand.MAIN_COLOR));
         Player member;
-        for (int i = 0; i < members.size(); i++) {
-            member = members.get(i);
-            if (!(member.equals(captain))) {
-                out = out.append(Component.text(Util.getTextContent(member.displayName())).color(NautilusCommand.ACCENT_COLOR));
-                if (i < members.size() - 1) {
-                    out = out.append(Component.text(", ").color(NautilusCommand.ACCENT_COLOR));
-                }
+        ArrayList<Player> membersNoCaptain = getMembers(true);
+        for (int i = 0; i < membersNoCaptain.size(); i++) {
+            member = membersNoCaptain.get(i);
+            out = out.append(Component.text(Util.getTextContent(member.displayName())).color(NautilusCommand.ACCENT_COLOR));
+            if (i < membersNoCaptain.size() - 1) {
+                out = out.append(Component.text(", ").color(NautilusCommand.ACCENT_COLOR));
             }
         }
         out = out.append(Component.text("Status: ").color(NautilusCommand.MAIN_COLOR))
@@ -109,6 +116,13 @@ public class Crew {
     public void sendMessageToMembers(Component component) {
         for (Player player : members) {
             if (player.isOnline()) {
+                player.sendMessage(component);
+            }
+        }
+    }
+    public void sendMessageToMembers(Component component, boolean excludeCaptain) {
+        for (Player player : members) {
+            if (player.isOnline() && (!player.equals(captain) || !excludeCaptain)) {
                 player.sendMessage(component);
             }
         }

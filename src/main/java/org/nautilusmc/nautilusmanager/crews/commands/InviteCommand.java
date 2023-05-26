@@ -28,7 +28,7 @@ public class InviteCommand extends NautilusCommand implements CommandExecutor {
         if (strings[0].equals("accept")) {
             Invite.accept(player);
             return true;
-        } else if (strings[0].equals("deny")) {
+        } else if (strings[0].equals("decline")) {
             Invite.deny(player);
             return true;
         } else {
@@ -40,7 +40,7 @@ public class InviteCommand extends NautilusCommand implements CommandExecutor {
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         ArrayList<String> tabCompletions = new ArrayList<>();
         tabCompletions.add("accept");
-        tabCompletions.add("deny");
+        tabCompletions.add("decline");
         return tabCompletions;
     }
 }

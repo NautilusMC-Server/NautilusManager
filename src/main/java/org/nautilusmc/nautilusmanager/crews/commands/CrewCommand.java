@@ -28,7 +28,6 @@ public class CrewCommand extends NautilusCommand {
     private static final String CREW_PERM_MESSAGE = "You must be part of a crew to use this command!";
     private static final String ALREADY_IN_CREW_MESSAGE = "You are already in a crew!";
     private static final String[] DEFAULT_COMMANDS = {
-            "list",
             "info",
     };
     private static final String[] NO_CREW_COMMANDS = {
@@ -60,7 +59,6 @@ public class CrewCommand extends NautilusCommand {
         switch (strings[0]) {
             case "create" -> createCrew(player, strings);
             case "delete" -> deleteCrew(player);
-            case "list" -> listCrews(player);
             case "join" -> joinCrew(player, strings);
             case "leave" -> leaveCrew(player);
             case "kick" -> kickMember(player, strings);
@@ -161,26 +159,6 @@ public class CrewCommand extends NautilusCommand {
         });
     }
 
-    public static void listCrews(Player player) {
-        if (!(player.hasPermission(LIST_CREW_PERM))) {
-            error(player, DEFAULT_PERM_MESSAGE);
-            return;
-        }
-
-        ArrayList<Crew> crews = CrewHandler.getCrews();
-        if (crews.isEmpty()) {
-            player.sendMessage(Component.text("No crews on the server!").color(NautilusCommand.MAIN_COLOR));
-            return;
-        }
-        Component out = Component.text("Crews: ").color(MAIN_COLOR);
-        for (int i = 0; i < crews.size(); i++) {
-            out = out.append(Component.text(crews.get(i).getName()).color(ACCENT_COLOR));
-            if (i < crews.size() - 1) {
-                out = out.append(Component.text(", ").color(ACCENT_COLOR));
-            }
-        }
-    }
-
     public static void joinCrew(Player player, String[] strings) {
         if (!(player.hasPermission(JOIN_CREW_PERM))) {
             error(player, DEFAULT_PERM_MESSAGE);
@@ -240,12 +218,15 @@ public class CrewCommand extends NautilusCommand {
                         if (newCaptain.equals(player)) {
                             newCaptain = crew.getMembers().get(2);
                         }
+                        crew.setCaptain(newCaptain);
+                        crew.getMembers().remove(player);
+                        crew.sendMessageToMembers(player.displayName()
+                                .append(Component.text(" left the crew").color(MAIN_COLOR)));
                         crew.sendMessageToMembers(newCaptain.displayName()
-                                .append(Component.text(" is now the captain of your crew").color(MAIN_COLOR)));
+                                .append(Component.text(" is now the captain of your crew").color(MAIN_COLOR)), true);
                         if (newCaptain.isOnline()) {
                             newCaptain.sendMessage(Component.text("You are now the captain of your crew!").color(MAIN_COLOR));
                         }
-                        crew.setCaptain(newCaptain);
                         CrewHandler.updateSQL();
                         PermsUtil.removeGroup(player, "captain");
                         PermsUtil.removeGroup(newCaptain, "crewmember");
@@ -338,7 +319,7 @@ public class CrewCommand extends NautilusCommand {
             @Override
             public void run() {
                 crew.sendMessageToMembers(newCaptain.displayName()
-                        .append(Component.text(" is now the captain of your crew").color(MAIN_COLOR)));
+                        .append(Component.text(" is now the captain of your crew").color(MAIN_COLOR)), true);
                 if (newCaptain.isOnline()) {
                     newCaptain.sendMessage(Component.text("You are now the captain of your crew!").color(MAIN_COLOR));
                 }
@@ -461,8 +442,6 @@ public class CrewCommand extends NautilusCommand {
                     .append(Component.text(" - Creates a new crew with specified name").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
             case "delete" -> Component.text("/crew delete").color(ACCENT_COLOR)
                     .append(Component.text(" - Deletes your crew").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
-            case "list" -> Component.text("/crew list").color(ACCENT_COLOR)
-                    .append(Component.text(" - Lists all members of your crew").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
             case "join" -> Component.text("/crew join <name>").color(ACCENT_COLOR)
                     .append(Component.text(" - Joins a crew").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
             case "leave" -> Component.text("/crew leave <name>").color(ACCENT_COLOR)

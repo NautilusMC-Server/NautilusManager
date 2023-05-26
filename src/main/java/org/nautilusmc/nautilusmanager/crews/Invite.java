@@ -45,11 +45,11 @@ public class Invite {
         }
         inviteReceiver.sendMessage(inviteSender.displayName().append(Component.text(" sent you an invite to their crew!").color(NautilusCommand.MAIN_COLOR)));
 
-        inviteReceiver.sendMessage(Util.clickableCommand("/invite accept", true).color(NautilusCommand.ACCENT_COLOR)
-                .append(Component.text("to accept").color(NautilusCommand.ACCENT_COLOR)));
+        inviteReceiver.sendMessage(Util.clickableCommand("/invite accept ", true).color(NautilusCommand.ACCENT_COLOR)
+                .append(Component.text("to accept").color(NautilusCommand.MAIN_COLOR)));
 
-        inviteReceiver.sendMessage(Util.clickableCommand("/invite deny", true).color(NautilusCommand.ACCENT_COLOR)
-                .append(Component.text("to deny").color(NautilusCommand.ACCENT_COLOR)));
+        inviteReceiver.sendMessage(Util.clickableCommand("/invite decline ", true).color(NautilusCommand.ACCENT_COLOR)
+                .append(Component.text("to decline").color(NautilusCommand.MAIN_COLOR)));
 
         UUID uuid = inviteReceiver.getUniqueId();
         if (!PENDING.containsKey(uuid)) {
