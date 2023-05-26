@@ -109,12 +109,4 @@ public class Util {
             nms.connection.send(addPlayer);
         }
     }
-    public static ArrayList<String> getOnlineNames() {
-        ArrayList<String> names = new ArrayList<>();
-        for (Player player : NautilusManager.INSTANCE.getServer().getOnlinePlayers()) {
-            names.add(player.getName());
-            names.add(Nickname.getNickname(player));
-        }
-        return names;
-    }
 }

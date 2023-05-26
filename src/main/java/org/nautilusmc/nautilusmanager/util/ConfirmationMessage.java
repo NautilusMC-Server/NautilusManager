@@ -39,10 +39,17 @@ public class ConfirmationMessage {
         runnable.runTask(NautilusManager.INSTANCE);
     }
 
-    public static void sendConfirmationMessage(Player player, String taskName, BukkitRunnable runnable) {
-        player.sendMessage(Component.text("Are you sure you want to " + taskName + "?").color(NautilusCommand.ERROR_COLOR));
-        player.sendMessage(Component.text("/confirm to confirm").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
-        player.sendMessage(Component.text("/deny to deny").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
+    public static void sendConfirmationMessage(Player player, Component taskName, BukkitRunnable runnable) {
+        player.sendMessage(Component.text("Are you sure you want to ").color(NautilusCommand.MAIN_COLOR)
+                .append(taskName)
+                .append(Component.text("?").color(NautilusCommand.MAIN_COLOR)));
+
+        player.sendMessage(Util.clickableCommand("/confirm", true).color(NautilusCommand.ACCENT_COLOR)
+                .append(Component.text(" to confirm").color(NautilusCommand.MAIN_COLOR)));
+
+        player.sendMessage(Util.clickableCommand("/deny", true).color(NautilusCommand.ACCENT_COLOR)
+                .append(Component.text(" to confirm").color(NautilusCommand.MAIN_COLOR)));
+
         UUID uuid = player.getUniqueId();
         if (!PENDING.containsKey(uuid)) {
             PENDING.put(uuid, new Stack<>());
@@ -58,17 +65,25 @@ public class ConfirmationMessage {
         UUID uuid = player.getUniqueId();
         if (!PENDING.containsKey(uuid)) {
             player.sendMessage(Component.text("No pending tasks to confirm!").color(NautilusCommand.ERROR_COLOR));
+            return;
         }
         Stack<ConfirmationMessage> stack =  PENDING.get(uuid);
         stack.pop().execute();
+        if (stack.isEmpty()) {
+            PENDING.remove(uuid);
+        }
     }
     public static void deny(Player player) {
         UUID uuid = player.getUniqueId();
         if (!PENDING.containsKey(uuid)) {
             player.sendMessage(Component.text("No pending tasks to deny!").color(NautilusCommand.ERROR_COLOR));
+            return;
         }
         Stack<ConfirmationMessage> stack =  PENDING.get(uuid);
         stack.pop();
+        if (stack.isEmpty()) {
+            PENDING.remove(uuid);
+        }
         player.sendMessage(Component.text("Task denied!").color(NautilusCommand.ERROR_COLOR));
     }
 }

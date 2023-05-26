@@ -4,9 +4,9 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 
+
 public class CrewHandler {
     private static ArrayList<Crew> crews;
-
     public static void init() {
         //I'll deal with SQL stuff later
         crews = new ArrayList<>();

@@ -1,5 +1,6 @@
 package org.nautilusmc.nautilusmanager.crews;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.util.Util;
@@ -94,5 +95,13 @@ public class Crew {
         }
         return stringBuilder.toString();
         //TODO: Turn this into component with better formatting
+    }
+
+    public void sendMessageToMembers(Component component) {
+        for (Player player : members) {
+            if (player.isOnline()) {
+                player.sendMessage(component);
+            }
+        }
     }
 }

@@ -2,9 +2,15 @@ package org.nautilusmc.nautilusmanager.commands;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.nautilusmc.nautilusmanager.NautilusManager;
+import org.nautilusmc.nautilusmanager.util.Util;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 public abstract class NautilusCommand implements CommandExecutor, TabCompleter {
 
@@ -42,7 +48,11 @@ public abstract class NautilusCommand implements CommandExecutor, TabCompleter {
     public static final String OPEN_CREW_PERM = "nautilusmanager.crew.open";
     public static final String MAKECAPTAIN_CREW_PERM = "nautilusmanager.crew.makecaptain";
     public static final String CREW_INVITE_PERM = "nautilusmanager.crew.invite";
-    public static final String CREW_INFO_PERM = "nautilusmanager.crew.invite";
+    public static final String CREW_CLOSED_INVITE_PERM = "nautilusmanager.crew.closedinvite";
+    public static final String CREW_INFO_PERM = "nautilusmanager.crew.info";
+
+    //admin
+
 
     //Other
     public static final String DENY_PERM = "nautilusmanager.deny";
@@ -73,5 +83,8 @@ public abstract class NautilusCommand implements CommandExecutor, TabCompleter {
 
     protected static void error(Player player, String message) {
         player.sendMessage(Component.text(message).color(ERROR_COLOR));
+    }
+    public static Collection<String> getOnlineNames() {
+        return Bukkit.getOnlinePlayers().stream().map(Util::getName).toList();
     }
 }

@@ -100,9 +100,19 @@ commands:
     usage: /sponsor
   itemname:
     description: Set the
-  #crews:
-    #description: Lists all crews
-    #usage: /crews
-  #crew:
-    #description: Base crew command
-    #usage: /crew [args]
+  crews:
+    description: Lists all crews
+    usage: /crews
+  crew:
+    description: Base crew command
+    usage: /crew [args]
+  confirm:
+    description: Accepts a pending confirmation message
+    usage: /confirm
+  deny:
+    description: Denies a pending confirmation message
+    usage: /deny
+  invite:
+    description: Accepts or denies a pending crew invite
+    usage: /invite [accept|deny]
+
