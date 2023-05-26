@@ -12,18 +12,17 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
 import org.nautilusmc.nautilusmanager.sql.SQLHandler;
+import org.nautilusmc.nautilusmanager.util.CaseInsensitiveString;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class Nickname {
 
-    private static final BiMap<UUID, String> playerNames = HashBiMap.create();
+    private static final BiMap<UUID, CaseInsensitiveString> playerNames = HashBiMap.create();
+//    private static final Map<UUID, CaseInsensitiveString> playerNames = new HashMap<>();
     private static SQLHandler SQL_HANDLER;
 
     public static void init() {
@@ -32,19 +31,19 @@ public class Nickname {
             public void updateSQL(ResultSet results) throws SQLException {
                 playerNames.clear();
                 while (results.next()) {
-                    playerNames.put(UUID.fromString(results.getString("uuid")), results.getString("nickname"));
+                    playerNames.put(UUID.fromString(results.getString("uuid")), new CaseInsensitiveString(results.getString("nickname")));
                 }
 
                 // reset any invalid nicknames
                 playerNames.forEach((uuid, name) -> {
                     OfflinePlayer p = Bukkit.getOfflinePlayer(uuid);
-                    if (validateNickname(p, name) != null) {
+                    if (validateNickname(p, name.string) != null) {
                         setNickname(uuid, null);
                     }
                 });
 
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    String nickname = playerNames.getOrDefault(p.getUniqueId(), p.getName());
+                    String nickname = playerNames.getOrDefault(p.getUniqueId(), new CaseInsensitiveString(p.getName())).string;
 
                     if (!Util.getTextContent(p.displayName()).equals(nickname)) {
                         updateNickname(p, nickname);
@@ -65,7 +64,7 @@ public class Nickname {
             SQL_HANDLER.deleteSQL(uuid);
         }
         else {
-            playerNames.put(uuid, nickname);
+            playerNames.put(uuid, new CaseInsensitiveString(nickname));
             SQL_HANDLER.setSQL(uuid, Map.of("nickname", nickname));
         }
     }
@@ -84,26 +83,27 @@ public class Nickname {
      * Get a player's nickname (inverse of #getPlayerFromNickname).
      */
     public static String getNickname(OfflinePlayer p) {
-        return playerNames.get(p.getUniqueId());
+        return playerNames.getOrDefault(p.getUniqueId(), new CaseInsensitiveString(null)).string;
     }
 
     /**
      * Get a player by nickname (inverse of #getNickname).
      */
     public static OfflinePlayer getPlayerFromNickname(String nickname) {
-        if (!playerNames.containsValue(nickname)) return null;
+        CaseInsensitiveString cis = new CaseInsensitiveString(nickname);
+        if (!playerNames.containsValue(cis)) return null;
 
-        String name = Bukkit.getOfflinePlayer(playerNames.inverse().get(nickname)).getName();
+        String name = Bukkit.getOfflinePlayer(playerNames.inverse().get(cis)).getName();
         if (name == null) return null;
 
-        return Bukkit.getOfflinePlayerIfCached(name);
+        return Util.getOfflinePlayerIfCached(name);
     }
 
     /**
      * Get a list of all nicknames.
      */
     public static List<String> getNicknames() {
-        return new ArrayList<>(playerNames.values());
+        return playerNames.values().stream().map(name -> name.string).toList();
     }
 
     /**
@@ -126,7 +126,9 @@ public class Nickname {
         if (name.length() < 3) return "That nickname is too short";
         if (!name.matches("[a-zA-Z0-9_]+") && p.isOnline() && !p.getPlayer().hasPermission(NautilusCommand.NICKNAME_SPECIAL_CHAR_PERM)) return "Become a supporter to unlock non-alphanumeric characters";
         if (name.contains(" ")) return "Nicknames cannot contain spaces";
-        if (!playerNames.inverse().getOrDefault(name, p.getUniqueId()).equals(p.getUniqueId()) || (!name.equals(p.getName()) && Bukkit.getOfflinePlayerIfCached(name) != null)) return "That nickname is already taken";
+
+        OfflinePlayer existing = Util.getOfflinePlayerIfCached(name);
+        if (!playerNames.inverse().getOrDefault(new CaseInsensitiveString(name), p.getUniqueId()).equals(p.getUniqueId()) || (existing != null && !existing.getUniqueId().equals(p.getUniqueId()))) return "That nickname is already taken";
 
         return null;
     }
@@ -148,7 +150,7 @@ public class Nickname {
             if (nick != null) {
                 // if there is a player whose name is the joining player's nickname, reset the joining player's nick
                 // otherwise, set the
-                if (Bukkit.getOfflinePlayerIfCached(nick) != null) {
+                if (Util.getOfflinePlayerIfCached(nick) != null) {
                     setNickname(e.getPlayer(), e.getPlayer().getName(), false);
                     e.getPlayer().sendMessage(resetMessage);
                 } else {

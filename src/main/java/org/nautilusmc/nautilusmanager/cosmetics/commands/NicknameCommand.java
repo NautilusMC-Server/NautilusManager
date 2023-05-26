@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
+import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -80,7 +81,7 @@ public class NicknameCommand extends NautilusCommand {
 
                 if (strings.length < 2) return false;
 
-                OfflinePlayer p = Bukkit.getOfflinePlayerIfCached(strings[1]);
+                OfflinePlayer p = Util.getOfflinePlayerIfCached(strings[1]);
                 if (p == null || p.getName() == null) {
                     commandSender.sendMessage(Component.text("Player not found").color(NautilusCommand.ERROR_COLOR));
                     return true;

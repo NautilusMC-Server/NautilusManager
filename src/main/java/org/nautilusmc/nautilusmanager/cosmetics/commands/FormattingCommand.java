@@ -23,7 +23,7 @@ public class FormattingCommand extends NautilusCommand {
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!commandSender.hasPermission("nautiluscosmetics.chat.chatcodes")) {
+        if (!commandSender.hasPermission(CHAT_FORMATTING_PERM)) {
             commandSender.sendMessage(Component.text("Become a sponsor to use chat codes!").color(NautilusCommand.ERROR_COLOR));
             return true;
         }
