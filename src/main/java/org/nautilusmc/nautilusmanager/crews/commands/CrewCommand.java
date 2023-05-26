@@ -80,6 +80,7 @@ public class CrewCommand extends NautilusCommand {
         ArrayList<String> tabCompletions = new ArrayList<>();
         if (strings.length == 1) {
             tabCompletions.addAll(Arrays.asList(DEFAULT_COMMANDS));
+            tabCompletions.add("help");
             if (player.hasPermission("group.crewmember")) {
                 tabCompletions.addAll(Arrays.asList(CREW_MEMBER_COMMANDS));
             } else {
@@ -427,7 +428,7 @@ public class CrewCommand extends NautilusCommand {
                 error(player, CREW_PERM_MESSAGE);
                 return;
             }
-            player.sendMessage(Component.text(crew.toString()).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
+            player.sendMessage(crew.toComponent());
         } else {
             String name = getFormattedArgs(args, 1);
             Crew crew = CrewHandler.getCrew(name);
@@ -435,7 +436,7 @@ public class CrewCommand extends NautilusCommand {
                 error(player, "Crew \"" + name + "\" does not exist!");
                 return;
             }
-            player.sendMessage(Component.text(crew.toString()).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
+            player.sendMessage(crew.toComponent());
         }
     }
     public static Component help() {

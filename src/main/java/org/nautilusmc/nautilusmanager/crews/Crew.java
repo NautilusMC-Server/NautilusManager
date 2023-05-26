@@ -2,6 +2,8 @@ package org.nautilusmc.nautilusmanager.crews;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
+import org.checkerframework.checker.units.qual.C;
+import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.util.Util;
 
@@ -81,20 +83,25 @@ public class Crew {
         return Objects.hash(captain, members, name);
     }
 
-    public String toString() {
-        StringBuilder stringBuilder = new StringBuilder("Name: " + name + "\nCaptain: " + Util.getName(captain) + "\nMembers: ");
+    public Component toComponent() {
+        Component out  = Component.text("Name: ").color(NautilusCommand.MAIN_COLOR)
+                .append(Component.text(name).color(NautilusCommand.ACCENT_COLOR))
+                .appendNewline()
+                .append(Component.text("Captain: ").color(NautilusCommand.MAIN_COLOR))
+                .append(Component.text(captain.getName()).color(NautilusCommand.ACCENT_COLOR))
+                .appendNewline()
+                .append(Component.text("Members: ").color(NautilusCommand.MAIN_COLOR));
         Player member;
         for (int i = 0; i < members.size(); i++) {
             member = members.get(i);
             if (!(member.equals(captain))) {
-                stringBuilder.append(Util.getName(member));
+                out = out.append(Component.text(Util.getTextContent(member.displayName())).color(NautilusCommand.ACCENT_COLOR));
             }
             if (i < members.size() - 1) {
-                stringBuilder.append(", ");
+                out = out.append(Component.text(", ").color(NautilusCommand.ACCENT_COLOR));
             }
         }
-        return stringBuilder.toString();
-        //TODO: Turn this into component with better formatting
+        return out;
     }
 
     public void sendMessageToMembers(Component component) {
