@@ -178,6 +178,7 @@ public class CrewCommand extends NautilusCommand {
                 if (crew.getName().equals(getFormattedArgs(strings, 1))) {
                     if (!crew.isOpen()) {
                         error(player, "Crew is closed to invitations only!");
+                        return;
                     }
                     crew.addMember(player);
                     crew.sendMessageToMembers(player.displayName()
