@@ -100,7 +100,7 @@ public class Crew {
                 .appendNewline()
                 .append(Component.text("Members: ").color(NautilusCommand.MAIN_COLOR));
         Player member;
-        ArrayList<Player> membersNoCaptain = getMembers(true);
+        ArrayList<Player> membersNoCaptain = getMembers(false);
         for (int i = 0; i < membersNoCaptain.size(); i++) {
             member = membersNoCaptain.get(i);
             out = out.append(Component.text(Util.getTextContent(member.displayName())).color(NautilusCommand.ACCENT_COLOR));
