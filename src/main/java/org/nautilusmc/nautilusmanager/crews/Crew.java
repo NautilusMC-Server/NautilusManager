@@ -96,9 +96,9 @@ public class Crew {
             member = members.get(i);
             if (!(member.equals(captain))) {
                 out = out.append(Component.text(Util.getTextContent(member.displayName())).color(NautilusCommand.ACCENT_COLOR));
-            }
-            if (i < members.size() - 1) {
-                out = out.append(Component.text(", ").color(NautilusCommand.ACCENT_COLOR));
+                if (i < members.size() - 1) {
+                    out = out.append(Component.text(", ").color(NautilusCommand.ACCENT_COLOR));
+                }
             }
         }
         return out;
