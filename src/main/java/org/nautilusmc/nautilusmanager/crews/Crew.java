@@ -108,6 +108,7 @@ public class Crew {
                 out = out.append(Component.text(", ").color(NautilusCommand.ACCENT_COLOR));
             }
         }
+        out = out.appendNewline();
         out = out.append(Component.text("Status: ").color(NautilusCommand.MAIN_COLOR))
                 .append(Component.text(isOpen() ? "open" : "closed").color(NautilusCommand.ACCENT_COLOR));
         return out;

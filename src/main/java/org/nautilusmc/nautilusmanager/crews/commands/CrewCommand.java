@@ -316,16 +316,16 @@ public class CrewCommand extends NautilusCommand {
         }
 
         ConfirmationMessage.sendConfirmationMessage(player, Component.text("make ").color(MAIN_COLOR)
-                .append(newCaptain.displayName())
-                .append(Component.text("the captian of you crew").color(ACCENT_COLOR)), new BukkitRunnable() {
+                .append(Component.empty().append(newCaptain.displayName()).color(ACCENT_COLOR))
+                .append(Component.text("the captian of you crew").color(MAIN_COLOR)), new BukkitRunnable() {
             @Override
             public void run() {
+                crew.setCaptain(newCaptain);
                 crew.sendMessageToMembers(newCaptain.displayName()
                         .append(Component.text(" is now the captain of your crew").color(MAIN_COLOR)), true);
                 if (newCaptain.isOnline()) {
                     newCaptain.sendMessage(Component.text("You are now the captain of your crew!").color(MAIN_COLOR));
                 }
-                crew.setCaptain(newCaptain);
                 CrewHandler.updateSQL();
                 PermsUtil.removeGroup(player, "captain");
                 PermsUtil.addGroup(player, "crewmember");
@@ -398,7 +398,7 @@ public class CrewCommand extends NautilusCommand {
             return;
         }
         player.sendMessage(Component.text("Invited ").color(MAIN_COLOR)
-                .append(invited.displayName())
+                .append(Component.empty().append(player.displayName()).color(ACCENT_COLOR))
                 .append(Component.text(" to your crew").color(MAIN_COLOR)));
         Invite.sendInvite(player, invited);
     }
