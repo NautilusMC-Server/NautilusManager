@@ -87,7 +87,8 @@ public class MessageStyler implements Listener {
 
         Component styledDeathMessage;
         if (e.deathMessage() instanceof TranslatableComponent t && t.key().equals(SuicideCommand.SUICIDE_TRANSLATION_KEY)) {
-            styledDeathMessage = e.getPlayer().displayName()
+            styledDeathMessage = Component.empty()
+                    .append(e.getPlayer().displayName())
                     .append(Component.text(" took the easy way out"));
         } else {
             styledDeathMessage = styleMessage((TranslatableComponent) e.deathMessage());
@@ -230,8 +231,15 @@ public class MessageStyler implements Listener {
         return styleURL(message, null, null);
     }
 
+    public static Component styleURL(Component component, String url) {
+        return component.clickEvent(ClickEvent.openUrl(url))
+                .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Go to "+url)))
+                .color(TextColor.color(57, 195, 255))
+                .decorate(TextDecoration.UNDERLINED);
+    }
+
     // call as styleURL(message, null, null)
-    private static Component styleURL(Component component, MutableInt index, Map<Map.Entry<Integer, Integer>, String> urls) {
+    public static Component styleURL(Component component, MutableInt index, Map<Map.Entry<Integer, Integer>, String> urls) {
         if (index == null) index = new MutableInt(0);
         if (urls == null) {
             Matcher matcher = URL_PATTERN.matcher(Util.getTextContent(component));
@@ -255,10 +263,7 @@ public class MessageStyler implements Listener {
                     if (entry.getKey().getKey() <= index.getValue() && index.getValue() < entry.getKey().getValue()) {
                         if (!inUrl) {
                             linkChildren.add(building);
-                            building = Component.empty().clickEvent(ClickEvent.openUrl(entry.getValue()))
-                                    .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Go to "+entry.getValue())))
-                                    .color(TextColor.color(57, 195, 255))
-                                    .decorate(TextDecoration.UNDERLINED);
+                            building = (TextComponent) styleURL(Component.empty(), entry.getValue());
                             inUrl = true;
                         }
                     } else if (inUrl) {

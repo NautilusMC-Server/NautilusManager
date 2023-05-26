@@ -11,11 +11,14 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.GameProfileCache;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.craftbukkit.v1_19_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -23,10 +26,7 @@ import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.cosmetics.NameColor;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class Util {
 
@@ -66,6 +66,7 @@ public class Util {
     private static void setNameTagName(Player player, String name, Collection<? extends Player> players) {
         ServerPlayer nmsPlayer = ((CraftPlayer) player).getHandle();
         GameProfile oldProfile = nmsPlayer.gameProfile;
+        nmsPlayer.lastSave = MinecraftServer.currentTick;
         nmsPlayer.gameProfile = new GameProfile(player.getUniqueId(), name);
         nmsPlayer.gameProfile.getProperties().putAll(oldProfile.getProperties());
 
@@ -108,5 +109,10 @@ public class Util {
             nms.connection.send(addTeam);
             nms.connection.send(addPlayer);
         }
+    }
+
+    public static OfflinePlayer getOfflinePlayerIfCached(String name) {
+        return Arrays.stream(Bukkit.getOfflinePlayers())
+                .filter(p -> name.equalsIgnoreCase(p.getName())).findFirst().orElse(null);
     }
 }

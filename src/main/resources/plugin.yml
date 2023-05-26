@@ -98,8 +98,11 @@ commands:
   sponsor:
     description: Get the link to become a sponsor.
     usage: /sponsor
+    aliases:
+      - support
   itemname:
-    description: Set the
+    description: Set the name of the currently held item
+    usage: /itemname <name>
   crews:
     description: Lists all crews
     usage: /crews

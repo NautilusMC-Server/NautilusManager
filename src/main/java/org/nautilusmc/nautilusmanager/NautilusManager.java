@@ -84,6 +84,8 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("confirm").setExecutor(new ConfirmCommand());
         this.getCommand("deny").setExecutor(new DenyCommand());
         this.getCommand("invite").setExecutor(new InviteCommand());
+        this.getCommand("sponsor").setExecutor(new SponsorCommand());
+        this.getCommand("itemname").setExecutor(new ItemNameCommand());
     }
 
     private void registerEvents() {

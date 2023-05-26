@@ -23,6 +23,7 @@ public abstract class NautilusCommand implements CommandExecutor, TabCompleter {
 
     //cosmetic
     public static final String MODIFY_OTHER_PERM = "nautiluscosmetics.modify_other";
+    public static final String ITEM_NAME_PERM = "nautiluscosmetics.set_item_name";
     public static final String NICKNAME_PERM = "nautiluscosmetics.nickname";
     public static final String NICKNAME_LIST_PERM = "nautiluscosmetics.nickname.view";
     public static final String NICKNAME_SPECIAL_CHAR_PERM = "nautiluscosmetics.nickname.special_characters";
