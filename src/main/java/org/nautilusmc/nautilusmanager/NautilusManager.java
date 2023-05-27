@@ -8,6 +8,7 @@ import org.nautilusmc.nautilusmanager.crews.CrewHandler;
 import org.nautilusmc.nautilusmanager.crews.commands.CrewCommand;
 import org.nautilusmc.nautilusmanager.crews.commands.CrewsCommand;
 import org.nautilusmc.nautilusmanager.crews.commands.InviteCommand;
+import org.nautilusmc.nautilusmanager.crews.commands.WarCommand;
 import org.nautilusmc.nautilusmanager.teleport.commands.homes.BuyHomeCommand;
 import org.nautilusmc.nautilusmanager.cosmetics.NameColor;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
@@ -45,7 +46,7 @@ public final class NautilusManager extends JavaPlugin {
         Homes.init();
         Warps.init();
         PermsUtil.init();
-//        CrewHandler.init();
+        CrewHandler.init();
 
         registerCommands();
         registerEvents();
@@ -79,11 +80,12 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("vanish").setExecutor(new VanishCommand());
         this.getCommand("chatmsg").setExecutor(new ChatMsgCommand());
         this.getCommand("suicide").setExecutor(new SuicideCommand());
-//        this.getCommand("crews").setExecutor(new CrewsCommand());
-//        this.getCommand("crew").setExecutor(new CrewCommand());
-//        this.getCommand("confirm").setExecutor(new ConfirmCommand());
-//        this.getCommand("deny").setExecutor(new DenyCommand());
-//        this.getCommand("invite").setExecutor(new InviteCommand());
+        this.getCommand("crews").setExecutor(new CrewsCommand());
+        this.getCommand("crew").setExecutor(new CrewCommand());
+        this.getCommand("confirm").setExecutor(new ConfirmCommand());
+        this.getCommand("deny").setExecutor(new DenyCommand());
+        this.getCommand("invite").setExecutor(new InviteCommand());
+        this.getCommand("war").setExecutor(new WarCommand());
         this.getCommand("sponsor").setExecutor(new SponsorCommand());
         this.getCommand("itemname").setExecutor(new ItemNameCommand());
     }

@@ -16,6 +16,7 @@ public class CrewHandler {
         updateSQL();
     }
     public static void deleteCrew(Crew crew) {
+        crew.deleteTeam();
         crews.remove(crew);
         updateSQL();
     }

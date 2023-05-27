@@ -104,19 +104,22 @@ commands:
   itemname:
     description: Set the name of the currently held item
     usage: /itemname <name>
-#  crews:
-#    description: Lists all crews
-#    usage: /crews
-#  crew:
-#    description: Base crew command
-#    usage: /crew [args]
-#  confirm:
-#    description: Accepts a pending confirmation message
-#    usage: /confirm
-#  deny:
-#    description: Denies a pending confirmation message
-#    usage: /deny
-#  invite:
-#    description: Accepts or denies a pending crew invite
-#    usage: /invite [accept|deny]
+  crews:
+    description: Lists all crews
+    usage: /crews
+  crew:
+    description: Base crew command
+    usage: /crew [args]
+  confirm:
+    description: Accepts a pending confirmation message
+    usage: /confirm
+  deny:
+    description: Denies a pending confirmation message
+    usage: /deny
+  invite:
+    description: Accepts or denies a pending crew invite
+    usage: /invite [accept|decline]
+  war:
+    description: Accepts or declines a war declaration
+    usage: /war [accept|decline]
 

@@ -2,7 +2,6 @@ package org.nautilusmc.nautilusmanager.crews.commands;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +12,7 @@ import org.nautilusmc.nautilusmanager.crews.Invite;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InviteCommand extends NautilusCommand implements CommandExecutor {
+public class WarCommand extends NautilusCommand {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player)) {
@@ -21,21 +20,25 @@ public class InviteCommand extends NautilusCommand implements CommandExecutor {
             return true;
         }
         Player player = (Player) commandSender;
-        if (!(player.hasPermission(NautilusCommand.JOIN_CREW_PERM))) {
-            error(player, DEFAULT_PERM_MESSAGE);
+        if (!(player.hasPermission(NautilusCommand.DECLARE_WAR_PERM))) {
+            error(player, CrewCommand.CAPTAIN_PERM_MESSAGE);
             return  true;
         }
         if (strings.length == 0) {
             return false;
         }
-        if (strings[0].equals("accept")) {
-            Invite.accept(player);
-            return true;
-        } else if (strings[0].equals("decline")) {
-            Invite.deny(player);
-            return true;
-        } else {
-            return false;
+        switch (strings[0]) {
+            case "accept" -> {
+                Invite.accept(player);
+                return true;
+            }
+            case "decline" -> {
+                Invite.deny(player);
+                return true;
+            }
+            default -> {
+                return false;
+            }
         }
     }
 

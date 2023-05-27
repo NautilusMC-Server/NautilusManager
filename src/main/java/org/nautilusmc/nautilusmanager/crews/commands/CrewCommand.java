@@ -22,12 +22,13 @@ import org.nautilusmc.nautilusmanager.util.Util;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class CrewCommand extends NautilusCommand {
-    private static final String CAPTAIN_PERM_MESSAGE = "You must be a captain to use this command!";
-    private static final String CREW_PERM_MESSAGE = "You must be part of a crew to use this command!";
-    private static final String ALREADY_IN_CREW_MESSAGE = "You are already in a crew!";
-    private static final String[] DEFAULT_COMMANDS = {
+    public static final String CAPTAIN_PERM_MESSAGE = "You must be a captain to use this command!";
+    public static final String CREW_PERM_MESSAGE = "You must be part of a crew to use this command!";
+    public static final String ALREADY_IN_CREW_MESSAGE = "You are already in a crew!";
+    public static final String[] DEFAULT_COMMANDS = {
             "info",
     };
     private static final String[] NO_CREW_COMMANDS = {
@@ -39,11 +40,14 @@ public class CrewCommand extends NautilusCommand {
             "invite" //captains if crew closed
     };
     private static final String[] CAPTAIN_COMMANDS = {
-            "delete", //captains
-            "kick", //captains
-            "makecaptain", //captains
-            "open", //captains
-            "close", //captains
+            "delete",
+            "kick",
+            "makecaptain",
+            "open",
+            "close",
+            "declarewar",
+            "prefix",
+            "clearprefix"
     };
 
     @Override
@@ -67,6 +71,9 @@ public class CrewCommand extends NautilusCommand {
             case "close" -> closeCrew(player);
             case "invite" -> invite(player, strings);
             case "info" -> crewInfo(player, strings);
+            case "declarewar" -> declareWar(player, strings);
+            case "prefix" -> setPrefix(player, strings);
+            case "clearprefix" -> clearPrefix(player);
             default -> player.sendMessage(help());
         }
         return true;
@@ -90,13 +97,17 @@ public class CrewCommand extends NautilusCommand {
         }
         if (strings.length == 2 && !CrewHandler.getCrews().isEmpty()) {
             switch (strings[0]) {
-                case "join" -> tabCompletions.addAll(CrewHandler.getCrews().stream().map(Crew::getName).toList());
-                case "kick" -> tabCompletions.addAll(CrewHandler.getCrew(player).getMembers().stream().map(Util::getName).toList());
-                case "makecaptain" -> tabCompletions.addAll(CrewHandler.getCrew(player).getMembers().stream().map(Util::getName).toList());
+                case "join", "info" -> tabCompletions.addAll(CrewHandler.getCrews().stream().map(Crew::getName).toList());
+                case "kick", "makecaptain" -> {
+                    if (CrewHandler.getCrew(player) != null) tabCompletions.addAll(CrewHandler.getCrew(player).getMembers().stream().map(Util::getName).toList());
+                }
                 case "invite" -> tabCompletions.addAll(getOnlineNames());
-                case "info" -> tabCompletions.addAll(CrewHandler.getCrews().stream().map(Crew::getName).toList());
                 case "delete" -> {
                     if (player.hasPermission(DELETE_OTHER_CREW_PERM)) tabCompletions.addAll(CrewHandler.getCrews().stream().map(Crew::getName).toList());
+                }
+                case "declarewar" -> {
+                    tabCompletions.addAll(CrewHandler.getCrews().stream().map(Crew::getName).toList());
+                    if (CrewHandler.getCrew(player) != null) tabCompletions.remove(CrewHandler.getCrew(player).getName());
                 }
             }
         }
@@ -258,7 +269,7 @@ public class CrewCommand extends NautilusCommand {
                             newCaptain = crew.getMembers().get(2);
                         }
                         crew.setCaptain(newCaptain);
-                        crew.getMembers().remove(player);
+                        crew.removeMember(player);
                         crew.sendMessageToMembers(Component.empty().append(player.displayName()).color(ACCENT_COLOR)
                                 .append(Component.text(" left the crew").color(MAIN_COLOR)));
                         crew.sendMessageToMembers(Component.empty().append(newCaptain.displayName()).color(ACCENT_COLOR)
@@ -272,7 +283,7 @@ public class CrewCommand extends NautilusCommand {
                         PermsUtil.addGroup(newCaptain, "captain");
                     }
                 } else {
-                    crew.getMembers().remove(player);
+                    crew.removeMember(player);
                     PermsUtil.removeGroup(player, "crewmember");
                     crew.sendMessageToMembers(Component.empty().append(player.displayName()).color(ACCENT_COLOR)
                             .append(Component.text(" left the crew!").color(NautilusCommand.MAIN_COLOR)));
@@ -322,7 +333,7 @@ public class CrewCommand extends NautilusCommand {
                     kicked.sendMessage(Component.text("You were kicked from ").color(MAIN_COLOR)
                             .append(Component.text(crew.getName()).color(ACCENT_COLOR)));
                 }
-                crew.getMembers().remove(kicked);
+                crew.removeMember(kicked);
                 PermsUtil.removeGroup(kicked, "crewmember");
                 CrewHandler.updateSQL();
             }
@@ -463,6 +474,65 @@ public class CrewCommand extends NautilusCommand {
             player.sendMessage(crew.toComponent());
         }
     }
+    public static void declareWar(Player player, String[] strings) {
+        if (!(player.hasPermission(DECLARE_WAR_PERM))) {
+            error(player, CAPTAIN_PERM_MESSAGE);
+            return;
+        }
+        if (strings.length == 1) {
+            error(player, "Please specify a crew to declare war on");
+            return;
+        }
+        Crew crew = CrewHandler.getCrew(player);
+        if (crew == null) {
+            error(player, CREW_PERM_MESSAGE);
+            return;
+        }
+        String name = getFormattedArgs(strings, 1);
+        if (CrewHandler.getCrew(name) == null) {
+            error(player, "Crew \"" + name + "\" does not exist!");
+            return;
+        }
+        Crew other = CrewHandler.getCrew(name);
+        player.sendMessage(Component.text("You declared war on ").color(MAIN_COLOR)
+                .append(Component.text("\"" + name + "\"").color(ACCENT_COLOR)));
+    }
+    public static void setPrefix(Player player, String[] strings) {
+        if (!(player.hasPermission(SET_PREFIX_PERM))) {
+            error(player, CAPTAIN_PERM_MESSAGE);
+            return;
+        }
+        if (strings.length == 1) {
+            error(player, "Please specify a prefix to set");
+            return;
+        }
+        Crew crew = CrewHandler.getCrew(player);
+        if (crew == null) {
+            error(player, CREW_PERM_MESSAGE);
+            return;
+        }
+        String prefix = getFormattedArgs(strings, 1);
+        if (prefix.length() < 2 || prefix.length() > 6) {
+            error(player, "Prefixes must be between 2 and 6 characters");
+            return;
+        }
+        crew.sendMessageToMembers(Component.text("Prefix changed to ").color(MAIN_COLOR)
+                .append(Component.text(prefix).color(ACCENT_COLOR)));
+        crew.setPrefix(prefix);
+    }
+    public static void clearPrefix(Player player) {
+        if (!(player.hasPermission(CLEAR_PREFIX_PERM))) {
+            error(player, CAPTAIN_PERM_MESSAGE);
+            return;
+        }
+        Crew crew = CrewHandler.getCrew(player);
+        if (crew == null) {
+            error(player, CREW_PERM_MESSAGE);
+            return;
+        }
+        crew.sendMessageToMembers(Component.text("Prefix cleared").color(MAIN_COLOR));
+        crew.setPrefix("");
+    }
     public static Component help() {
         ArrayList<String> subcommands = new ArrayList<>();
         subcommands.addAll(Arrays.asList(DEFAULT_COMMANDS));
@@ -498,6 +568,12 @@ public class CrewCommand extends NautilusCommand {
                     .append(Component.text(" - Invites a player to your crew").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
             case "info" -> Component.text("/crew info <name>").color(ACCENT_COLOR)
                     .append(Component.text(" - Lists crew information").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
+            case "declarewar" -> Component.text("/crew declarewar <crew>").color(ACCENT_COLOR)
+                    .append(Component.text(" - Sends a war declaration to another crew").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
+            case "prefix" -> Component.text("/crew setprefix <prefix>").color(ACCENT_COLOR)
+                    .append(Component.text(" - Sets a prefix for your crew").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
+            case "clearprefix" -> Component.text("/crew clearprefix").color(ACCENT_COLOR)
+                    .append(Component.text(" - Clears your crew's prefix").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
             default -> Component.text("You shouldn't see this").color(ERROR_COLOR);
         };
     }

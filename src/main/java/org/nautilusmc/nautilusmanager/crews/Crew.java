@@ -1,27 +1,52 @@
 package org.nautilusmc.nautilusmanager.crews;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.checkerframework.checker.units.qual.C;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
-import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Objects;
 
 public class Crew {
+    private Team team;
     private Player captain;
     private ArrayList<Player> members;
     private String name;
     private boolean open;
+    //private boolean pvp;
+    private ArrayList<Crew> atWarWith;
+    private String prefix;
+    private static ScoreboardManager manager = Bukkit.getScoreboardManager();
+    private static Scoreboard scoreboard = manager.getNewScoreboard();
 
     public Crew() {
         members = new ArrayList<>();
-        name = null;
+        name = "";
         captain = null;
         open = false;
+        //pvp = false;
+        atWarWith = new ArrayList<>();
+        prefix = "";
+        scoreboard.registerNewTeam("");
+    }
+    public Crew(Player captain, String name) {
+        this.captain = captain;
+        this.name = name;
+        open = false;
+        //pvp = false;
+        members = new ArrayList<>();
+        atWarWith = new ArrayList<>();
+        members.add(captain);
+        prefix = "";
+        team = scoreboard.registerNewTeam("");
+        team.addPlayer(captain);
     }
     public String getName() {
         return name;
@@ -39,14 +64,6 @@ public class Crew {
         this.open = open;
     }
 
-
-    public Crew(Player captain, String name) {
-        this.captain = captain;
-        this.name = name;
-        open = false;
-        members = new ArrayList<>();
-        members.add(captain);
-    }
 
     public Player getCaptain() {
         return captain;
@@ -66,14 +83,46 @@ public class Crew {
         }
         return returned;
     }
+    public ArrayList<Crew> getAtWarWith() {
+        return atWarWith;
+    }
+
+    public void setAtWarWith(ArrayList<Crew> atWarWith) {
+        this.atWarWith = atWarWith;
+    }
 
     public void setMembers(ArrayList<Player> members) {
         this.members = members;
-    }
-    public void addMember(Player player) {
-        members.add(player);
+        members.forEach(player -> team.addPlayer(player));
     }
 
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(@NotNull String prefix) {
+        this.prefix = prefix;
+        team.prefix(Component.text(prefix).color(TextColor.color(219, 172, 52)));
+    }
+
+/*
+    public boolean allowsPvp() {
+        return pvp;
+    }
+
+    public void setPvp(boolean pvp) {
+        this.pvp = pvp;
+    }
+*/
+
+    public void addMember(Player player) {
+        members.add(player);
+        team.addPlayer(player);
+    }
+    public void removeMember(Player player) {
+        members.remove(player);
+        team.removePlayer(player);
+    }
     public Boolean containsPlayer(Player player) {
         return members.contains(player);
     }
@@ -110,7 +159,10 @@ public class Crew {
         }
         out = out.appendNewline();
         out = out.append(Component.text("Status: ").color(NautilusCommand.MAIN_COLOR))
-                .append(Component.text(isOpen() ? "open" : "closed").color(NautilusCommand.ACCENT_COLOR));
+                .append(Component.text(isOpen() ? "Open" : "Closed for invitation only").color(NautilusCommand.ACCENT_COLOR));
+        /*out = out.appendNewline();
+        out = out.append(Component.text("PVP: ").color(NautilusCommand.MAIN_COLOR))
+                .append(Component.text(allowsPvp() ? "Allowed" : "Not Allowed").color(NautilusCommand.ACCENT_COLOR));*/
         return out;
     }
 
@@ -127,5 +179,8 @@ public class Crew {
                 player.sendMessage(component);
             }
         }
+    }
+    public void deleteTeam() {
+        team.unregister();
     }
 }
