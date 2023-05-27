@@ -8,6 +8,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
+import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
 import org.nautilusmc.nautilusmanager.util.Util;
 
@@ -102,7 +103,11 @@ public class Crew {
 
     public void setPrefix(@NotNull String prefix) {
         this.prefix = prefix;
-        team.prefix(Component.text(prefix).color(TextColor.color(219, 172, 52)));
+        if (prefix.equals("")) {
+            team.prefix(Component.empty());
+        }
+        team.prefix(Component.text(prefix).color(TextColor.color(219, 172, 52))
+                .append(Component.text("|").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR)));
     }
 
 /*
