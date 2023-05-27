@@ -63,7 +63,7 @@ public class Homes {
     }
 
     public static Map<String, Location> getHomes(Player player) {
-        return playerHomes.get(player.getUniqueId()).entrySet().stream().map(e->Map.entry(e.getKey().string, e.getValue())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return playerHomes.containsKey(player.getUniqueId()) ? playerHomes.get(player.getUniqueId()).entrySet().stream().map(e->Map.entry(e.getKey().string, e.getValue())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)) : null;
     }
 
     public static void setHome(Player player, String name, Location loc) {
