@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class Crew {
+
     private Team team;
     private Player captain;
     private ArrayList<Player> members;
@@ -24,19 +25,7 @@ public class Crew {
     //private boolean pvp;
     private ArrayList<Crew> atWarWith;
     private String prefix;
-    private static ScoreboardManager manager = Bukkit.getScoreboardManager();
-    private static Scoreboard scoreboard = manager.getNewScoreboard();
 
-    public Crew() {
-        members = new ArrayList<>();
-        name = "";
-        captain = null;
-        open = false;
-        //pvp = false;
-        atWarWith = new ArrayList<>();
-        prefix = "";
-        scoreboard.registerNewTeam("");
-    }
     public Crew(Player captain, String name) {
         this.captain = captain;
         this.name = name;
@@ -46,8 +35,14 @@ public class Crew {
         atWarWith = new ArrayList<>();
         members.add(captain);
         prefix = "";
-        team = scoreboard.registerNewTeam("");
-        team.addPlayer(captain);
+
+        Scoreboard board = Bukkit.getScoreboardManager().getMainScoreboard();
+
+        team = board.getTeam(name);
+        if (team == null) team = board.registerNewTeam(name);
+        addMemberToTeam(captain);
+
+        setPrefix(prefix);
     }
     public String getName() {
         return name;
@@ -94,7 +89,7 @@ public class Crew {
 
     public void setMembers(ArrayList<Player> members) {
         this.members = members;
-        members.forEach(player -> team.addPlayer(player));
+        members.forEach(this::addMemberToTeam);
     }
 
     public String getPrefix() {
@@ -105,9 +100,15 @@ public class Crew {
         this.prefix = prefix;
         if (prefix.equals("")) {
             team.prefix(Component.empty());
+            return;
         }
-        team.prefix(Component.text(prefix).color(TextColor.color(219, 172, 52))
-                .append(Component.text("|").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR)));
+
+        team.prefix(Component.text("[")
+                .append(Component.text(prefix).color(NautilusCommand.ACCENT_COLOR))
+                .append(Component.text("]"))
+                .color(NautilusCommand.MAIN_COLOR));
+
+        this.members.forEach(p->Util.updateNameTag(p, p.displayName(), Bukkit.getOnlinePlayers()));
     }
 
 /*
@@ -122,7 +123,7 @@ public class Crew {
 
     public void addMember(Player player) {
         members.add(player);
-        team.addPlayer(player);
+        addMemberToTeam(player);
     }
     public void removeMember(Player player) {
         members.remove(player);
@@ -185,6 +186,12 @@ public class Crew {
             }
         }
     }
+
+    private void addMemberToTeam(Player player) {
+        team.addPlayer(player);
+        Util.updateNameTag(player, player.displayName(), Bukkit.getOnlinePlayers());
+    }
+
     public void deleteTeam() {
         team.unregister();
     }

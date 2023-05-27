@@ -19,7 +19,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Team;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
+import org.nautilusmc.nautilusmanager.crews.Crew;
 
 import java.util.*;
 
@@ -96,8 +98,10 @@ public class Util {
 
         setNameTagName(player, text, players);
 
+        Team existingTeam = player.getScoreboard().getEntryTeam(player.getName());
+
         PlayerTeam team = new PlayerTeam(new Scoreboard(), player.getName());
-        team.setPlayerPrefix(PaperAdventure.asVanilla(name));
+        team.setPlayerPrefix(PaperAdventure.asVanilla((existingTeam != null ? Component.empty().append(existingTeam.prefix().append(Component.space())) : Component.empty()).append(name)));
 
         ClientboundSetPlayerTeamPacket addTeam = ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true);
         ClientboundSetPlayerTeamPacket addPlayer = ClientboundSetPlayerTeamPacket.createPlayerPacket(team, text, ClientboundSetPlayerTeamPacket.Action.ADD);

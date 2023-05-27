@@ -7,6 +7,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scoreboard.Team;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.events.AfkManager;
 
@@ -15,6 +16,9 @@ public class TabListManager {
     public static void init() {
         Bukkit.getScheduler().runTaskTimer(NautilusManager.INSTANCE, () -> {
             for(Player p : Bukkit.getOnlinePlayers()) {
+                Team team = p.getScoreboard().getEntityTeam(p);
+
+                Component prefix = team == null ? Component.empty() : team.prefix().append(Component.space());
                 Component afk = Component.empty();
                 Component name = p.displayName();
                 Component realName = Component.empty();
@@ -52,7 +56,7 @@ public class TabListManager {
                     }
                 }
 
-                p.playerListName(Component.empty().append(afk).append(name).append(realName).append(health));
+                p.playerListName(Component.empty().append(prefix).append(afk).append(name).append(realName).append(health));
             }
         }, 0, 20);
     }

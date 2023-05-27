@@ -158,6 +158,7 @@ public class MessageStyler implements Listener {
         for (Player p : Bukkit.getOnlinePlayers()) {
             Util.updateNameTag(p, p.displayName(), List.of(e.getPlayer()));
         }
+        Util.updateNameTag(e.getPlayer(),e.getPlayer().displayName(), Bukkit.getOnlinePlayers());
 
         e.joinMessage(Component.empty()
                         .append(Component.text("Join").color(TextColor.color(83, 255, 126)))
