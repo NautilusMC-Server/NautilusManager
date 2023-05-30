@@ -3,6 +3,7 @@ package org.nautilusmc.nautilusmanager.crews;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.nautilusmc.nautilusmanager.NautilusManager;
@@ -12,28 +13,28 @@ import org.nautilusmc.nautilusmanager.util.Util;
 import java.util.*;
 
 public class Invite {
-    private Player sender;
-    private Player receiver;
+    private OfflinePlayer sender;
+    private OfflinePlayer receiver;
 
-    public Player getSender() {
+    public OfflinePlayer getSender() {
         return sender;
     }
 
-    public void setSender(Player sender) {
+    public void setSender(OfflinePlayer sender) {
         this.sender = sender;
     }
 
-    public Player getReceiver() {
+    public OfflinePlayer getReceiver() {
         return receiver;
     }
 
-    public void setReceiver(Player receiver) {
+    public void setReceiver(OfflinePlayer receiver) {
         this.receiver = receiver;
     }
 
     private static HashMap<UUID, Stack<Invite>> PENDING = new HashMap<>();
 
-    private Invite(Player sender, Player receiver) {
+    private Invite(OfflinePlayer sender, OfflinePlayer receiver) {
         this.sender = sender;
         this.receiver = receiver;
     }
@@ -74,11 +75,15 @@ public class Invite {
             PENDING.remove(uuid);
         }
         Crew crew = CrewHandler.getCrew(invite.getSender());
-        crew.getMembers().add(invite.getReceiver());
-        invite.getReceiver().sendMessage(Component.text("Crew ").color(NautilusCommand.MAIN_COLOR)
+        if (crew == null) {
+            return;
+        }
+        crew.addMember(invite.getReceiver());
+
+        player.sendMessage(Component.text("Crew ").color(NautilusCommand.MAIN_COLOR)
                 .append(Component.text(crew.getName()).color(NautilusCommand.ACCENT_COLOR))
                 .append(Component.text(" joined!").color(NautilusCommand.MAIN_COLOR)));
-        crew.sendMessageToMembers(invite.getReceiver().displayName()
+        crew.sendMessageToMembers(Component.text(Util.getName(invite.getReceiver())).color(NautilusCommand.ACCENT_COLOR)
                 .append(Component.text(" joined the crew!").color(NautilusCommand.MAIN_COLOR)));
     }
     public static void deny(Player player) {
@@ -92,9 +97,12 @@ public class Invite {
         if (stack.isEmpty()) {
             PENDING.remove(uuid);
         }
-        invite.getSender().sendMessage(player.displayName()
-                .append(Component.text(" declined your invite!").color(NautilusCommand.ERROR_COLOR)));
         player.sendMessage(Component.text("Invitation declined!").color(NautilusCommand.ERROR_COLOR));
+        if (invite.getSender().isOnline()) {
+            Player inviteSender = invite.getSender().getPlayer();
+            inviteSender.sendMessage(player.displayName()
+                    .append(Component.text(" declined your invite!").color(NautilusCommand.ERROR_COLOR)));
+        }
     }
 
 }

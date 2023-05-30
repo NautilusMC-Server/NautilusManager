@@ -47,7 +47,7 @@ public class Util {
         return p.isOnline() ? p.getPlayer() : null;
     }
 
-    public static String getName(Player player) {
+    public static String getName(OfflinePlayer player) {
         String nickname = Nickname.getNickname(player);
         return nickname == null ? player.getName() : nickname;
     }

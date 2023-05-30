@@ -3,6 +3,7 @@ package org.nautilusmc.nautilusmanager.crews;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.nautilusmc.nautilusmanager.NautilusManager;
@@ -38,7 +39,10 @@ public class WarDeclaration {
     }
 
     public static void sendWarDeclaration(Crew warDeclarer, Crew warReceiver) {
-        Player captain = warReceiver.getCaptain();
+        if (!warReceiver.getCaptain().isOnline()) {
+            return;
+        }
+        Player captain = warReceiver.getCaptain().getPlayer();
         captain.sendMessage(Component.text("Crew ").color(NautilusCommand.MAIN_COLOR)
                 .append(Component.text("\"" + warDeclarer.getName() + "\"").color(NautilusCommand.ACCENT_COLOR))
                 .append(Component.text(" has declared war on your crew!").color(NautilusCommand.MAIN_COLOR)));
@@ -72,8 +76,11 @@ public class WarDeclaration {
         if (stack.isEmpty()) {
             PENDING.remove(crew);
         }
-        warDeclaration.getSender().getAtWarWith().add(warDeclaration.getReceiver());
-        warDeclaration.getReceiver().getAtWarWith().add(warDeclaration.getSender());
+        if (warDeclaration.getSender() == null) {
+            return;
+        }
+        War war = new War(warDeclaration.getSender(), warDeclaration.getReceiver());
+        CrewHandler.registerWar(war);
         warDeclaration.getReceiver().sendMessageToMembers(Component.text("Your crew is now at war with ").color(NautilusCommand.MAIN_COLOR)
                 .append(Component.text("\"" + warDeclaration.getSender().getName() + "\"").color(NautilusCommand.ACCENT_COLOR))
                 .append(Component.text("!").color(NautilusCommand.MAIN_COLOR)));
@@ -95,9 +102,11 @@ public class WarDeclaration {
         if (stack.isEmpty()) {
             PENDING.remove(crew);
         }
-        warDeclaration.getSender().getCaptain().sendMessage(Component.text(warDeclaration.getReceiver().getName()).color(NautilusCommand.ACCENT_COLOR)
-                .append(Component.text(" declined your war declaration!").color(NautilusCommand.MAIN_COLOR)));
+        if (warDeclaration.getSender().getCaptain().isOnline()) {
+            Player senderCaptain = warDeclaration.getSender().getCaptain().getPlayer();
+            senderCaptain.sendMessage(Component.text(warDeclaration.getReceiver().getName()).color(NautilusCommand.ACCENT_COLOR)
+                    .append(Component.text(" declined your war declaration!").color(NautilusCommand.MAIN_COLOR)));
+        }
         player.sendMessage(Component.text("War declaration declined!").color(NautilusCommand.MAIN_COLOR));
     }
-
 }

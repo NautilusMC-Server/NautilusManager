@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
 import org.nautilusmc.nautilusmanager.crews.Invite;
+import org.nautilusmc.nautilusmanager.crews.WarDeclaration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,11 +30,11 @@ public class WarCommand extends NautilusCommand {
         }
         switch (strings[0]) {
             case "accept" -> {
-                Invite.accept(player);
+                WarDeclaration.accept(player);
                 return true;
             }
             case "decline" -> {
-                Invite.deny(player);
+                WarDeclaration.deny(player);
                 return true;
             }
             default -> {

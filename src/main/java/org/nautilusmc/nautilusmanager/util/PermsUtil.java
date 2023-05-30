@@ -4,6 +4,7 @@ import net.luckperms.api.LuckPerms;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.types.InheritanceNode;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
@@ -17,15 +18,15 @@ public class PermsUtil {
         }
     }
 
-    public static void addGroup(Player player, String group) {
+    public static void addGroup(OfflinePlayer player, String group) {
         User user = getUser(player);
         user.data().add(InheritanceNode.builder(group).build());
         save(user);
     }
 
-    public static boolean removeGroup(Player player, String group) {
+    public static boolean removeGroup(OfflinePlayer player, String group) {
         User user = getUser(player);
-        if (!player.hasPermission("group." + group)) {
+        if (!user.getNodes().contains(InheritanceNode.builder(group).build())) {
             return false;
         }
         user.data().remove(InheritanceNode.builder(group).build());
@@ -33,7 +34,7 @@ public class PermsUtil {
         return true;
     }
 
-    private static User getUser(Player player) {
+    private static User getUser(OfflinePlayer player) {
         return LP.getUserManager().getUser(player.getUniqueId());
     }
 

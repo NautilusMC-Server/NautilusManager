@@ -99,6 +99,8 @@ public final class NautilusManager extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new TeleportHandler(), this);
         Bukkit.getPluginManager().registerEvents(new GeneralEventManager(), this);
         Bukkit.getPluginManager().registerEvents(new SpawnProtection(), this);
+
+        Bukkit.getPluginManager().registerEvents(new CrewHandler(), this);
     }
 
     @Override
