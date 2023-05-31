@@ -224,7 +224,7 @@ public class Crew {
         ArrayList<OfflinePlayer> membersNoCaptain = getMembers(false);
         for (int i = 0; i < membersNoCaptain.size(); i++) {
             member = membersNoCaptain.get(i);
-            out = out.append(Component.text(Nickname.getNickname(member)).color(NautilusCommand.ACCENT_COLOR));
+            out = out.append(Component.text(Util.getName(member)).color(NautilusCommand.ACCENT_COLOR));
             if (i < membersNoCaptain.size() - 1) {
                 out = out.append(Component.text(", ").color(NautilusCommand.ACCENT_COLOR));
             }

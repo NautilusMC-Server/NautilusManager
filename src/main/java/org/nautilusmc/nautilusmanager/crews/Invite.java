@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.util.PermsUtil;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.*;
@@ -79,6 +80,7 @@ public class Invite {
             return;
         }
         crew.addMember(invite.getReceiver());
+        PermsUtil.addGroup(invite.getReceiver(), "crewmember");
 
         player.sendMessage(Component.text("Crew ").color(NautilusCommand.MAIN_COLOR)
                 .append(Component.text(crew.getName()).color(NautilusCommand.ACCENT_COLOR))
