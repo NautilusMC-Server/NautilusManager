@@ -283,7 +283,6 @@ public class CrewCommand extends NautilusCommand {
                         if (newCaptain.isOnline()) {
                             newCaptain.getPlayer().sendMessage(Component.text("You are now the captain of your crew!").color(MAIN_COLOR));
                         }
-                        //TODO: Update SQL
                         PermsUtil.removeGroup(player, "captain");
                         PermsUtil.removeGroup(newCaptain, "crewmember");
                         PermsUtil.addGroup(newCaptain, "captain");
@@ -293,7 +292,6 @@ public class CrewCommand extends NautilusCommand {
                     PermsUtil.removeGroup(player, "crewmember");
                     crew.sendMessageToMembers(Component.empty().append(player.displayName()).color(ACCENT_COLOR)
                             .append(Component.text(" left the crew!").color(NautilusCommand.MAIN_COLOR)));
-                    //TODO: Update SQL
                 }
 
             }
@@ -341,7 +339,6 @@ public class CrewCommand extends NautilusCommand {
                 }
                 crew.removeMember(kicked);
                 PermsUtil.removeGroup(kicked, "crewmember");
-                //TODO: Update SQL
             }
         });
     }
@@ -384,7 +381,6 @@ public class CrewCommand extends NautilusCommand {
                 if (newCaptain.isOnline()) {
                     newCaptain.getPlayer().sendMessage(Component.text("You are now the captain of your crew!").color(MAIN_COLOR));
                 }
-                //TODO: Update SQL
                 PermsUtil.removeGroup(player, "captain");
                 PermsUtil.addGroup(player, "crewmember");
                 PermsUtil.removeGroup(newCaptain, "crewmember");
@@ -406,7 +402,6 @@ public class CrewCommand extends NautilusCommand {
         }
         crew.setOpen(true);
         player.sendMessage(Component.text("Crew set to open!").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
-        //TODO: Update SQL
     }
 
     public static void closeCrew(Player player) {
@@ -421,7 +416,6 @@ public class CrewCommand extends NautilusCommand {
         }
         crew.setOpen(false);
         player.sendMessage(Component.text("Crew set to closed!").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
-        //TODO: Update SQL
     }
 
     public static void invite(Player player, String[] strings) {
@@ -520,7 +514,7 @@ public class CrewCommand extends NautilusCommand {
         WarDeclaration.sendWarDeclaration(crew, other);
     }
     public static void endWar(Player player, String[] strings) {
-        if (!(player.hasPermission(DECLARE_WAR_PERM))) {
+        if (!(player.hasPermission(END_WAR_PERM))) {
             error(player, CAPTAIN_PERM_MESSAGE);
             return;
         }

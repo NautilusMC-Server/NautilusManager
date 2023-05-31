@@ -54,6 +54,7 @@ public abstract class NautilusCommand implements CommandExecutor, TabCompleter {
     public static final String DECLARE_WAR_PERM = "nautilusmanager.crew.declarewar";
     public static final String SET_PREFIX_PERM = "nautilusmanager.crew.setprefix";
     public static final String CLEAR_PREFIX_PERM = "nautilusmanager.crew.clearprefix";
+    public static final String END_WAR_PERM = "nautilusmanager.crew.endwar";
 
     //Other
     public static final String DENY_PERM = "nautilusmanager.deny";
