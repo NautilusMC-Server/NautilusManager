@@ -140,14 +140,17 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onVehicleDamage(VehicleDamageEvent e) {
-        if (!(e.getAttacker() instanceof Player player)) {
-            e.setCancelled(true);
-            return;
-        }
 
-        if(isProtected(e.getVehicle().getLocation()) && isAllowed(player)) {
-            alert(player);
-            e.setCancelled(true);
+        if(isProtected(e.getVehicle().getLocation())) {
+            if (!(e.getAttacker() instanceof Player player)) {
+                e.setCancelled(true);
+                return;
+            }
+
+            if (!isAllowed(player)) {
+                alert(player);
+                e.setCancelled(true);
+            }
         }
     }
 

@@ -57,7 +57,7 @@ public final class NautilusManager extends JavaPlugin {
         TpaManager.init();
         MuteManager.init();
         PermsUtil.init();
-        CrewHandler.init();
+//        CrewHandler.init();
 
         registerCommands();
         registerEvents();
@@ -122,7 +122,7 @@ public final class NautilusManager extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new SpawnProtection(), this);
 
 
-        Bukkit.getPluginManager().registerEvents(new CrewHandler(), this);
+//        Bukkit.getPluginManager().registerEvents(new CrewHandler(), this);
         Bukkit.getPluginManager().registerEvents(new DiscordBot(), this);
     }
 
