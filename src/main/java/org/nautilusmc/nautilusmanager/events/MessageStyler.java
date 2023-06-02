@@ -39,6 +39,7 @@ import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
 import org.nautilusmc.nautilusmanager.commands.SuicideCommand;
 import org.nautilusmc.nautilusmanager.cosmetics.MuteManager;
+import org.nautilusmc.nautilusmanager.discord.DiscordBot;
 import org.nautilusmc.nautilusmanager.gui.page.GuiPage;
 import org.nautilusmc.nautilusmanager.util.Emoji;
 import org.nautilusmc.nautilusmanager.util.FancyText;
@@ -241,6 +242,7 @@ public class MessageStyler implements Listener {
     public void onMessage(AsyncChatEvent e) {
         e.setCancelled(true);
 
+        DiscordBot.onMessage(e);
         sendMessageAsUser(e.getPlayer(), e.message());
     }
 

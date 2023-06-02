@@ -436,8 +436,7 @@ public class DiscordBot implements Listener {
         }
     }
 
-    @EventHandler(priority= EventPriority.MONITOR)
-    public void onMessage(AsyncChatEvent e) {
+    public static void onMessage(AsyncChatEvent e) {
         if (jda == null) return;
 
         sendMinecraftMsgInDiscord(e.getPlayer(), e.message());
