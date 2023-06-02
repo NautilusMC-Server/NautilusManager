@@ -242,11 +242,12 @@ public class MessageStyler implements Listener {
     public void onMessage(AsyncChatEvent e) {
         e.setCancelled(true);
 
-        DiscordBot.onMessage(e);
         sendMessageAsUser(e.getPlayer(), e.message());
     }
 
     public static void sendMessageAsUser(Player player, Component message) {
+        DiscordBot.onMessage(player, message);
+
         sendMessageAsUser(
                 player.displayName(),
                 player.hasPermission(NautilusCommand.CHAT_FORMATTING_PERM),

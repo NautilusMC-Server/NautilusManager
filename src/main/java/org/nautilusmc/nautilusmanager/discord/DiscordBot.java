@@ -436,10 +436,10 @@ public class DiscordBot implements Listener {
         }
     }
 
-    public static void onMessage(AsyncChatEvent e) {
+    public static void onMessage(Player player, Component message) {
         if (jda == null) return;
 
-        sendMinecraftMsgInDiscord(e.getPlayer(), e.message());
+        sendMinecraftMsgInDiscord(player, message);
     }
 
     private static void sendMinecraftMsgInDiscord(Player player, Component message) {

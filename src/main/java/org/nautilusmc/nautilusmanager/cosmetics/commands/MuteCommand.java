@@ -35,7 +35,7 @@ public class MuteCommand extends NautilusCommand {
             return true;
         }
 
-        if (toMute.getPlayer() == toMute) {
+        if (toMute.getPlayer() == player) {
             player.sendMessage(Component.text("You can't mute yourself!").color(NautilusCommand.ERROR_COLOR));
             return true;
         }
