@@ -15,6 +15,7 @@ import org.bukkit.event.block.*;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.event.raid.RaidTriggerEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.util.BoundingBox;
 import org.nautilusmc.nautilusmanager.NautilusManager;
@@ -238,6 +239,13 @@ public class SpawnProtection implements Listener {
                 e.setCancelled(true);
                 return;
             }
+        }
+    }
+
+    @EventHandler
+    public void onRaid(RaidTriggerEvent e) {
+        if (isProtected(e.getRaid().getLocation())) {
+            e.setCancelled(true);
         }
     }
 }
