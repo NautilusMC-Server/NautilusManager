@@ -26,7 +26,7 @@ public class ReloadCommand extends NautilusCommand {
         int reloadTime = 15; // in seconds
 
         // not putting this in tab complete because it should never be done on the production server
-        if (strings[0].equals("now")) {
+        if (strings.length > 0 && strings[0].equals("now")) {
             reloadTime = 0;
         }
 
