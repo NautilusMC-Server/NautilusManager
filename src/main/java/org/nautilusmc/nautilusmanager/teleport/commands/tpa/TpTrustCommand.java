@@ -35,7 +35,7 @@ public class TpTrustCommand extends NautilusCommand {
             return true;
         }
 
-        if (trusted.getPlayer() == trusted) {
+        if (trusted.getPlayer() == player) {
             player.sendMessage(Component.text("You don't need to trust yourself!").color(NautilusCommand.ERROR_COLOR));
             return true;
         }
