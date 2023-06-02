@@ -67,7 +67,7 @@ public class SponsorCommand extends NautilusCommand {
                 .color(NautilusCommand.MAIN_COLOR));
         commandSender.sendMessage(Component.empty());
 
-        String url = "https://store.nautilusmc.org";
+        String url = "https://nautilusmc.tebex.io";
         commandSender.sendMessage(Component.text("Support NautilusMC today at ")
                 .append(MessageStyler.styleURL(Component.text(url), url))
                 .append(Component.text("!"))

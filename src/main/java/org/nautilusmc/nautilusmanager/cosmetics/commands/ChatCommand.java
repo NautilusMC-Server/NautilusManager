@@ -38,6 +38,7 @@ public class ChatCommand extends NautilusCommand {
             CHATS.remove(player.getUniqueId());
             return true;
         } else if (strings[0].equalsIgnoreCase("player")) {
+            if (strings.length < 2) return false;
             Player chat = Util.getOnlinePlayer(strings[1]);
 
             if (chat == null) {
@@ -86,7 +87,7 @@ public class ChatCommand extends NautilusCommand {
         @EventHandler
         public void onQuit(PlayerQuitEvent e) {
             for (Map.Entry<UUID, ChatType> entry : CHATS.entrySet()) {
-                if (entry.getValue().uuid.equals(e.getPlayer().getUniqueId())) {
+                if (e.getPlayer().getUniqueId().equals(entry.getValue().uuid)) {
                     CHATS.remove(entry.getKey());
                 }
             }

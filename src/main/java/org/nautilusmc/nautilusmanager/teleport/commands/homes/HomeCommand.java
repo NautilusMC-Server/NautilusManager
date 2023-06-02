@@ -1,7 +1,6 @@
 package org.nautilusmc.nautilusmanager.teleport.commands.homes;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;

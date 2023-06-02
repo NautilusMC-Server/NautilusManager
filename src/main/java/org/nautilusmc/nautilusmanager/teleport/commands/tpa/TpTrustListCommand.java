@@ -1,6 +1,7 @@
 package org.nautilusmc.nautilusmanager.teleport.commands.tpa;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -12,55 +13,53 @@ import org.nautilusmc.nautilusmanager.teleport.TpaManager;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
-public class TpaCommand extends NautilusCommand {
+public class TpTrustListCommand extends NautilusCommand {
+
+    private static final int PAGE_SIZE = 10;
+
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player player)) {
             commandSender.sendMessage(Component.text("Only players can use this command.").color(NautilusCommand.ERROR_COLOR));
             return true;
         }
-
         if (!player.hasPermission(TPA_PERM)) {
             player.sendMessage(Component.text("Not enough permissions!").color(NautilusCommand.ERROR_COLOR));
             return true;
         }
 
-        if (strings.length < 1) return false;
+        List<String> trusted = TpaManager.getTrusted(player).stream().map(u-> Util.getName(Bukkit.getOfflinePlayer(u))).sorted().toList();
 
-        Player recipient = Util.getOnlinePlayer(strings[0]);
-        if (recipient == null) {
-            commandSender.sendMessage(Component.text("Player not found").color(NautilusCommand.ERROR_COLOR));
+        if (trusted.isEmpty()) {
+            player.sendMessage(Component.text("You don't trust anyone!").color(NautilusCommand.MAIN_COLOR));
             return true;
         }
 
-        if (recipient == commandSender) {
-            commandSender.sendMessage(Component.text("You can't teleport to yourself!").color(NautilusCommand.ERROR_COLOR));
-            return true;
+        int pageMax = (int) Math.ceil((double) trusted.size()/PAGE_SIZE);
+        int page = Math.min(strings.length > 1 ? Integer.parseInt(strings[1]) : 1, pageMax);
+
+        commandSender.sendMessage(Component.text("----- Trusted (Page "+page+"/"+pageMax+") -----").color(MAIN_COLOR).decorate(TextDecoration.BOLD));
+
+        for (int i = 0; i < PAGE_SIZE; i++) {
+            int idx = (page-1)*PAGE_SIZE+i;
+            if (idx >= trusted.size()) break;
+
+            String name = trusted.get(idx);
+            commandSender.sendMessage(Component.empty()
+                    .append(Component.text(" - "))
+                    .append(Component.text(name).color(ACCENT_COLOR))
+                    .color(MAIN_COLOR));
         }
 
-        if (TpaManager.isTrusted(recipient, player)) {
-            recipient.sendMessage(Component.empty()
-                    .append(Component.text(Util.getName(player)).color(NautilusCommand.ACCENT_COLOR))
-                    .append(Component.text(" is teleporting to you."))
-                    .color(NautilusCommand.MAIN_COLOR));
-            TpaManager.performTp(recipient, player, TpaManager.TpRequestType.TP_TO);
-        } else {
-            TpaManager.tpRequest(player, recipient, TpaManager.TpRequestType.TP_TO);
-        }
 
         return true;
     }
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        List<String> out = new ArrayList<>();
-
-        if (strings.length == 1) {
-            out.addAll(Bukkit.getOnlinePlayers().stream().map(Util::getName).toList());
-        }
-
-        return out.stream().filter(str->str.toLowerCase().startsWith(strings[strings.length-1].toLowerCase())).toList();
+        return new ArrayList<>();
     }
 }

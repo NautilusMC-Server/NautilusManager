@@ -4,9 +4,11 @@ import com.google.common.collect.EvictingQueue;
 import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.minecraft.ChatFormatting;
@@ -17,6 +19,8 @@ import net.minecraft.network.protocol.game.ClientboundPlayerCombatKillPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.scores.Team;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.bukkit.BanEntry;
+import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
@@ -26,21 +30,22 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
-import org.bukkit.event.player.PlayerAdvancementDoneEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
 import org.nautilusmc.nautilusmanager.commands.SuicideCommand;
+import org.nautilusmc.nautilusmanager.cosmetics.MuteManager;
 import org.nautilusmc.nautilusmanager.gui.page.GuiPage;
 import org.nautilusmc.nautilusmanager.util.Emoji;
 import org.nautilusmc.nautilusmanager.util.FancyText;
 import org.nautilusmc.nautilusmanager.util.Util;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,7 +54,7 @@ import java.util.regex.Pattern;
 public class MessageStyler implements Listener {
 
     public static final Pattern URL_PATTERN = Pattern.compile("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)");
-    public static final TimeZone TIME_ZONE = TimeZone.getTimeZone("CST");
+    public static final DateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
     public static EvictingQueue<Component> runningMessages = EvictingQueue.create(50);
 
@@ -118,13 +123,9 @@ public class MessageStyler implements Listener {
             nms.server.getPlayerList().broadcastSystemMessage(nmsMessage, false);
         }
 
-        // processedDisconnect will make it ignore the death packet so that we can do our own
-        // this is a little bit hacky, but it works
-        nms.connection.processedDisconnect = true;
         Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> {
-            nms.connection.processedDisconnect = false;
             nms.connection.send(new ClientboundPlayerCombatKillPacket(nms.getCombatTracker(), PaperAdventure.asVanilla(styledDeathMessage)), PacketSendListener.exceptionallySend(() -> {
-                // TODO: do something with this?
+                // TODO: do something with this? currently just copying nms
                 String s = nmsMessage.getString(256);
                 MutableComponent hover = net.minecraft.network.chat.Component.translatable("death.attack.message_too_long", net.minecraft.network.chat.Component.literal(s).withStyle(ChatFormatting.YELLOW));
                 MutableComponent newComp = net.minecraft.network.chat.Component.translatable("death.attack.even_more_magic", PaperAdventure.asVanilla(e.getPlayer().displayName())).withStyle((chatmodifier) -> chatmodifier.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
@@ -133,7 +134,6 @@ public class MessageStyler implements Listener {
         }, 1);
 
         runningMessages.add(deathMessage);
-
         e.deathMessage(null);
     }
 
@@ -148,6 +148,36 @@ public class MessageStyler implements Listener {
     public void onRespawn(PlayerRespawnEvent e) {
         e.getPlayer().sendMessage(Component.text("Your coordinates: (" + Math.round(e.getPlayer().getLocation().getX()) + ", " +
                 Math.round(e.getPlayer().getLocation().getZ()) + ")").color(TextColor.color(200, 200, 200)).decorate(TextDecoration.BOLD));
+    }
+
+    @EventHandler
+    public void onTryLogin(AsyncPlayerPreLoginEvent e) {
+        BanEntry banEntry = Bukkit.getBanList(BanList.Type.NAME).getBanEntry(e.getName());
+        if (banEntry == null) return;
+
+        Date expiry = banEntry.getExpiration();
+        if (expiry != null && new Date().after(expiry)) {
+            Bukkit.getBanList(BanList.Type.NAME).pardon(e.getName());
+        } else {
+            e.disallow(AsyncPlayerPreLoginEvent.Result.KICK_BANNED, getBanMessage(banEntry));
+        }
+    }
+
+    public static Component getBanMessage(BanEntry entry) {
+        return Component.empty()
+                .append(Component.text("You are banned from NautilusMC. If this is a mistake, please contact a staff member on Discord.")
+                        .color(TextColor.color(199, 9, 22))
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.newline())
+                .append(Component.newline())
+                .append(Component.text("Reason: ")
+                        .color(NautilusCommand.MAIN_COLOR))
+                .append(Component.text(entry.getReason()))
+                .append(Component.newline())
+                .append(Component.text("Expires: ")
+                        .color(NautilusCommand.MAIN_COLOR))
+                .append(Component.text(entry.getExpiration() == null ? "Never" : DATE_FORMAT.format(entry.getExpiration())))
+                .color(NautilusCommand.ERROR_COLOR);
     }
 
     @EventHandler(priority=EventPriority.HIGHEST)
@@ -215,22 +245,34 @@ public class MessageStyler implements Listener {
     }
 
     public static void sendMessageAsUser(Player player, Component message) {
+        sendMessageAsUser(
+                player.displayName(),
+                player.hasPermission(NautilusCommand.CHAT_FORMATTING_PERM),
+                message,
+                Bukkit.getOnlinePlayers().stream().filter(p->!MuteManager.isMuted(p, player)).toList());
+    }
+
+    public static void sendMessageAsUser(Component displayName, boolean withChatFormatting, Component message, Collection<? extends Player> recipients) {
         Component m = Component.empty()
                 .append(getTimeStamp())
                 .append(Component.text(" "))
-                .append(player.displayName())
+                .append(displayName)
                 .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
-                .append(formatUserMessage(player, message).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
+                .append(formatUserMessage(withChatFormatting, message).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
 
-        Bukkit.broadcast(m);
+        recipients.forEach(r->r.sendMessage(m));
         runningMessages.add(m);
     }
 
     public static Component formatUserMessage(CommandSender player, Component message) {
+        return formatUserMessage(player.hasPermission(NautilusCommand.CHAT_FORMATTING_PERM), message);
+    }
+
+    public static Component formatUserMessage(boolean withChatFormatting, Component message) {
         // convert emojis
         message = Component.text(Emoji.parseText(Util.getTextContent(message)));
         // apply formatting tags
-        if (player.hasPermission(NautilusCommand.CHAT_FORMATTING_PERM)) {
+        if (withChatFormatting) {
             message = FancyText.parseChatFormatting(Util.getTextContent(message));
         }
         // detect URLs
@@ -298,9 +340,10 @@ public class MessageStyler implements Listener {
     }
 
     public static Component getTimeStamp() {
-        Calendar calendar = GregorianCalendar.getInstance(TIME_ZONE);
+        Calendar calendar = Util.getCalendar();
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         int minute = calendar.get(Calendar.MINUTE);
+
         return Component.text("%2d:%02d".formatted(hour, minute))
                 .color(TextColor.color(34, 150, 155));
     }

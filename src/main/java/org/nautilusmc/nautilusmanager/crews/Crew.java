@@ -69,7 +69,7 @@ public class Crew {
         if (!team.hasPlayer(captain)) {
             addMemberToTeam(captain);
         }
-        prefix = team.prefix().toString();
+        prefix = Util.getTextContent(team.prefix());
 
         wars = new ArrayList<>();
         members = new ArrayList<>();

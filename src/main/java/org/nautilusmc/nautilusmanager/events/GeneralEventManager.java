@@ -1,5 +1,6 @@
 package org.nautilusmc.nautilusmanager.events;
 
+import com.destroystokyo.paper.event.server.AsyncTabCompleteEvent;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.minecraft.world.entity.item.ItemEntity;
 import org.bukkit.*;
@@ -20,8 +21,12 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerCommandSendEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.server.ServerCommandEvent;
+import org.bukkit.event.server.TabCompleteEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -34,6 +39,7 @@ import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.util.Util;
 import org.spigotmc.event.entity.EntityDismountEvent;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;

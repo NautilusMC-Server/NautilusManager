@@ -37,3 +37,13 @@ spawn:
     z: 0
     pitch: 0
     yaw: 0
+homes:
+  startingAmount: 0
+  maxAmount: 0
+discord:
+  token: ''
+  guild: 0
+  sponsor_role: 0
+  synced_channel: 0
+  status_channel: 0
+  status_update_interval: 0

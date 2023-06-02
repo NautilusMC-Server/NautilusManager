@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.cosmetics.MuteManager;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.events.AfkManager;
 import org.nautilusmc.nautilusmanager.events.MessageStyler;
@@ -22,6 +23,7 @@ import org.nautilusmc.nautilusmanager.util.Util;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class MsgCommand extends NautilusCommand {
     @Override
@@ -34,13 +36,15 @@ public class MsgCommand extends NautilusCommand {
             return true;
         }
 
-        String message = String.join(" ", Arrays.copyOfRange(strings, 1, strings.length));
-
-        Component msg = MessageStyler.formatUserMessage(commandSender, Component.text(message))
-                .color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR)
-                .decorate(TextDecoration.ITALIC);
-
         if (commandSender instanceof Player player) {
+            if (MuteManager.isMuted(recipient, player)) {
+                player.sendMessage(Component.text("This player has muted you!").color(NautilusCommand.ERROR_COLOR));
+                return true;
+            } else if (MuteManager.isMuted(player, recipient)) {
+                player.sendMessage(Component.text("You have muted this player!").color(NautilusCommand.ERROR_COLOR));
+                return true;
+            }
+
             ReplyCommand.messaged(player.getUniqueId(), recipient.getUniqueId());
         }
 
@@ -51,23 +55,36 @@ public class MsgCommand extends NautilusCommand {
             }, 2);
         }
 
-        recipient.sendMessage(Component.empty()
-                .append(MessageStyler.getTimeStamp())
-                .append(Component.text(" "))
-                .append((commandSender instanceof Player p ? p.displayName() : commandSender.name()).decorate(TextDecoration.ITALIC))
-                .append(Component.text(" whispered to you").color(TextColor.color(150, 150, 150)).decorate(TextDecoration.ITALIC))
-                .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
-                .append(msg)
-        );
-        commandSender.sendMessage(Component.empty()
-                .append(MessageStyler.getTimeStamp())
-                .append(Component.text(" You whispered to ").color(TextColor.color(150, 150, 150)).decorate(TextDecoration.ITALIC))
-                .append(recipient.displayName().decorate(TextDecoration.ITALIC))
-                .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
-                .append(msg)
-        );
+        Component msg = MessageStyler.formatUserMessage(commandSender, Component.text(String.join(" ", Arrays.copyOfRange(strings, 1, strings.length))))
+                .decorate(TextDecoration.ITALIC);
+
+        Map.Entry<Component, Component> messages = styleWhisper(
+                (commandSender instanceof Player p ?
+                        p.displayName() :
+                        commandSender.name()).decorate(TextDecoration.ITALIC),
+                recipient.displayName().decorate(TextDecoration.ITALIC),
+                msg);
+        commandSender.sendMessage(messages.getKey());
+        recipient.sendMessage(messages.getValue());
 
         return true;
+    }
+
+    public static Map.Entry<Component, Component> styleWhisper(Component sender, Component receiver, Component message) {
+        return Map.entry(
+                Component.empty()
+                        .append(MessageStyler.getTimeStamp())
+                        .append(Component.text(" You whispered to ").color(TextColor.color(150, 150, 150)).decorate(TextDecoration.ITALIC))
+                        .append(receiver.decorate(TextDecoration.ITALIC))
+                        .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
+                        .append(message),
+                Component.empty()
+                        .append(MessageStyler.getTimeStamp())
+                        .append(Component.text(" "))
+                        .append(sender.decorate(TextDecoration.ITALIC))
+                        .append(Component.text(" whispered to you").color(TextColor.color(150, 150, 150)).decorate(TextDecoration.ITALIC))
+                        .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
+                        .append(message));
     }
 
     @Override

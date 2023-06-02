@@ -2,13 +2,20 @@ package org.nautilusmc.nautilusmanager;
 
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.commands.*;
+import org.nautilusmc.nautilusmanager.cosmetics.MuteManager;
 import org.nautilusmc.nautilusmanager.crews.CrewHandler;
 import org.nautilusmc.nautilusmanager.crews.commands.CrewCommand;
 import org.nautilusmc.nautilusmanager.crews.commands.CrewsCommand;
 import org.nautilusmc.nautilusmanager.crews.commands.InviteCommand;
 import org.nautilusmc.nautilusmanager.crews.commands.WarCommand;
+import org.nautilusmc.nautilusmanager.discord.DiscordBot;
+import org.nautilusmc.nautilusmanager.teleport.TpaManager;
 import org.nautilusmc.nautilusmanager.teleport.commands.homes.BuyHomeCommand;
 import org.nautilusmc.nautilusmanager.cosmetics.NameColor;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
@@ -28,6 +35,8 @@ import org.nautilusmc.nautilusmanager.teleport.commands.tpa.*;
 import org.nautilusmc.nautilusmanager.teleport.commands.warp.*;
 import org.nautilusmc.nautilusmanager.util.PermsUtil;
 
+import java.util.List;
+
 public final class NautilusManager extends JavaPlugin {
 
     public static NautilusManager INSTANCE;
@@ -45,12 +54,16 @@ public final class NautilusManager extends JavaPlugin {
         Nickname.init();
         Homes.init();
         Warps.init();
+        TpaManager.init();
+        MuteManager.init();
         PermsUtil.init();
         CrewHandler.init();
 
         registerCommands();
         registerEvents();
         TabListManager.init();
+
+        DiscordBot.init();
     }
 
     private void registerCommands() {
@@ -70,6 +83,8 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("buyhome").setExecutor(new BuyHomeCommand());
         this.getCommand("tpa").setExecutor(new TpaCommand());
         this.getCommand("tpahere").setExecutor(new TpaHereCommand());
+        this.getCommand("tptrust").setExecutor(new TpTrustCommand());
+        this.getCommand("tptrustlist").setExecutor(new TpTrustListCommand());
         this.getCommand("tpaccept").setExecutor(new TpAcceptCommand());
         this.getCommand("tpdeny").setExecutor(new TpDenyCommand());
         this.getCommand("tpcancel").setExecutor(new TpCancel());
@@ -88,6 +103,12 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("war").setExecutor(new WarCommand());
         this.getCommand("sponsor").setExecutor(new SponsorCommand());
         this.getCommand("itemname").setExecutor(new ItemNameCommand());
+        this.getCommand("toggleinvisible").setExecutor(new ToggleInvisibleCommand());
+        this.getCommand("mute").setExecutor(new MuteCommand());
+        this.getCommand("mutelist").setExecutor(new MuteListCommand());
+
+        this.getCommand("ban").setExecutor(new BanCommand());
+        Bukkit.getCommandMap().getKnownCommands().put("ban", this.getCommand("ban"));
     }
 
     private void registerEvents() {
@@ -100,11 +121,14 @@ public final class NautilusManager extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new GeneralEventManager(), this);
         Bukkit.getPluginManager().registerEvents(new SpawnProtection(), this);
 
+
         Bukkit.getPluginManager().registerEvents(new CrewHandler(), this);
+        Bukkit.getPluginManager().registerEvents(new DiscordBot(), this);
     }
 
-    @Override
-    public void onDisable() {
+    // I do this separately from onDisable so that I can call it before thread death in the event of a reload
+    public static void unload() {
         VanishManager.unload();
+        DiscordBot.unload();
     }
 }

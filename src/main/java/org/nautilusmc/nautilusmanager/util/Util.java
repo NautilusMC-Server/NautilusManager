@@ -40,11 +40,14 @@ public class Util {
         return out.toString();
     }
 
-    public static Player getOnlinePlayer(String nickname) {
-        OfflinePlayer p = Nickname.getPlayerFromNickname(nickname);
-        if (p == null) p = Bukkit.getOfflinePlayer(nickname);
+    public static Calendar getCalendar() {
+        return Calendar.getInstance(TimeZone.getTimeZone("CST"));
+    }
 
-        return p.isOnline() ? p.getPlayer() : null;
+    public static Player getOnlinePlayer(String nickname) {
+        OfflinePlayer p = getOfflinePlayerIfCachedByNick(nickname);
+
+        return p != null && p.isOnline() ? p.getPlayer() : null;
     }
 
     public static String getName(OfflinePlayer player) {
@@ -117,5 +120,16 @@ public class Util {
     public static OfflinePlayer getOfflinePlayerIfCached(String name) {
         return Arrays.stream(Bukkit.getOfflinePlayers())
                 .filter(p -> name.equalsIgnoreCase(p.getName())).findFirst().orElse(null);
+    }
+
+    public static OfflinePlayer getOfflinePlayerIfCachedByNick(String name) {
+        OfflinePlayer p = Nickname.getPlayerFromNickname(name);
+        if (p == null) p = getOfflinePlayerIfCached(name);
+
+        return p;
+    }
+
+    public static Component toggleDecoration(Component component, TextDecoration decoration) {
+        return component.decoration(decoration, !component.hasDecoration(decoration));
     }
 }

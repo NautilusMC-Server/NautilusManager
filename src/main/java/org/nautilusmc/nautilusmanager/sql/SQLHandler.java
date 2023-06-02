@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -85,6 +86,8 @@ public abstract class SQLHandler {
 
     public void setSQL(String uuid, Map<String, Object> values) {
         if (!SQL.SQL_ENABLED) return;
+        values = new HashMap<>(values);
+        values.replaceAll((k, v)->v instanceof String s ? s.replace("'", "\\'") : v);
 
         StringBuilder command = new StringBuilder("INSERT INTO "+table+" ("+primaryKey+",");
 

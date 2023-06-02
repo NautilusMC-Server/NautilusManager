@@ -24,11 +24,14 @@ public abstract class NautilusCommand implements CommandExecutor, TabCompleter {
     //cosmetic
     public static final String MODIFY_OTHER_PERM = "nautiluscosmetics.modify_other";
     public static final String ITEM_NAME_PERM = "nautiluscosmetics.set_item_name";
+    public static final String ITEM_FRAME_ARMOR_STAND_INVISIBILITY_PERM = "nautiluscosmetics.item_frame_armor_stand_invisibility";
+    public static final String MUTE_PERM = "nautiluscosmetics.personal_mute";
     public static final String NICKNAME_PERM = "nautiluscosmetics.nickname";
     public static final String NICKNAME_LIST_PERM = "nautiluscosmetics.nickname.view";
     public static final String NICKNAME_SPECIAL_CHAR_PERM = "nautiluscosmetics.nickname.special_characters";
     public static final String CHAT_FORMATTING_PERM = "nautiluscosmetics.chat.formatting";
     public static final String VANISH_PERM = "nautilusmanager.vanish";
+    public static final String BAN_PERM = "nautilusmanager.ban";
     public static final String STAFF_CHAT_PERM = "nautilusmanager.chat.staff";
     public static final String RELOAD_PERM = "nautilusmanager.reload";
 

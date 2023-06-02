@@ -2,23 +2,51 @@ package org.nautilusmc.nautilusmanager.teleport;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
 import org.nautilusmc.nautilusmanager.events.TeleportHandler;
+import org.nautilusmc.nautilusmanager.sql.SQLSyncedPerPlayerList;
 import org.nautilusmc.nautilusmanager.teleport.commands.homes.HomeCommand;
 import org.nautilusmc.nautilusmanager.util.Util;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class TpaManager implements Listener {
 
+    public static int MAX_TRUSTED = 99; // the SQL can have 2 digits
+
     private static final Map<UUID, Map.Entry<UUID, TpRequestType>> requests = new HashMap<>(); // from Request Maker to Request Receiver, Request Type
     private static final Map<UUID, UUID> lastRequests = new HashMap<>(); // from Request Maker to Request Receiver
+
+
+    private static final SQLSyncedPerPlayerList<UUID, String> trusted = new SQLSyncedPerPlayerList<>(String.class, UUID::toString, UUID::fromString, "trusted", MAX_TRUSTED);
+
+    public static void init() {
+        trusted.initSQL("tpa_trustlist");
+    }
+
+    public static boolean isTrusted(Player truster, OfflinePlayer player) {
+        return trusted.contains(truster.getUniqueId(), player.getUniqueId());
+    }
+
+    public static List<UUID> getTrusted(Player truster) {
+        return new ArrayList<>(trusted.getOrDefault(truster.getUniqueId(), List.of()));
+    }
+
+    /**
+     * @return Whether the player is now trusted
+     */
+    public static boolean toggleTrust(Player truster, OfflinePlayer player) {
+        if (isTrusted(truster, player)) {
+            trusted.remove(truster.getUniqueId(), player.getUniqueId());
+            return false;
+        } else {
+            return trusted.add(truster.getUniqueId(), player.getUniqueId());
+        }
+    }
 
     public static void tpRequest(Player requester, Player requested, TpRequestType type) {
         if (requests.containsKey(requester.getUniqueId())) {
@@ -100,19 +128,23 @@ public class TpaManager implements Listener {
         return requesterPlayer;
     }
 
+    public static void performTp(Player requested, Player requester, TpRequestType type) {
+        TeleportHandler.teleportAfterDelay(type == TpRequestType.TP_TO ? requester : requested,
+                (type == TpRequestType.TP_TO ? requested : requester)::getLocation,
+                5 * 20, () -> {
+                    (type == TpRequestType.TP_TO ? requested : requester).sendMessage(Component.text("Teleport canceled, ")
+                            .append((type == TpRequestType.TP_TO ? requester : requested).displayName())
+                            .append(Component.text(" moved"))
+                            .color(NautilusCommand.ERROR_COLOR));
+                });
+    }
+
     public static void acceptRequest(Player requested, String requester) {
         Player requesterPlayer = getRequester(requested, requester);
         if (requesterPlayer == null) return;
 
         TpRequestType type = requests.get(requesterPlayer.getUniqueId()).getValue();
-        TeleportHandler.teleportAfterDelay(type == TpRequestType.TP_TO ? requesterPlayer : requested,
-                type == TpRequestType.TP_TO ? requested.getLocation() : requesterPlayer.getLocation(),
-                5 * 20, () -> {
-                    (type == TpRequestType.TP_TO ? requested : requesterPlayer).sendMessage(Component.text("Teleport canceled, ")
-                            .append((type == TpRequestType.TP_TO ? requesterPlayer : requested).displayName())
-                            .append(Component.text(" moved"))
-                            .color(NautilusCommand.ERROR_COLOR));
-                });
+        performTp(requested, requesterPlayer, type);
 
 
         requested.sendMessage(Component.text("Accepted ")

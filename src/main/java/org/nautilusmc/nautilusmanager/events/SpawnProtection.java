@@ -85,6 +85,7 @@ public class SpawnProtection implements Listener {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent e) {
         if(!e.hasBlock() || (e.getPlayer().isSneaking() && e.hasItem())) return;
+        if (e.hasItem() && e.getItem().getType().isEdible()) return;
 
         Block block = e.getClickedBlock();
         if(isProtected(block.getLocation()) && !isAllowed(e.getPlayer())) {

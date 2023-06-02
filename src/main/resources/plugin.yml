@@ -19,7 +19,7 @@ commands:
     usage: /formatting [code|name] [page]
   chat:
     description: Toggles between individual chats and global chat.
-    usage: /chat [name]
+    usage: /chat <all|player> [name]
   reply:
     description: Replies to the last message
     usage: /reply
@@ -68,6 +68,12 @@ commands:
   tpahere:
     description: Requests a player to teleport to you
     usage: /tpahere <player>
+  tptrust:
+    description: Trusts a player to tp to you without a request
+    usage: /tptrust <player>
+  tptrustlist:
+    description: Lists the currently trusted players
+    usage: /tptrustlist
   tpaccept:
     description: Accepts a teleport request
     usage: /tpaccept <player>
@@ -122,4 +128,15 @@ commands:
   war:
     description: Accepts or declines a war declaration
     usage: /war [accept|decline]
-
+  toggleinvisible:
+    description: Targets an item frame or armor stand's invisibility
+    usage: /toggleinvisible
+  mute:
+    description: Personally mutes another player
+    usage: /mute <player>
+  mutelist:
+    description: List your currently muted players
+    usage: /mutelist
+  ban:
+    description: Ban a player
+    usage: /ban <player> <time> [reason]

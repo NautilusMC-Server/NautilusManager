@@ -14,6 +14,7 @@ import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public class TeleportHandler implements Listener {
 
@@ -30,10 +31,10 @@ public class TeleportHandler implements Listener {
     }
 
     public static void teleportAfterDelay(Player player, Location loc, int ticks) {
-        teleportAfterDelay(player, loc, ticks, null);
+        teleportAfterDelay(player, () -> loc, ticks, null);
     }
 
-    public static void teleportAfterDelay(Player player, Location loc, int ticks, Runnable failCallback) {
+    public static void teleportAfterDelay(Player player, Supplier<Location> loc, int ticks, Runnable failCallback) {
         TextColor color = TextColor.color(255, 194, 0);
 
         player.sendMessage(Component.text("Teleporting in "+Math.round(ticks/20f)+" seconds. Don't move!").color(color));
@@ -43,7 +44,7 @@ public class TeleportHandler implements Listener {
             public void run() {
                 player.sendMessage(Component.text("Whoosh!").color(color));
                 setLastTeleportLoc(player, player.getLocation());
-                player.teleport(loc);
+                player.teleport(loc.get());
 
                 teleporting.remove(player.getUniqueId());
             }

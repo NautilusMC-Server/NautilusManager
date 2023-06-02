@@ -106,13 +106,17 @@ public class FancyText {
         for (int i = 0; i < message.length(); i++) {
             boolean consumed = false;
 
-            if ((i == 0 || message.charAt(i-1) != '\\') && message.charAt(i) == '`' && i < message.length()-1) {
+            boolean canceled = i != 0 && message.charAt(i-1) == '\\';
+
+            if (message.charAt(i) == '`' && i < message.length()-1) {
                 if (message.charAt(i+1) == 'x') {
                     try {
-                        int hex = Integer.parseInt(message.substring(i+2, i+8), 16);
-                        component = component.append(building);
-                        building = Component.empty().style(building.style()).color(TextColor.color(hex));
-                        i += 7;
+                        if (!canceled) {
+                            int hex = Integer.parseInt(message.substring(i + 2, i + 8), 16);
+                            component = component.append(building);
+                            building = Component.empty().style(building.style()).color(TextColor.color(hex));
+                            i += 7;
+                        }
                         consumed = true;
                     } catch (NumberFormatException ignored) {}
                 } else {
@@ -122,20 +126,27 @@ public class FancyText {
                         for (ChatFormatting f : ChatFormatting.values()) {
                             if (message.substring(i+2).toUpperCase().startsWith(f.name())) {
                                 formatting = f;
-                                i += f.name().length();
+                                if (!canceled) i += f.name().length();
                                 consumed = true;
                             }
                         }
                     }
 
                     if (formatting != null) {
-                        component = component.append(building);
-                        building = (TextComponent) Util.nmsFormat(Component.empty().style(formatting != ChatFormatting.RESET ? building.style() : Style.empty()), formatting);
+                        if (!canceled) {
+                            component = component.append(building);
+                            building = (TextComponent) Util.nmsFormat(Component.empty().style(formatting != ChatFormatting.RESET ? building.style() : Style.empty()), formatting);
 
-                        i++;
+                            i++;
+                        }
                         consumed = true;
                     }
                 }
+            }
+
+            if (consumed && canceled) {
+                building = building.content(building.content().substring(0, building.content().length()-1)+message.charAt(i));
+                continue;
             }
 
             if (!consumed) {
