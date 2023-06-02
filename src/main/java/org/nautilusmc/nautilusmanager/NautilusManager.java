@@ -95,12 +95,12 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("vanish").setExecutor(new VanishCommand());
         this.getCommand("chatmsg").setExecutor(new ChatMsgCommand());
         this.getCommand("suicide").setExecutor(new SuicideCommand());
-        this.getCommand("crews").setExecutor(new CrewsCommand());
-        this.getCommand("crew").setExecutor(new CrewCommand());
-        this.getCommand("confirm").setExecutor(new ConfirmCommand());
-        this.getCommand("deny").setExecutor(new DenyCommand());
-        this.getCommand("invite").setExecutor(new InviteCommand());
-        this.getCommand("war").setExecutor(new WarCommand());
+//        this.getCommand("crews").setExecutor(new CrewsCommand());
+//        this.getCommand("crew").setExecutor(new CrewCommand());
+//        this.getCommand("confirm").setExecutor(new ConfirmCommand());
+//        this.getCommand("deny").setExecutor(new DenyCommand());
+//        this.getCommand("invite").setExecutor(new InviteCommand());
+//        this.getCommand("war").setExecutor(new WarCommand());
         this.getCommand("sponsor").setExecutor(new SponsorCommand());
         this.getCommand("itemname").setExecutor(new ItemNameCommand());
         this.getCommand("toggleinvisible").setExecutor(new ToggleInvisibleCommand());

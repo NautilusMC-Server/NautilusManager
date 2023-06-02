@@ -90,6 +90,8 @@ public class DiscordBot implements Listener {
     }
 
     public static void unload() {
+        if (jda == null) return;
+
         jda.shutdownNow();
     }
 
