@@ -1,25 +1,24 @@
 package org.nautilusmc.nautilusmanager.commands;
 
-import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.nautilusmc.nautilusmanager.util.ConfirmationMessage;
 
-public class ConfirmCommand implements CommandExecutor {
+public class ConfirmCommand extends NautilusCommand {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player)) {
-            commandSender.sendMessage(Component.text("You must be a player to use this command").color(NautilusCommand.ERROR_COLOR));
+        if (!(commandSender instanceof Player player)) {
+            commandSender.sendMessage(ErrorMessage.NOT_PLAYER);
             return true;
         }
-        Player player = (Player) commandSender;
-        if (!player.hasPermission(NautilusCommand.CONFIRM_PERM)) {
-            NautilusCommand.error(player, NautilusCommand.DEFAULT_PERM_MESSAGE);
+
+        if (!player.hasPermission(Permission.CONFIRM)) {
+            player.sendMessage(ErrorMessage.NO_PERMISSION);
             return true;
         }
+
         ConfirmationMessage.confirm(player);
         return true;
     }

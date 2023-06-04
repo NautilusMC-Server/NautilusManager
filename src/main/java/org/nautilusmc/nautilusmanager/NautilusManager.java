@@ -87,11 +87,11 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("tptrustlist").setExecutor(new TpTrustListCommand());
         this.getCommand("tpaccept").setExecutor(new TpAcceptCommand());
         this.getCommand("tpdeny").setExecutor(new TpDenyCommand());
-        this.getCommand("tpcancel").setExecutor(new TpCancel());
+        this.getCommand("tpcancel").setExecutor(new TpCancelCommand());
         this.getCommand("reloadnautilus").setExecutor(new ReloadCommand());
         this.getCommand("warp").setExecutor(new WarpCommand());
         this.getCommand("createwarp").setExecutor(new CreateWarpCommand());
-        this.getCommand("delwarp").setExecutor(new DeleteWarpCommand());
+        this.getCommand("delwarp").setExecutor(new DelWarpCommand());
         this.getCommand("vanish").setExecutor(new VanishCommand());
         this.getCommand("chatmsg").setExecutor(new ChatMsgCommand());
         this.getCommand("suicide").setExecutor(new SuicideCommand());

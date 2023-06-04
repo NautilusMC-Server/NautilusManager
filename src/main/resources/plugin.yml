@@ -9,64 +9,67 @@ depend:
   - LuckPerms
 commands:
   cosmetics:
-    description: Base command for cosmetics.
-    usage: /cosmetics <subcommand> [args]
+    description: Edit player cosmetics.
+    usage: /cosmetics <subcommand> [args...]
   nickname:
-    description: Gets a player's nickname. Only available to staff.
+    description: Get a player's nickname. (Staff only)
     usage: /nickname <list|original|nickname|set> [page|name]
   formatting:
-    description: Help command for sponsor chat formatting.
+    description: See information about chat formatting. (Sponsor only)
     usage: /formatting [code|name] [page]
+  emoji:
+    description: See information about emoji shortcuts.
+    usage: /emoji <list|search> [page|query]
   chat:
-    description: Toggles between individual chats and global chat.
+    description: Toggle between individual chats and global chat.
     usage: /chat <all|player> [name]
   reply:
-    description: Replies to the last message
-    usage: /reply
+    description: Reply to the last message.
+    usage: /reply <message>
     aliases: r
   msg:
-    description: Sends a private message
+    description: Send a private message.
     usage: /msg <player> <message>
     aliases:
       - tell
       - w
   chatmsg:
-    description: Sends a message to a specific chat
+    description: Send a message to a specific chat.
     usage: /chatmsg <chat> <message>
     aliases:
       - cm
   afk:
-    description: Toggle AFK status
+    description: Toggle AFK status.
     usage: /afk [player]
   home:
-    description: Teleport to a set home
+    description: Teleport to a set home.
     usage: /home <name>
+  homes:
+    description: List all set homes.
+    usage: /homes
   sethome:
-    description: Create a new home
+    description: Set a new home at the current location.
     usage: /sethome <name>
   delhome:
-    description: Delete an existing home
+    description: Delete an existing home.
     usage: /delhome <name>
-  homes:
-    description: List all homes
-    usage: /homes
+  buyhome:
+    description: Buy the capacity to have another home using diamond blocks.
+    usage: /buyhome
   spawn:
-    description: Teleport to spawn
+    description: Teleport to the global spawn area.
     usage: /spawn
   back:
-    description: Teleport to the location you last teleported from
+    description: Teleport back to the location you last teleported from.
     usage: /back
-  buyhome:
-    description: Trades diamond blocks for another home (max 15)
-    usage: /buyhome
   reloadnautilus:
-    description: Reloads the plugin. Devs only.
+    description: Reload the Nautilus plugins. (Staff only)
     usage: /reloadnautilus
   tpa:
-    description: Requests to teleport to a player
+    description: Request to teleport to a player.
     usage: /tpa <player>
   tpahere:
-    description: Requests a player to teleport to you
+    description: Request a player to teleport to you.
     usage: /tpahere <player>
   tptrust:
     description: Trusts a player to tp to you without a request
@@ -75,58 +78,58 @@ commands:
     description: Lists the currently trusted players
     usage: /tptrustlist
   tpaccept:
-    description: Accepts a teleport request
-    usage: /tpaccept <player>
+    description: Accept an incoming teleport request.
+    usage: /tpaccept [player]
     aliases:
       - tpyes
   tpdeny:
-    description: Denies a teleport request
-    usage: /tpdeny <player>
+    description: Deny an incoming teleport request.
+    usage: /tpdeny [player]
     aliases:
       - tpno
   tpcancel:
-    description: Cancels a teleport request
+    description: Cancel the outgoing teleport request.
     usage: /tpcancel
   warp:
-    description: Warp to a publicly available warp
+    description: Teleport to a publicly available warp.
     usage: /warp <name>
   createwarp:
-    description: Admin command to create public warps.
+    description: Create a public warp. (Staff only)
     usage: /createwarp <name>
   delwarp:
-    description: Admin command to remove public warps.
+    description: Delete a public warp. (Staff only)
     usage: /delwarp <name>
   vanish:
-    description: Admin command to vanish to other players.
+    description: Turn invisible to other players. (Staff only)
     usage: /vanish
   suicide:
-    description: Kill yourself.
+    description: Take the easy way out.
     usage: /suicide
   sponsor:
-    description: Get the link to become a sponsor.
+    description: See information about supporting NautilusMC.
     usage: /sponsor
     aliases:
       - support
   itemname:
-    description: Set the name of the currently held item
+    description: Set the name of the currently held item.
     usage: /itemname <name>
   crews:
-    description: Lists all crews
+    description: List all crews on the server.
     usage: /crews
   crew:
-    description: Base crew command
-    usage: /crew [args]
+    description: Perform actions relating to crews.
+    usage: /crew [args...]
   confirm:
-    description: Accepts a pending confirmation message
+    description: Confirm a pending confirmation message.
     usage: /confirm
   deny:
-    description: Denies a pending confirmation message
+    description: Deny a pending confirmation message.
     usage: /deny
   invite:
-    description: Accepts or denies a pending crew invite
+    description: Accept or decline a pending crew invite.
     usage: /invite [accept|decline]
   war:
-    description: Accepts or declines a war declaration
+    description: Accept or decline a declaration of war.
     usage: /war [accept|decline]
   toggleinvisible:
     description: Targets an item frame or armor stand's invisibility

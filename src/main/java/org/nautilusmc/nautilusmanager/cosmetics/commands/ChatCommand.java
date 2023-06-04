@@ -4,7 +4,6 @@ import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -17,7 +16,6 @@ import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.ChatMsgCommand;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
-import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.*;
@@ -29,7 +27,7 @@ public class ChatCommand extends NautilusCommand {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Component.text("You must be a player to use this command").color(NautilusCommand.ERROR_COLOR));
+            commandSender.sendMessage(Component.text("You must be a player to use this command").color(Default.ERROR_COLOR));
             return true;
         }
 
@@ -42,7 +40,7 @@ public class ChatCommand extends NautilusCommand {
             Player chat = Util.getOnlinePlayer(strings[1]);
 
             if (chat == null) {
-                commandSender.sendMessage(Component.text("Player not found").color(NautilusCommand.ERROR_COLOR));
+                commandSender.sendMessage(Component.text("Player not found").color(Default.ERROR_COLOR));
                 return true;
             }
 
@@ -50,8 +48,8 @@ public class ChatCommand extends NautilusCommand {
             CHATS.put(player.getUniqueId(), new ChatType("player", chat.getUniqueId()));
             return true;
         } else if (strings[0].equalsIgnoreCase("staff")) {
-            if (!commandSender.hasPermission(NautilusCommand.STAFF_CHAT_PERM)) {
-                commandSender.sendMessage(Component.text("Not enough permissions").color(NautilusCommand.ERROR_COLOR));
+            if (!commandSender.hasPermission(Permission.STAFF_CHAT)) {
+                commandSender.sendMessage(Component.text("Not enough permissions").color(Default.ERROR_COLOR));
                 return true;
             }
 
@@ -83,7 +81,6 @@ public class ChatCommand extends NautilusCommand {
     }
 
     public static class ChatListener implements Listener {
-
         @EventHandler
         public void onQuit(PlayerQuitEvent e) {
             for (Map.Entry<UUID, ChatType> entry : CHATS.entrySet()) {
@@ -101,8 +98,10 @@ public class ChatCommand extends NautilusCommand {
             if (chat != null) {
                 e.setCancelled(true);
 
-                String name = chat.uuid != null ? " "+Util.getName(Bukkit.getPlayer(chat.uuid)) : "";
-                Bukkit.getScheduler().runTask(NautilusManager.INSTANCE, () -> e.getPlayer().performCommand("chatmsg "+chat.commandOption+name+" "+Util.getTextContent(e.originalMessage())));
+                String name = chat.uuid != null ? " " + Util.getName(Bukkit.getPlayer(chat.uuid)) : "";
+                Bukkit.getScheduler().runTask(NautilusManager.INSTANCE, () -> {
+                    e.getPlayer().performCommand("chatmsg " + chat.commandOption + name + " " + Util.getTextContent(e.originalMessage()));
+                });
             }
         }
     }

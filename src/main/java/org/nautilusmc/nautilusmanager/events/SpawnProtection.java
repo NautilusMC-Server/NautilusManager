@@ -53,7 +53,7 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
-        if(isProtected(e.getBlock().getLocation()) && !isAllowed(e.getPlayer())) {
+        if (isProtected(e.getBlock().getLocation()) && !isAllowed(e.getPlayer())) {
             alert(e.getPlayer());
             e.setCancelled(true);
         }
@@ -61,7 +61,7 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent e) {
-        if(isProtected(e.getBlock().getLocation()) && !isAllowed(e.getPlayer())) {
+        if (isProtected(e.getBlock().getLocation()) && !isAllowed(e.getPlayer())) {
             alert(e.getPlayer());
             e.setCancelled(true);
         }
@@ -69,7 +69,7 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onPlayerBucket(PlayerBucketFillEvent e) {
-        if(isProtected(e.getBlock().getLocation()) && !isAllowed(e.getPlayer())) {
+        if (isProtected(e.getBlock().getLocation()) && !isAllowed(e.getPlayer())) {
             alert(e.getPlayer());
             e.setCancelled(true);
         }
@@ -77,7 +77,7 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onPlayerBucket(PlayerBucketEmptyEvent e) {
-        if(isProtected(e.getBlock().getLocation()) && !isAllowed(e.getPlayer())) {
+        if (isProtected(e.getBlock().getLocation()) && !isAllowed(e.getPlayer())) {
             alert(e.getPlayer());
             e.setCancelled(true);
         }
@@ -85,11 +85,11 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent e) {
-        if(!e.hasBlock() || (e.getPlayer().isSneaking() && e.hasItem())) return;
+        if (!e.hasBlock() || (e.getPlayer().isSneaking() && e.hasItem())) return;
         if (e.hasItem() && e.getItem().getType().isEdible()) return;
 
         Block block = e.getClickedBlock();
-        if(isProtected(block.getLocation()) && !isAllowed(e.getPlayer())) {
+        if (isProtected(block.getLocation()) && !isAllowed(e.getPlayer())) {
             Material type = block.getType();
 
             if (type != Material.CHEST && type != Material.BARREL && type != Material.ENDER_CHEST && !Tag.PRESSURE_PLATES.isTagged(type) && !Tag.WOODEN_DOORS.isTagged(type) && !Tag.BUTTONS.isTagged(type) && !Tag.FENCE_GATES.isTagged(type)) {
@@ -101,7 +101,7 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onPlayerInteractEntity(PlayerInteractEntityEvent e) {
-        if(isProtected(e.getRightClicked().getLocation()) && !isAllowed(e.getPlayer())) {
+        if (isProtected(e.getRightClicked().getLocation()) && !isAllowed(e.getPlayer())) {
             alert(e.getPlayer());
             e.setCancelled(true);
         }
@@ -109,7 +109,7 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent e) {
-        if(isProtected(e.getRightClicked().getLocation()) && !isAllowed(e.getPlayer())) {
+        if (isProtected(e.getRightClicked().getLocation()) && !isAllowed(e.getPlayer())) {
             alert(e.getPlayer());
             e.setCancelled(true);
         }
@@ -117,8 +117,8 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onCropTrample(PlayerInteractEvent e) {
-        if(e.getAction().equals(Action.PHYSICAL) && e.getInteractionPoint() != null && e.getInteractionPoint().getBlock().getType().equals(Material.FARMLAND)) {
-            if(isProtected(e.getInteractionPoint()) && !isAllowed(e.getPlayer())) {
+        if (e.getAction().equals(Action.PHYSICAL) && e.getInteractionPoint() != null && e.getInteractionPoint().getBlock().getType().equals(Material.FARMLAND)) {
+            if (isProtected(e.getInteractionPoint()) && !isAllowed(e.getPlayer())) {
                 alert(e.getPlayer());
                 e.setCancelled(true);
             }
@@ -171,7 +171,7 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onEntityExplode(EntityExplodeEvent e) {
-        if(e.getEntity() instanceof Creeper) {
+        if (e.getEntity() instanceof Creeper) {
             e.blockList().clear();
             return;
         }
@@ -181,19 +181,19 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onChangeBlock(EntityChangeBlockEvent e) {
-        if(e.getEntity() instanceof Enderman) {
+        if (e.getEntity() instanceof Enderman) {
             e.setCancelled(true);
         }
 
-        if(!isProtected(e.getBlock().getLocation())) return;
-        if(!(e.getEntity() instanceof Player) && e.getBlock().getType().equals(Material.FARMLAND)) {
+        if (!isProtected(e.getBlock().getLocation())) return;
+        if (!(e.getEntity() instanceof Player) && e.getBlock().getType().equals(Material.FARMLAND)) {
             e.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onChangeBlock(EntityBreakDoorEvent e) {
-        if(e.getEntity() instanceof Monster) {
+        if (e.getEntity() instanceof Monster) {
             e.setCancelled(true);
         }
     }
@@ -205,9 +205,9 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onHungerEvent(FoodLevelChangeEvent e) {
-        if(!(e.getEntity() instanceof Player)) return;
+        if (!(e.getEntity() instanceof Player)) return;
 
-        if(e.getFoodLevel() < e.getEntity().getFoodLevel() && isProtected(e.getEntity().getLocation())) {
+        if (e.getFoodLevel() < e.getEntity().getFoodLevel() && isProtected(e.getEntity().getLocation())) {
             e.setCancelled(true);
         }
     }

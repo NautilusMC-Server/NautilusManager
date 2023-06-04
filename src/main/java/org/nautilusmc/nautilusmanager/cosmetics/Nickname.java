@@ -11,6 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.NautilusCommand.ErrorMessage;
 import org.nautilusmc.nautilusmanager.sql.SQLHandler;
 import org.nautilusmc.nautilusmanager.util.CaseInsensitiveString;
 import org.nautilusmc.nautilusmanager.util.Util;
@@ -21,8 +22,10 @@ import java.util.*;
 
 public class Nickname {
 
+    public static final int MIN_LENGTH = 3;
+    public static final int MAX_LENGTH = 16;
+
     private static final BiMap<UUID, CaseInsensitiveString> playerNames = HashBiMap.create();
-//    private static final Map<UUID, CaseInsensitiveString> playerNames = new HashMap<>();
     private static SQLHandler SQL_HANDLER;
 
     public static void init() {
@@ -72,11 +75,15 @@ public class Nickname {
     /**
      * Private helper function to actually update a player's nickname in-game.
      */
-    private static void updateNickname(Player p, String name) {
-        p.displayName(Component.text(name));
-        if (NameColor.getNameColor(p) != null) NameColor.updateNameColor(p, NameColor.getNameColor(p));
+    private static void updateNickname(Player player, String name) {
+        player.displayName(Component.text(name));
 
-        Util.updateNameTag(p, p.displayName(), Bukkit.getOnlinePlayers());
+        NameColor nameColor = NameColor.getNameColor(player);
+        if (nameColor != null) {
+            NameColor.updateNameColor(player, nameColor);
+        }
+
+        Util.updateNameTag(player, player.displayName(), Bukkit.getOnlinePlayers());
     }
 
     /**
@@ -107,7 +114,7 @@ public class Nickname {
     }
 
     /**
-     * Set a player's nickname
+     * Set a player's nickname.
      */
     public static void setNickname(Player p, String name, boolean sendMessage) {
         if (!name.equals(getNickname(p))) {
@@ -121,41 +128,44 @@ public class Nickname {
     /**
      * Make sure a given nickname is valid based on requirements.
      */
-    public static String validateNickname(OfflinePlayer p, String name) {
-        if (name.length() > 16) return "That nickname is too long";
-        if (name.length() < 3) return "That nickname is too short";
-        if (!name.matches("[a-zA-Z0-9_]+") && p.isOnline() && !p.getPlayer().hasPermission(NautilusCommand.NICKNAME_SPECIAL_CHAR_PERM)) return "Become a supporter to unlock non-alphanumeric characters";
-        if (name.contains(" ")) return "Nicknames cannot contain spaces";
+    public static String validateNickname(OfflinePlayer player, String name) {
+        if (name.length() > MAX_LENGTH)
+            return "That nickname is too long! Maximum length is " + MAX_LENGTH + ".";
+        if (name.length() < MIN_LENGTH)
+            return "That nickname is too short! Minimum length is " + MIN_LENGTH + ".";
+        if (name.contains(" "))
+            return "Nicknames cannot contain spaces!";
+        if (!name.matches("[a-zA-Z0-9_]+") && player instanceof Player onlinePlayer && !onlinePlayer.hasPermission(NautilusCommand.Permission.NICKNAME_SPECIAL_CHARS))
+            return "Become a supporter to unlock non-alphanumeric characters!";
 
         OfflinePlayer existing = Util.getOfflinePlayerIfCached(name);
-        if (!playerNames.inverse().getOrDefault(new CaseInsensitiveString(name), p.getUniqueId()).equals(p.getUniqueId()) || (existing != null && !existing.getUniqueId().equals(p.getUniqueId()))) return "That nickname is already taken";
+        if (!playerNames.inverse().getOrDefault(new CaseInsensitiveString(name),
+                player.getUniqueId()).equals(player.getUniqueId()) || (existing != null && !existing.getUniqueId().equals(player.getUniqueId())))
+            return "That nickname is already taken!";
 
         return null;
     }
 
     public static class NicknameListener implements Listener {
-        @EventHandler(priority=org.bukkit.event.EventPriority.HIGH)
+        @EventHandler(priority = org.bukkit.event.EventPriority.HIGH)
         public void onPlayerJoin(PlayerJoinEvent e) {
-            String nick = getNickname(e.getPlayer());
+            String nickname = getNickname(e.getPlayer());
 
-            Component resetMessage = Component.text("Your nickname was reset because a player by that name has joined").color(NautilusCommand.ERROR_COLOR);
             // if there is an online player whose nick is the joining player's name, reset the player's nick
             // otherwise, it will be reset next time that player joins
             OfflinePlayer player = getPlayerFromNickname(e.getPlayer().getName());
-            if (player != null && player.isOnline()) {
-                setNickname(player.getPlayer(), player.getName(), false);
-                player.getPlayer().sendMessage(resetMessage);
+            if (player instanceof Player onlinePlayer) {
+                setNickname(onlinePlayer, onlinePlayer.getName(), false);
+                onlinePlayer.sendMessage(ErrorMessage.NICKNAME_CONFLICT_RESET);
             }
 
-            if (nick != null) {
-                // if there is a player whose name is the joining player's nickname, reset the joining player's nick
-                // otherwise, set the
-                if (Util.getOfflinePlayerIfCached(nick) != null) {
-                    setNickname(e.getPlayer(), e.getPlayer().getName(), false);
-                    e.getPlayer().sendMessage(resetMessage);
-                } else {
-                    updateNickname(e.getPlayer(), nick);
-                }
+            // if there is a player whose name is the joining player's nickname, reset the joining player's nick
+            // otherwise, update the player's nickname as usual
+            if (Util.getOfflinePlayerIfCached(nickname) != null) {
+                setNickname(e.getPlayer(), e.getPlayer().getName(), false);
+                e.getPlayer().sendMessage(ErrorMessage.NICKNAME_CONFLICT_RESET);
+            } else {
+                updateNickname(e.getPlayer(), nickname);
             }
         }
     }

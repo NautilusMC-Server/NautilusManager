@@ -1,7 +1,5 @@
 package org.nautilusmc.nautilusmanager.teleport.commands.tpa;
 
-import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -18,17 +16,12 @@ public class TpaHereCommand extends NautilusCommand {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Component.text("Only players can use this command.").color(NautilusCommand.ERROR_COLOR));
+            commandSender.sendMessage(ErrorMessage.NOT_PLAYER);
             return true;
         }
 
-        if (!player.hasPermission(TPA_PERM)) {
-            player.sendMessage(Component.text("Not enough permissions!").color(NautilusCommand.ERROR_COLOR));
-            return true;
-        }
-
-        if (!player.hasPermission(TPA_PERM)) {
-            player.sendMessage(Component.text("Not enough permissions!").color(NautilusCommand.ERROR_COLOR));
+        if (!player.hasPermission(Permission.TPA)) {
+            player.sendMessage(ErrorMessage.NO_PERMISSION);
             return true;
         }
 
@@ -36,16 +29,16 @@ public class TpaHereCommand extends NautilusCommand {
 
         Player recipient = Util.getOnlinePlayer(strings[0]);
         if (recipient == null) {
-            commandSender.sendMessage(Component.text("Player not found").color(NautilusCommand.ERROR_COLOR));
+            commandSender.sendMessage(ErrorMessage.INVALID_PLAYER);
             return true;
         }
 
-        if (recipient == commandSender) {
-            commandSender.sendMessage(Component.text("You can't teleport to yourself!").color(NautilusCommand.ERROR_COLOR));
+        if (recipient.equals(commandSender)) {
+            commandSender.sendMessage(ErrorMessage.CANNOT_TP_TO_SELF);
             return true;
         }
 
-        TpaManager.tpRequest(player, recipient, TpaManager.TpRequestType.TP_HERE);
+        TpaManager.tpRequest(player, recipient, TpaManager.RequestType.TO_REQUESTER);
 
         return true;
     }
@@ -55,9 +48,9 @@ public class TpaHereCommand extends NautilusCommand {
         List<String> out = new ArrayList<>();
 
         if (strings.length == 1) {
-            out.addAll(Bukkit.getOnlinePlayers().stream().map(Util::getName).toList());
+            out.addAll(getOnlineNames());
         }
 
-        return out.stream().filter(str->str.toLowerCase().startsWith(strings[strings.length-1].toLowerCase())).toList();
+        return out.stream().filter(str->str.toLowerCase().startsWith(strings[strings.length - 1].toLowerCase())).toList();
     }
 }

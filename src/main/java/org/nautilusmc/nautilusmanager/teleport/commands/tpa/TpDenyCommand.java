@@ -1,6 +1,5 @@
 package org.nautilusmc.nautilusmanager.teleport.commands.tpa;
 
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -19,12 +18,12 @@ public class TpDenyCommand extends NautilusCommand {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Component.text("Only players can use this command.").color(NautilusCommand.ERROR_COLOR));
+            commandSender.sendMessage(ErrorMessage.NOT_PLAYER);
             return true;
         }
 
-        if (!player.hasPermission(TPA_PERM)) {
-            player.sendMessage(Component.text("Not enough permissions!").color(NautilusCommand.ERROR_COLOR));
+        if (!player.hasPermission(Permission.TPA)) {
+            player.sendMessage(ErrorMessage.NO_PERMISSION);
             return true;
         }
 
@@ -40,9 +39,12 @@ public class TpDenyCommand extends NautilusCommand {
         if (!(commandSender instanceof Player player)) return out;
 
         if (strings.length == 1) {
-            out.addAll(TpaManager.incomingRequests(player).stream().map(Bukkit::getPlayer).filter(Objects::nonNull).map(p->Nickname.getNickname(p) == null ? p.getName() : Nickname.getNickname(p)).toList());
+            out.addAll(TpaManager.incomingRequests(player).stream()
+                    .map(Bukkit::getPlayer).filter(Objects::nonNull)
+                    .map(p -> Nickname.getNickname(p) == null ? p.getName() : Nickname.getNickname(p))
+                    .toList());
         }
 
-        return out.stream().filter(str->str.toLowerCase().startsWith(strings[strings.length-1].toLowerCase())).toList();
+        return out.stream().filter(str -> str.toLowerCase().startsWith(strings[strings.length - 1].toLowerCase())).toList();
     }
 }

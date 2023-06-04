@@ -89,17 +89,17 @@ public class MessageStyler implements Listener {
         return component;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onDeath(PlayerDeathEvent e) {
         if (e.deathMessage() == null) return;
 
-        Component styledDeathMessage;
+        Component deathMessageContent;
         if (e.deathMessage() instanceof TranslatableComponent t && t.key().equals(SuicideCommand.SUICIDE_TRANSLATION_KEY)) {
-            styledDeathMessage = Component.empty()
+            deathMessageContent = Component.empty()
                     .append(e.getPlayer().displayName())
                     .append(Component.text(" took the easy way out"));
         } else {
-            styledDeathMessage = styleMessage((TranslatableComponent) e.deathMessage());
+            deathMessageContent = styleMessage((TranslatableComponent) e.deathMessage());
         }
 
         Component deathMessage = Component.empty()
@@ -108,7 +108,7 @@ public class MessageStyler implements Listener {
                         .color(TextColor.color(46, 230, 255)))
                 .append(Component.text(" | ")
                         .color(TextColor.color(87, 87, 87)))
-                .append(styledDeathMessage);
+                .append(deathMessageContent);
 
         ServerPlayer nms = ((CraftPlayer) e.getPlayer()).getHandle();
         net.minecraft.network.chat.Component nmsMessage = PaperAdventure.asVanilla(deathMessage);
@@ -125,7 +125,7 @@ public class MessageStyler implements Listener {
         }
 
         Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> {
-            nms.connection.send(new ClientboundPlayerCombatKillPacket(nms.getCombatTracker(), PaperAdventure.asVanilla(styledDeathMessage)), PacketSendListener.exceptionallySend(() -> {
+            nms.connection.send(new ClientboundPlayerCombatKillPacket(nms.getCombatTracker(), PaperAdventure.asVanilla(deathMessageContent)), PacketSendListener.exceptionallySend(() -> {
                 // TODO: do something with this? currently just copying nms
                 String s = nmsMessage.getString(256);
                 MutableComponent hover = net.minecraft.network.chat.Component.translatable("death.attack.message_too_long", net.minecraft.network.chat.Component.literal(s).withStyle(ChatFormatting.YELLOW));
@@ -181,7 +181,7 @@ public class MessageStyler implements Listener {
                 .color(NautilusCommand.ERROR_COLOR);
     }
 
-    @EventHandler(priority=EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onJoin(PlayerJoinEvent e) {
         if (e.joinMessage() == null) return;
 
@@ -196,7 +196,7 @@ public class MessageStyler implements Listener {
                         .append(Component.text(" | ").color(TextColor.color(87, 87, 87)))
                         .append(e.getPlayer().displayName()));
 
-        runningMessages.forEach(c->e.getPlayer().sendMessage(c));
+        runningMessages.forEach(message -> e.getPlayer().sendMessage(message));
         runningMessages.add(e.joinMessage());
 
         Component obfuscation = Component.text("x").decorate(TextDecoration.OBFUSCATED).color(TextColor.color(47, 250, 255));
@@ -231,7 +231,7 @@ public class MessageStyler implements Listener {
         String renameText = e.getInventory().getRenameText();
         ItemStack result = e.getResult();
 
-        if (e.getView().getPlayer().hasPermission(NautilusCommand.CHAT_FORMATTING_PERM) && renameText != null && !renameText.isEmpty() && result != null) {
+        if (e.getView().getPlayer().hasPermission(NautilusCommand.Permission.USE_CHAT_FORMATTING) && renameText != null && !renameText.isEmpty() && result != null) {
             ItemMeta meta = result.getItemMeta();
             meta.displayName(FancyText.parseChatFormatting(renameText));
             result.setItemMeta(meta);
@@ -256,15 +256,15 @@ public class MessageStyler implements Listener {
     }
 
     public static void sendMessageAsUser(Component displayName, boolean withChatFormatting, Component message, Collection<? extends Player> recipients) {
-        Component m = Component.empty()
+        Component styledMessage = Component.empty()
                 .append(getTimeStamp())
                 .append(Component.text(" "))
                 .append(displayName)
                 .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
                 .append(formatUserMessage(withChatFormatting, message).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
 
-        recipients.forEach(r->r.sendMessage(m));
-        runningMessages.add(m);
+        recipients.forEach(r->r.sendMessage(styledMessage));
+        runningMessages.add(styledMessage);
     }
 
     public static Component formatUserMessage(CommandSender player, Component message) {
@@ -344,10 +344,9 @@ public class MessageStyler implements Listener {
 
     public static Component getTimeStamp() {
         Calendar calendar = Util.getCalendar();
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int hour = Math.floorMod(calendar.get(Calendar.HOUR) - 1, 12) + 1;
         int minute = calendar.get(Calendar.MINUTE);
 
-        return Component.text("%2d:%02d".formatted(hour, minute))
-                .color(TextColor.color(34, 150, 155));
+        return Component.text("%2d:%02d".formatted(hour, minute)).color(TextColor.color(34, 150, 155));
     }
 }

@@ -1,8 +1,6 @@
 package org.nautilusmc.nautilusmanager.crews.commands;
 
-import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -13,25 +11,24 @@ import org.nautilusmc.nautilusmanager.crews.Invite;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InviteCommand extends NautilusCommand implements CommandExecutor {
+public class InviteCommand extends NautilusCommand {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player)) {
-            commandSender.sendMessage(Component.text("Only players can use this command").color(ERROR_COLOR));
+        if (!(commandSender instanceof Player player)) {
+            commandSender.sendMessage(ErrorMessage.NOT_PLAYER);
             return true;
         }
-        Player player = (Player) commandSender;
-        if (!(player.hasPermission(NautilusCommand.JOIN_CREW_PERM))) {
-            error(player, DEFAULT_PERM_MESSAGE);
-            return  true;
+        if (!player.hasPermission(Permission.INVITE_TO_CREW)) {
+            player.sendMessage(ErrorMessage.NO_PERMISSION);
+            return true;
         }
         if (strings.length == 0) {
             return false;
         }
-        if (strings[0].equals("accept")) {
+        if (strings[0].equalsIgnoreCase("accept")) {
             Invite.accept(player);
             return true;
-        } else if (strings[0].equals("decline")) {
+        } else if (strings[0].equalsIgnoreCase("decline")) {
             Invite.deny(player);
             return true;
         } else {
@@ -42,8 +39,14 @@ public class InviteCommand extends NautilusCommand implements CommandExecutor {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         ArrayList<String> tabCompletions = new ArrayList<>();
-        tabCompletions.add("accept");
-        tabCompletions.add("decline");
+
+        if (!(commandSender instanceof Player player) || !player.hasPermission(Permission.INVITE_TO_CREW)) return tabCompletions;
+
+        if (strings.length == 1) {
+            if (strings[0].toLowerCase().startsWith("accept")) tabCompletions.add("accept");
+            if (strings[0].toLowerCase().startsWith("decline")) tabCompletions.add("decline");
+        }
+
         return tabCompletions;
     }
 }

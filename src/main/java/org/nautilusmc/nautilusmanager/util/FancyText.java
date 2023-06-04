@@ -18,7 +18,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.NautilusCommand.ErrorMessage;
 
 import java.util.Map;
 
@@ -201,7 +201,7 @@ public class FancyText {
             }
 
             if (!sender.hasPermission("nautiluscosmetics.color."+name().toLowerCase())) {
-                return Component.text(NautilusCommand.SPONSOR_PERM_MESSAGE);
+                return ErrorMessage.NOT_SPONSOR;
             }
 
             return null;

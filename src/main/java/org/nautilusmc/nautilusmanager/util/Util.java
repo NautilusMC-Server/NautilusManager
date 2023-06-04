@@ -16,6 +16,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -24,9 +25,9 @@ import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.crews.Crew;
 
 import java.util.*;
+import java.util.function.Function;
 
 public class Util {
-
     public static String getTextContent(Component component) {
         StringBuilder out = new StringBuilder();
 
@@ -58,7 +59,7 @@ public class Util {
     public static Component clickableCommand(String command, boolean run) {
         return Component.text(command)
                 .clickEvent(run ? ClickEvent.runCommand(command) : ClickEvent.suggestCommand(command))
-                .hoverEvent(HoverEvent.showText(Component.text("Run "+command)));
+                .hoverEvent(HoverEvent.showText(Component.text("Run " + command)));
     }
 
     public static Component nmsFormat(Component component, ChatFormatting formatting) {
@@ -118,6 +119,7 @@ public class Util {
     }
 
     public static OfflinePlayer getOfflinePlayerIfCached(String name) {
+        if (name == null) return null;
         return Arrays.stream(Bukkit.getOfflinePlayers())
                 .filter(p -> name.equalsIgnoreCase(p.getName())).findFirst().orElse(null);
     }
@@ -131,5 +133,19 @@ public class Util {
 
     public static Component toggleDecoration(Component component, TextDecoration decoration) {
         return component.decoration(decoration, !component.hasDecoration(decoration));
+    }
+
+    public static Map<String, Object> locationAsMap(Location loc) {
+        return Map.of(
+                "world", loc.getWorld().getUID().toString(),
+                "x", loc.getX(),
+                "y", loc.getY(),
+                "z", loc.getZ(),
+                "pitch", loc.getPitch(),
+                "yaw", loc.getYaw());
+    }
+
+    public static <T> void sendListDisplay(Player player, String title, int page, List<T> list, Function<T, Component> formatter) {
+
     }
 }
