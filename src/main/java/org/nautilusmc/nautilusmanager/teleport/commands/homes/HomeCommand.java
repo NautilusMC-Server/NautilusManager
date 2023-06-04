@@ -1,6 +1,7 @@
 package org.nautilusmc.nautilusmanager.teleport.commands.homes;
 
 import net.kyori.adventure.text.Component;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -12,29 +13,32 @@ import org.nautilusmc.nautilusmanager.teleport.Homes;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class HomeCommand extends NautilusCommand {
-
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Component.text("Only players can use this command!").color(NautilusCommand.ERROR_COLOR));
+            commandSender.sendMessage(ErrorMessage.NOT_PLAYER);
             return true;
         }
 
-        if (!player.hasPermission(HOMES_PERM)) {
-            player.sendMessage(Component.text("Not enough permissions!").color(NautilusCommand.ERROR_COLOR));
+        if (!player.hasPermission(Permission.USE_HOMES)) {
+            player.sendMessage(ErrorMessage.NO_PERMISSION);
             return true;
         }
 
         if (strings.length < 1) return false;
 
         if (Homes.getHome(player, strings[0]) == null) {
-            player.sendMessage(Component.text("Home not found").color(NautilusCommand.ERROR_COLOR));
+            player.sendMessage(Component.text("Could not find a home with the name \"")
+                    .append(Component.text(strings[0]).color(Default.ERROR_ACCENT_COLOR))
+                    .append(Component.text("\"!"))
+                    .color(Default.ERROR_COLOR));
             return true;
         }
 
-        TeleportHandler.teleportAfterDelay(player, Homes.getHome(player, strings[0]), 100);
+        TeleportHandler.teleportAfterDelay(player, Homes.getHome(player, strings[0]));
 
         return true;
     }
@@ -46,9 +50,12 @@ public class HomeCommand extends NautilusCommand {
         if (!(commandSender instanceof Player player)) return out;
 
         if (strings.length == 1) {
-            if (Homes.getHomes(player) != null) out.addAll(Homes.getHomes(player).keySet());
+            Map<String, Location> homes = Homes.getHomes(player);
+            if (homes != null) {
+                out.addAll(homes.keySet());
+            }
         }
 
-        return out.stream().filter(str->str.toLowerCase().startsWith(strings[strings.length-1].toLowerCase())).toList();
+        return out.stream().filter(str -> str.toLowerCase().startsWith(strings[strings.length - 1].toLowerCase())).toList();
     }
 }

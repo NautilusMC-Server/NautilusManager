@@ -5,18 +5,23 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
-import org.nautilusmc.nautilusmanager.crews.commands.CrewCommand;
+import org.nautilusmc.nautilusmanager.commands.NautilusCommand.Default;
+import org.nautilusmc.nautilusmanager.commands.NautilusCommand.ErrorMessage;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.*;
 
 public class WarDeclaration {
+    private static final HashMap<Crew, Stack<WarDeclaration>> PENDING = new HashMap<>();
+
     private Crew sender;
     private Crew receiver;
-    private static HashMap<Crew, Stack<WarDeclaration>> PENDING = new HashMap<>();
+
+    private WarDeclaration(Crew sender, Crew receiver) {
+        this.sender = sender;
+        this.receiver = receiver;
+    }
+
     public Crew getSender() {
         return sender;
     }
@@ -33,24 +38,19 @@ public class WarDeclaration {
         this.receiver = receiver;
     }
 
-    private WarDeclaration(Crew sender, Crew receiver) {
-        this.sender = sender;
-        this.receiver = receiver;
-    }
-
     public static void sendWarDeclaration(Crew warDeclarer, Crew warReceiver) {
         if (!warReceiver.getCaptain().isOnline()) {
             return;
         }
         Player captain = warReceiver.getCaptain().getPlayer();
-        captain.sendMessage(Component.text("Crew ").color(NautilusCommand.MAIN_COLOR)
-                .append(Component.text("\"" + warDeclarer.getName() + "\"").color(NautilusCommand.ACCENT_COLOR))
-                .append(Component.text(" has declared war on your crew!").color(NautilusCommand.MAIN_COLOR)));
-        captain.sendMessage(Util.clickableCommand("/war accept ", true).color(NautilusCommand.ACCENT_COLOR)
-                .append(Component.text("to accept").color(NautilusCommand.MAIN_COLOR)));
+        captain.sendMessage(Component.text("Crew \"").color(Default.INFO_COLOR)
+                .append(Component.text(warDeclarer.getName()).color(Default.INFO_ACCENT_COLOR))
+                .append(Component.text("\" has declared war on your crew!").color(Default.INFO_COLOR)));
+        captain.sendMessage(Util.clickableCommand("/war accept", true).color(Default.INFO_ACCENT_COLOR)
+                .append(Component.text(" to accept").color(Default.INFO_COLOR)));
 
-        captain.sendMessage(Util.clickableCommand("/war decline ", true).color(NautilusCommand.ACCENT_COLOR)
-                .append(Component.text("to decline").color(NautilusCommand.MAIN_COLOR)));
+        captain.sendMessage(Util.clickableCommand("/war decline", true).color(Default.INFO_ACCENT_COLOR)
+                .append(Component.text(" to decline").color(Default.INFO_COLOR)));
 
         if (!PENDING.containsKey(warReceiver)) {
             PENDING.put(warReceiver, new Stack<>());
@@ -64,14 +64,14 @@ public class WarDeclaration {
 
     public static void accept(Player player) {
         if (CrewHandler.getCrew(player) == null || !CrewHandler.getCrew(player).getCaptain().equals(player)) {
-            player.sendMessage(Component.text(CrewCommand.CAPTAIN_PERM_MESSAGE).color(NautilusCommand.ERROR_COLOR));
+            player.sendMessage(ErrorMessage.NOT_CAPTAIN);
         }
         Crew crew = CrewHandler.getCrew(player);
         if (!PENDING.containsKey(crew)) {
-            player.sendMessage(Component.text("No pending war declarations!").color(NautilusCommand.ERROR_COLOR));
+            player.sendMessage(ErrorMessage.NO_PENDING_WARS);
             return;
         }
-        Stack<WarDeclaration> stack =  PENDING.get(crew);
+        Stack<WarDeclaration> stack = PENDING.get(crew);
         WarDeclaration warDeclaration = stack.pop();
         if (stack.isEmpty()) {
             PENDING.remove(crew);
@@ -81,32 +81,38 @@ public class WarDeclaration {
         }
         War war = new War(warDeclaration.getSender(), warDeclaration.getReceiver());
         CrewHandler.registerWar(war);
-        warDeclaration.getReceiver().sendMessageToMembers(Component.text("Your crew is now at war with ").color(NautilusCommand.MAIN_COLOR)
-                .append(Component.text("\"" + warDeclaration.getSender().getName() + "\"").color(NautilusCommand.ACCENT_COLOR))
-                .append(Component.text("!").color(NautilusCommand.MAIN_COLOR)));
-        warDeclaration.getSender().sendMessageToMembers(Component.text("Your crew is now at war with ").color(NautilusCommand.MAIN_COLOR)
-                .append(Component.text("\"" + warDeclaration.getReceiver().getName() + "\"").color(NautilusCommand.ACCENT_COLOR))
-                .append(Component.text("!").color(NautilusCommand.MAIN_COLOR)));
+
+        warDeclaration.getReceiver().sendMessageToMembers(Component.text("Your crew is now at war with \"")
+                .append(Component.text(warDeclaration.getSender().getName()).color(Default.INFO_ACCENT_COLOR))
+                .append(Component.text("\"!"))
+                .color(Default.INFO_COLOR));
+
+        warDeclaration.getSender().sendMessageToMembers(Component.text("Your crew is now at war with \"")
+                .append(Component.text(warDeclaration.getReceiver().getName()).color(Default.INFO_ACCENT_COLOR))
+                .append(Component.text("\"!"))
+                .color(Default.INFO_COLOR));
     }
+
     public static void deny(Player player) {
         if (CrewHandler.getCrew(player) == null || !CrewHandler.getCrew(player).getCaptain().equals(player)) {
-            player.sendMessage(Component.text(CrewCommand.CAPTAIN_PERM_MESSAGE).color(NautilusCommand.ERROR_COLOR));
+            player.sendMessage(ErrorMessage.NOT_CAPTAIN);
         }
         Crew crew = CrewHandler.getCrew(player);
         if (!PENDING.containsKey(crew)) {
-            player.sendMessage(Component.text("No pending war declarations!").color(NautilusCommand.ERROR_COLOR));
+            player.sendMessage(ErrorMessage.NO_PENDING_WARS);
             return;
         }
-        Stack<WarDeclaration> stack =  PENDING.get(crew);
+        Stack<WarDeclaration> stack = PENDING.get(crew);
         WarDeclaration warDeclaration = stack.pop();
         if (stack.isEmpty()) {
             PENDING.remove(crew);
         }
-        if (warDeclaration.getSender().getCaptain().isOnline()) {
+
+       if (warDeclaration.getSender().getCaptain().isOnline()) {
             Player senderCaptain = warDeclaration.getSender().getCaptain().getPlayer();
-            senderCaptain.sendMessage(Component.text(warDeclaration.getReceiver().getName()).color(NautilusCommand.ACCENT_COLOR)
-                    .append(Component.text(" declined your war declaration!").color(NautilusCommand.MAIN_COLOR)));
+            senderCaptain.sendMessage(Component.text(warDeclaration.getReceiver().getName()).color(Default.INFO_ACCENT_COLOR)
+                    .append(Component.text(" declined your war declaration!").color(Default.INFO_COLOR)));
         }
-        player.sendMessage(Component.text("War declaration declined!").color(NautilusCommand.MAIN_COLOR));
+        player.sendMessage(Component.text("War declaration declined!").color(Default.INFO_COLOR));
     }
 }

@@ -45,7 +45,6 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class GeneralEventManager implements Listener {
-
     @EventHandler
     public void onAnvil(PrepareAnvilEvent e) {
         ItemStack firstItem = e.getInventory().getFirstItem();
@@ -60,15 +59,19 @@ public class GeneralEventManager implements Listener {
         }
     }
 
+    public static void pingPlayer(Player player) {
+        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 2);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(NautilusManager.INSTANCE, () -> {
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 4);
+        }, 2);
+    }
+
     @EventHandler
     public void onPlayerMessage(AsyncChatEvent e) {
-        for(Player p : Bukkit.getOnlinePlayers()) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
             String message = Util.getTextContent(e.message()).toLowerCase();
-            if(message.contains(Util.getTextContent(p.displayName()).toLowerCase()) || message.contains(p.getName().toLowerCase())) {
-                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 2);
-                Bukkit.getScheduler().scheduleSyncDelayedTask(NautilusManager.INSTANCE, () -> {
-                    p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 4F);
-                }, 2);
+            if (message.contains(Util.getTextContent(player.displayName()).toLowerCase()) || message.contains(player.getName().toLowerCase())) {
+                pingPlayer(player);
             }
         }
     }
@@ -78,9 +81,9 @@ public class GeneralEventManager implements Listener {
 
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
-        Inventory inv = e.getPlayer().getInventory();
-        for (int i = 0; i < inv.getSize(); i++) {
-            ItemStack item = inv.getItem(i);
+        Inventory inventory = e.getPlayer().getInventory();
+        for (int i = 0; i < inventory.getSize(); i++) {
+            ItemStack item = inventory.getItem(i);
             if (item == null) continue;
 
             ItemMeta meta = item.getItemMeta();
@@ -104,7 +107,7 @@ public class GeneralEventManager implements Listener {
             if (age <= Short.MIN_VALUE) {
                 NautilusManager.INSTANCE.getLogger().warning("Despawn time for death items is too low (" + despawnTime + "), and would be infinite. Defaulting to " + ((defaultDespawnTime - (Short.MIN_VALUE + 1))/20) + ". For infinite values, use -1.");
 
-                age = Short.MIN_VALUE+1;
+                age = Short.MIN_VALUE + 1;
             }
 
             nms.age = age;

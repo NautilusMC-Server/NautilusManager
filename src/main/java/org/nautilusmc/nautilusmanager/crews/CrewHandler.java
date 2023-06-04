@@ -99,6 +99,7 @@ public class CrewHandler implements Listener {
             }
         }, 0);
     }
+
     public static void registerCrew(Crew crew) {
         crews.add(crew);
         CREW_HANDLER.setSQL(crew.getUuid().toString(), Map.of(
@@ -107,6 +108,7 @@ public class CrewHandler implements Listener {
                 "open", crew.isOpen()));
         PLAYER_CREW_HANDLER.setSQL(crew.getCaptain().getUniqueId().toString(), Map.of("crew", crew.getUuid().toString()));
     }
+
     public static void deleteCrew(Crew crew) {
         crews.remove(crew);
         crew.removeAllMembers();

@@ -1,21 +1,21 @@
 package org.nautilusmc.nautilusmanager.cosmetics;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.minecraft.world.item.Items;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.NautilusCommand.Default;
+import org.nautilusmc.nautilusmanager.commands.NautilusCommand.ErrorMessage;
+import org.nautilusmc.nautilusmanager.commands.NautilusCommand.Permission;
 import org.nautilusmc.nautilusmanager.gui.Gui;
 import org.nautilusmc.nautilusmanager.gui.components.BackGuiComponent;
 import org.nautilusmc.nautilusmanager.gui.components.ButtonGuiComponent;
@@ -160,7 +160,7 @@ public class CosmeticsMenu {
                         .setItem(
                                 new ItemStack(Material.REDSTONE_TORCH),
                                 Component.text("Reset")
-                                        .color(NautilusCommand.ERROR_COLOR)
+                                        .color(Default.ERROR_COLOR)
                                         .decoration(TextDecoration.ITALIC, false)
                         ), 3, 4);
 
@@ -191,10 +191,10 @@ public class CosmeticsMenu {
                             null,
                             hasAccess == null ? new Component[]{} :
                                     new Component[]{
-                                            hasAccess.color(NautilusCommand.ERROR_COLOR)
+                                            hasAccess.color(Default.ERROR_COLOR)
                                                     .decoration(TextDecoration.ITALIC, false)
                                     }
-                    ), (i/3)+1, (i%3)*2+2);
+                    ), (i / 3) + 1, (i % 3) * 2 + 2);
             page.addChild(selectColorsMenu(type, NameColor.getNameColor(sender), type.numColors, colors -> NameColor.setNameColor(sender, type, true, colors)));
 
             i++;
@@ -203,13 +203,13 @@ public class CosmeticsMenu {
         return page;
     }
 
-    public static void openMenu(CommandSender sender, Command command, String s, String[] strings) {
+    public static void openMenu(CommandSender sender, String[] strings) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(Component.text("Only players can use this command").style(Style.style(NautilusCommand.ERROR_COLOR)));
+            sender.sendMessage(ErrorMessage.NOT_PLAYER);
             return;
         }
 
-        boolean hasNicknamePerm = sender.hasPermission(NautilusCommand.NICKNAME_PERM);
+        boolean hasNicknamePerm = sender.hasPermission(Permission.NICKNAME);
         Bukkit.getPluginManager().registerEvents(
                 new Gui()
                         .setRoot(new BasicGuiPage()
@@ -231,10 +231,8 @@ public class CosmeticsMenu {
                                                         .color(TextColor.color(33, 245, 169))
                                                         .decoration(TextDecoration.ITALIC, false),
                                                 hasNicknamePerm ? new Component[]{} :
-                                                        new Component[]{
-                                                                Component.text(NautilusCommand.SPONSOR_PERM_MESSAGE)
-                                                                        .color(NautilusCommand.ERROR_COLOR)
-                                                                        .decoration(TextDecoration.ITALIC, false)
+                                                        new Component[] {
+                                                                Component.empty().append(ErrorMessage.NOT_SPONSOR).decoration(TextDecoration.ITALIC, false)
                                                         }
                                         ), 1, 3)
                                 .addComponent(new BackGuiComponent()
@@ -242,7 +240,7 @@ public class CosmeticsMenu {
                                                 new ItemStack(Material.RED_TERRACOTTA),
                                                 Component.text("Exit")
                                                         .decoration(TextDecoration.ITALIC, false)
-                                                        .color(NautilusCommand.ERROR_COLOR)
+                                                        .color(Default.ERROR_COLOR)
                                         ), 4, 4)
                                 .addChild(selectColorTypeMenu((Player) sender))
                                 .addChild(new TextInputGuiPage()
@@ -254,7 +252,7 @@ public class CosmeticsMenu {
                                                         Component.text(" - 3 characters or more").decoration(TextDecoration.ITALIC, false).color(TextColor.color(133, 194, 201)),
                                                         Component.text(" - 16 characters or less").decoration(TextDecoration.ITALIC, false).color(TextColor.color(133, 194, 201)),
                                                         Component.text(" - Cannot be the same as an existing player name or nickname").decoration(TextDecoration.ITALIC, false).color(TextColor.color(133, 194, 201)),
-                                                        !sender.hasPermission(NautilusCommand.NICKNAME_SPECIAL_CHAR_PERM) ? Component.text(" - No special characters").decoration(TextDecoration.ITALIC, false).color(TextColor.color(133, 194, 201)) : null
+                                                        !sender.hasPermission(Permission.NICKNAME_SPECIAL_CHARS) ? Component.text(" - No special characters").decoration(TextDecoration.ITALIC, false).color(TextColor.color(133, 194, 201)) : null
                                                 ).filter(Objects::nonNull).toArray(Component[]::new))
                                         .setWindowName("Nickname")
                                         .setAction(e-> Nickname.setNickname((Player) e.getWhoClicked(), Util.getTextContent(e.getCurrentItem().getItemMeta().displayName()), true))

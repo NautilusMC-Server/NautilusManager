@@ -18,12 +18,12 @@ public class WarpCommand extends NautilusCommand {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Component.text("Only players can use this command!").color(NautilusCommand.ERROR_COLOR));
+            commandSender.sendMessage(ErrorMessage.NOT_PLAYER);
             return true;
         }
 
-        if (!player.hasPermission(WARP_TO_WARPS_PERM)) {
-            player.sendMessage(Component.text("Not enough permissions!").color(NautilusCommand.ERROR_COLOR));
+        if (!player.hasPermission(Permission.USE_WARPS)) {
+            player.sendMessage(ErrorMessage.NO_PERMISSION);
             return true;
         }
 
@@ -31,11 +31,14 @@ public class WarpCommand extends NautilusCommand {
 
         Location warp = Warps.getWarp(strings[0]);
         if (warp == null) {
-            player.sendMessage(Component.text("Warp not found").color(NautilusCommand.ERROR_COLOR));
+            player.sendMessage(Component.text("Could not find a warp with the name \"")
+                    .append(Component.text(strings[0]).color(Default.ERROR_ACCENT_COLOR))
+                    .append(Component.text("\"!"))
+                    .color(Default.ERROR_COLOR));
             return true;
         }
 
-        TeleportHandler.teleportAfterDelay(player, warp, 5 * 20);
+        TeleportHandler.teleportAfterDelay(player, warp);
 
         return true;
     }
@@ -43,12 +46,13 @@ public class WarpCommand extends NautilusCommand {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         List<String> out = new ArrayList<>();
-        if (!(commandSender instanceof Player player)) return out;
+
+        if (!(commandSender instanceof Player)) return out;
 
         if (strings.length == 1) {
             out.addAll(Warps.getWarps());
         }
 
-        return out.stream().filter(str->str.toLowerCase().startsWith(strings[strings.length-1].toLowerCase())).toList();
+        return out.stream().filter(str -> str.toLowerCase().startsWith(strings[strings.length - 1].toLowerCase())).toList();
     }
 }

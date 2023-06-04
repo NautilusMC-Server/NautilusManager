@@ -16,14 +16,13 @@ import java.util.List;
 public class WarCommand extends NautilusCommand {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player)) {
-            commandSender.sendMessage(Component.text("Only players can use this command").color(ERROR_COLOR));
+        if (!(commandSender instanceof Player player)) {
+            commandSender.sendMessage(Component.text("Only players can use this command").color(Default.ERROR_COLOR));
             return true;
         }
-        Player player = (Player) commandSender;
-        if (!(player.hasPermission(NautilusCommand.DECLARE_WAR_PERM))) {
-            error(player, CrewCommand.CAPTAIN_PERM_MESSAGE);
-            return  true;
+        if (!player.hasPermission(Permission.DECLARE_WAR)) {
+            player.sendMessage(ErrorMessage.NOT_CAPTAIN);
+            return true;
         }
         if (strings.length == 0) {
             return false;
@@ -46,8 +45,14 @@ public class WarCommand extends NautilusCommand {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         ArrayList<String> tabCompletions = new ArrayList<>();
-        tabCompletions.add("accept");
-        tabCompletions.add("decline");
+
+        if (!(commandSender instanceof Player player) || !player.hasPermission(Permission.DECLARE_WAR)) return tabCompletions;
+
+        if (strings.length == 1) {
+            if (strings[0].toLowerCase().startsWith("accept")) tabCompletions.add("accept");
+            if (strings[0].toLowerCase().startsWith("decline")) tabCompletions.add("decline");
+        }
+
         return tabCompletions;
     }
 }

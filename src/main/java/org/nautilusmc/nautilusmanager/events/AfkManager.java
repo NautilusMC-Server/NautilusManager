@@ -1,5 +1,6 @@
 package org.nautilusmc.nautilusmanager.events;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
 import io.papermc.paper.event.player.PlayerArmSwingEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -9,6 +10,7 @@ import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -64,13 +66,13 @@ public class AfkManager implements Listener {
             verb = "no longer";
         }
 
-        player.sendMessage(Component.text("You are "+verb+" AFK.")
+        player.sendMessage(Component.text("You are " + verb + " AFK.")
                 .color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == player) continue;
             p.sendMessage(Component.text("* ")
                     .append(player.displayName())
-                    .append(Component.text(" is "+verb+" AFK."))
+                    .append(Component.text(" is " + verb + " AFK."))
                     .color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
         }
     }
@@ -123,5 +125,11 @@ public class AfkManager implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryInteractEvent e) {
         if (e.getWhoClicked() instanceof Player player) setAFK(player, false);
+    }
+
+    // high priority so the "no longer AFK" message appears before the message itself
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onMessage(AsyncChatEvent e) {
+        setAFK(e.getPlayer(), false);
     }
 }

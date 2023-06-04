@@ -9,28 +9,25 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.util.FancyText;
 import org.nautilusmc.nautilusmanager.util.Util;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ItemNameCommand extends NautilusCommand {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Component.text("Only players can use this command!").color(NautilusCommand.ERROR_COLOR));
+            commandSender.sendMessage(ErrorMessage.NOT_PLAYER);
             return true;
         }
 
-        if (!player.hasPermission(ITEM_NAME_PERM)) {
-            player.sendMessage(Component.text(SPONSOR_PERM_MESSAGE).color(NautilusCommand.ERROR_COLOR));
+        if (!player.hasPermission(Permission.SET_ITEM_NAME)) {
+            player.sendMessage(ErrorMessage.NOT_SPONSOR);
             return true;
         }
 
         if (strings.length < 1) {
-            player.sendMessage(Component.text("You must specify a name!").color(NautilusCommand.ERROR_COLOR));
+            // TODO: probably should just reset the item name lol
+            player.sendMessage(Component.text("You must specify a name!").color(Default.ERROR_COLOR));
             return true;
         }
 
@@ -38,17 +35,17 @@ public class ItemNameCommand extends NautilusCommand {
         if (item.getType().isAir()) item = player.getInventory().getItemInOffHand();
 
         if (item.getType().isAir()) {
-            player.sendMessage(Component.text("You must be holding an item to use this command!").color(NautilusCommand.ERROR_COLOR));
+            player.sendMessage(Component.text("You must be holding an item to use this command!").color(Default.ERROR_COLOR));
             return true;
         }
 
         String name = String.join(" ", strings);
-        Component nameComponent = player.hasPermission(CHAT_FORMATTING_PERM) ? Component.empty()
+        Component nameComponent = player.hasPermission(Permission.USE_CHAT_FORMATTING) ? Component.empty()
                 .decoration(TextDecoration.ITALIC, false)
-                .append(FancyText.parseChatFormatting("``italic"+name)) : Component.text(name);
+                .append(FancyText.parseChatFormatting("``italic" + name)) : Component.text(name);
 
         if (Util.getTextContent(nameComponent).length() > AnvilMenu.MAX_NAME_LENGTH) {
-            player.sendMessage(Component.text("The name you specified is too long!").color(NautilusCommand.ERROR_COLOR));
+            player.sendMessage(Component.text("The name you specified is too long!").color(Default.ERROR_COLOR));
             return true;
         }
 
@@ -57,10 +54,5 @@ public class ItemNameCommand extends NautilusCommand {
         item.setItemMeta(meta);
 
         return true;
-    }
-
-    @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        return new ArrayList<>();
     }
 }

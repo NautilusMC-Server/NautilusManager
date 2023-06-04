@@ -20,7 +20,7 @@ public class ChatMsgCommand extends NautilusCommand {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Component.text("You must be a player to use this command").color(NautilusCommand.ERROR_COLOR));
+            commandSender.sendMessage(Component.text("You must be a player to use this command").color(Default.ERROR_COLOR));
             return true;
         }
         if (strings.length < 2) return false;
@@ -35,8 +35,8 @@ public class ChatMsgCommand extends NautilusCommand {
 
             return true;
         } else if (strings[0].equalsIgnoreCase("staff")) {
-            if (!player.hasPermission(NautilusCommand.STAFF_CHAT_PERM)) {
-                player.sendMessage(Component.text("Not enough permissions").color(NautilusCommand.ERROR_COLOR));
+            if (!player.hasPermission(Permission.STAFF_CHAT)) {
+                player.sendMessage(Component.text("Not enough permissions").color(Default.ERROR_COLOR));
                 return true;
             }
 
@@ -44,16 +44,17 @@ public class ChatMsgCommand extends NautilusCommand {
 
             Component message = Component.empty()
                     .append(Component.empty()
-                            .append(Component.text("[").color(TextColor.color(37, 129, 144)))
+                            .append(Component.text("["))
                             .append(Component.text("STAFF").color(TextColor.color(59, 214, 213)))
-                            .append(Component.text("] ").color(TextColor.color(37, 129, 144)))
+                            .append(Component.text("] "))
+                            .color(TextColor.color(37, 129, 144))
                             .decorate(TextDecoration.BOLD))
                     .append(player.displayName())
                     .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
                     .append(MessageStyler.formatUserMessage(player, Component.text(msg)).decorate(TextDecoration.BOLD));
             Bukkit.getConsoleSender().sendMessage(message);
             for (Player p : Bukkit.getOnlinePlayers()) {
-                if (p.hasPermission(NautilusCommand.STAFF_CHAT_PERM)) {
+                if (p.hasPermission(Permission.STAFF_CHAT)) {
                     p.sendMessage(message);
                 }
             }
@@ -71,15 +72,15 @@ public class ChatMsgCommand extends NautilusCommand {
         if (strings.length == 1) {
             out.add("all");
             out.add("player");
-            if (commandSender.hasPermission(NautilusCommand.STAFF_CHAT_PERM)) {
+            if (commandSender.hasPermission(Permission.STAFF_CHAT)) {
                 out.add("staff");
             }
         }
 
         if (strings.length == 2 && strings[0].equalsIgnoreCase("player")) {
-            out.addAll(Bukkit.getOnlinePlayers().stream().map(Util::getName).toList());
+            out.addAll(getOnlineNames());
         }
 
-        return out.stream().filter(str->str.toLowerCase().startsWith(strings[strings.length-1].toLowerCase())).toList();
+        return out.stream().filter(str -> str.toLowerCase().startsWith(strings[strings.length - 1].toLowerCase())).toList();
     }
 }

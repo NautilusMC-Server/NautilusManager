@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -16,8 +15,8 @@ import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
 import org.nautilusmc.nautilusmanager.cosmetics.MuteManager;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.events.AfkManager;
+import org.nautilusmc.nautilusmanager.events.GeneralEventManager;
 import org.nautilusmc.nautilusmanager.events.MessageStyler;
-import org.nautilusmc.nautilusmanager.util.FancyText;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
@@ -32,7 +31,7 @@ public class MsgCommand extends NautilusCommand {
 
         Player recipient = Util.getOnlinePlayer(strings[0]);
         if (recipient == null) {
-            commandSender.sendMessage(Component.text("Player not found").color(NautilusCommand.ERROR_COLOR));
+            commandSender.sendMessage(ErrorMessage.INVALID_PLAYER);
             return true;
         }
 
@@ -45,14 +44,11 @@ public class MsgCommand extends NautilusCommand {
                 return true;
             }
 
-            ReplyCommand.messaged(player.getUniqueId(), recipient.getUniqueId());
+            ReplyCommand.update(player.getUniqueId(), recipient.getUniqueId());
         }
 
         if (AfkManager.isAfk(recipient)) {
-            recipient.playSound(recipient.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 2);
-            Bukkit.getScheduler().scheduleSyncDelayedTask(NautilusManager.INSTANCE, () -> {
-                recipient.playSound(recipient.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 4F);
-            }, 2);
+            GeneralEventManager.pingPlayer(recipient);
         }
 
         Component msg = MessageStyler.formatUserMessage(commandSender, Component.text(String.join(" ", Arrays.copyOfRange(strings, 1, strings.length))))
@@ -92,9 +88,9 @@ public class MsgCommand extends NautilusCommand {
         List<String> out = new ArrayList<>();
 
         if (strings.length == 1) {
-            out.addAll(Bukkit.getOnlinePlayers().stream().map(Util::getName).toList());
+            out.addAll(getOnlineNames());
         }
 
-        return out.stream().filter(str->str.toLowerCase().startsWith(strings[strings.length-1].toLowerCase())).toList();
+        return out.stream().filter(str -> str.toLowerCase().startsWith(strings[strings.length - 1].toLowerCase())).toList();
     }
 }

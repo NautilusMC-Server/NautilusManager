@@ -10,12 +10,12 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.Team;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.events.AfkManager;
+import org.nautilusmc.nautilusmanager.util.Emoji;
 
 public class TabListManager {
-
     public static void init() {
         Bukkit.getScheduler().runTaskTimer(NautilusManager.INSTANCE, () -> {
-            for(Player p : Bukkit.getOnlinePlayers()) {
+            for (Player p : Bukkit.getOnlinePlayers()) {
                 Team team = p.getScoreboard().getEntityTeam(p);
 
                 Component prefix = team == null ? Component.empty() : team.prefix().append(Component.space());
@@ -29,30 +29,30 @@ public class TabListManager {
                 }
 
                 if (Nickname.getNickname(p) != null) {
-                    realName = Component.text(" ("+p.getName()+")").color(NamedTextColor.GRAY);;
+                    realName = Component.text(" (" + p.getName() + ")").color(NamedTextColor.GRAY);;
                 }
 
                 if (p.getGameMode() != GameMode.CREATIVE && p.getGameMode() != GameMode.SPECTATOR) {
                     if (p.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
                         health = Component.text("20").color(TextColor.color(180, 180, 180))
-                                .append(Component.text("♥").color(TextColor.color(210, 210, 210)));
+                                .append(Component.text(Emoji.HEART.getRaw()).color(TextColor.color(210, 210, 210)));
                     } else {
-                        TextColor color1 = NamedTextColor.RED;
-                        TextColor color2 = NamedTextColor.DARK_RED;
+                        TextColor healthValueColor = NamedTextColor.RED;
+                        TextColor heartColor = NamedTextColor.DARK_RED;
 
                         if (p.hasPotionEffect(PotionEffectType.POISON)) {
-                            color1 = TextColor.color(187, 183, 66);
-                            color2 = TextColor.color(139, 135, 18);
+                            healthValueColor = TextColor.color(187, 183, 66);
+                            heartColor = TextColor.color(139, 135, 18);
                         } else if (p.hasPotionEffect(PotionEffectType.WITHER)) {
-                            color1 = NamedTextColor.DARK_GRAY;
-                            color2 = NamedTextColor.BLACK;
-                        }  else if (p.isFrozen()) {
-                            color1 = NamedTextColor.AQUA;
-                            color2 = NamedTextColor.DARK_AQUA;
+                            healthValueColor = NamedTextColor.DARK_GRAY;
+                            heartColor = NamedTextColor.BLACK;
+                        } else if (p.isFrozen()) {
+                            healthValueColor = NamedTextColor.AQUA;
+                            heartColor = NamedTextColor.DARK_AQUA;
                         }
 
-                        health = Component.text(" "+ Math.round(p.getHealth())).color(color1)
-                                .append(Component.text("♥").color(color2));
+                        health = Component.text(" " + Math.round(p.getHealth())).color(healthValueColor)
+                                .append(Component.text(Emoji.HEART.getRaw()).color(heartColor));
                     }
                 }
 

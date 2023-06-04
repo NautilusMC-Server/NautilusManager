@@ -9,12 +9,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 public class PermsUtil {
-    public static LuckPerms LP;
+    public static LuckPerms LUCKPERMS;
 
     public static void init() {
         RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
         if (provider != null) {
-            LP = provider.getProvider();
+            LUCKPERMS = provider.getProvider();
         }
     }
 
@@ -35,10 +35,10 @@ public class PermsUtil {
     }
 
     private static User getUser(OfflinePlayer player) {
-        return LP.getUserManager().getUser(player.getUniqueId());
+        return LUCKPERMS.getUserManager().getUser(player.getUniqueId());
     }
 
     private static void save(User user) {
-        LP.getUserManager().saveUser(user);
+        LUCKPERMS.getUserManager().saveUser(user);
     }
 }
