@@ -68,8 +68,8 @@ public class SQLSyncedPerPlayerList<V, T> extends HashMap<UUID, List<V>> {
 
         if (!list.contains(value)) return false;
 
-        list.remove(value);
         sql.deleteSQL(player+"_"+list.indexOf(value));
+        list.remove(value);
 
         return true;
     }
