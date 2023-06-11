@@ -157,8 +157,8 @@ public class CrewCommand extends NautilusCommand {
     }
 
     public static void deleteCrew(Player player,String[] strings) {
-        if (!(player.hasPermission(DELETE_CREW_PERM))) {
-            error(player, CAPTAIN_PERM_MESSAGE);
+        if (!(player.hasPermission(DELETE_CREW_PERM)) && !player.hasPermission(DELETE_OTHER_CREW_PERM)) {
+            error(player, DEFAULT_PERM_MESSAGE);
             return;
         }
         Crew crew = CrewHandler.getCrew(player);
@@ -167,6 +167,10 @@ public class CrewCommand extends NautilusCommand {
             return;
         }
         if (strings.length == 1) {
+            if (!(player.hasPermission(DELETE_CREW_PERM))) {
+                error(player, CAPTAIN_PERM_MESSAGE);
+                return;
+            }
             ConfirmationMessage.sendConfirmationMessage(player, Component.text("delete your crew").color(NautilusCommand.MAIN_COLOR), new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -270,9 +274,9 @@ public class CrewCommand extends NautilusCommand {
                     }
                     //If Player is captain -> make new captain
                     else {
-                        OfflinePlayer newCaptain = crew.getMembers().get(1);
+                        OfflinePlayer newCaptain = crew.getMembers().get(0);
                         if (newCaptain.equals(player)) {
-                            newCaptain = crew.getMembers().get(2);
+                            newCaptain = crew.getMembers().get(1);
                         }
                         crew.setCaptain(newCaptain);
                         crew.removeMember(player);
@@ -286,6 +290,7 @@ public class CrewCommand extends NautilusCommand {
                         PermsUtil.removeGroup(player, "captain");
                         PermsUtil.removeGroup(newCaptain, "crewmember");
                         PermsUtil.addGroup(newCaptain, "captain");
+                        crew.setCaptain(newCaptain);
                     }
                 } else {
                     crew.removeMember(player);
@@ -331,14 +336,14 @@ public class CrewCommand extends NautilusCommand {
                 .append(Component.text(" out of your crew")).color(NautilusCommand.MAIN_COLOR) , new BukkitRunnable() {
             @Override
             public void run() {
-                crew.sendMessageToMembers(Component.text(Util.getName(kicked)).color(ACCENT_COLOR)
-                        .append(Component.text(" was kicked from the crew!").color(NautilusCommand.MAIN_COLOR)));
                 if (kicked.isOnline()) {
                     kicked.getPlayer().sendMessage(Component.text("You were kicked from ").color(MAIN_COLOR)
                             .append(Component.text(crew.getName()).color(ACCENT_COLOR)));
                 }
-                crew.removeMember(kicked);
                 PermsUtil.removeGroup(kicked, "crewmember");
+                crew.removeMember(kicked);
+                crew.sendMessageToMembers(Component.text(Util.getName(kicked)).color(ACCENT_COLOR)
+                        .append(Component.text(" was kicked from the crew!").color(NautilusCommand.MAIN_COLOR)));
             }
         });
     }
@@ -385,6 +390,7 @@ public class CrewCommand extends NautilusCommand {
                 PermsUtil.addGroup(player, "crewmember");
                 PermsUtil.removeGroup(newCaptain, "crewmember");
                 PermsUtil.addGroup(newCaptain, "captain");
+                crew.setCaptain(newCaptain);
             }
         });
     }
@@ -446,7 +452,7 @@ public class CrewCommand extends NautilusCommand {
             return;
         }
         if (CrewHandler.getCrew(invited) != null) {
-            error(player, "Player already in crew!");
+            error(player, "Player already in a crew!");
             return;
         }
         player.sendMessage(Component.text("Invited ").color(MAIN_COLOR)
@@ -519,7 +525,7 @@ public class CrewCommand extends NautilusCommand {
             return;
         }
         if (strings.length == 1) {
-            error(player, "Please specify a crew to declare war on");
+            error(player, "Please specify a crew to end war with");
             return;
         }
         Crew crew = CrewHandler.getCrew(player);
@@ -537,13 +543,19 @@ public class CrewCommand extends NautilusCommand {
             error(player, "You are not at war with \"" + name + "\"!");
             return;
         }
-        player.sendMessage(Component.text("You ended your war with ").color(MAIN_COLOR)
+        ConfirmationMessage.sendConfirmationMessage(player, Component.text("end your war with ").color(MAIN_COLOR)
+                .append(Component.text("\"" + name + "\"").color(ACCENT_COLOR)), new BukkitRunnable() {
+            @Override
+            public void run() {
+                player.sendMessage(Component.text("You ended your war with ").color(MAIN_COLOR)
                         .append(Component.text("\"" + name + "\"").color(ACCENT_COLOR)));
-        crew.sendMessageToMembers(Component.text("Your crew is no longer at war with ").color(MAIN_COLOR)
-                .append(Component.text("\"" + name + "\"").color(ACCENT_COLOR)), true);
-        crew.sendMessageToMembers(Component.text("\"" + name + "\"").color(ACCENT_COLOR)
-                .append(Component.text(" has ended the war with your crew!").color(MAIN_COLOR)), false);
-        CrewHandler.endWar(crew.getWar(other));
+                crew.sendMessageToMembers(Component.text("Your crew is no longer at war with ").color(MAIN_COLOR)
+                        .append(Component.text("\"" + name + "\"").color(ACCENT_COLOR)), true);
+                other.sendMessageToMembers(Component.text("\"" + name + "\"").color(ACCENT_COLOR)
+                        .append(Component.text(" has ended the war with your crew!").color(MAIN_COLOR)), false);
+                CrewHandler.endWar(crew.getWar(other));
+            }
+        });
     }
 
     public static void setPrefix(Player player, String[] strings) {
@@ -592,6 +604,8 @@ public class CrewCommand extends NautilusCommand {
         for (String subcommand : subcommands) {
             out = out.append(getSubcommandUsage(subcommand)).appendNewline() ;
         }
+        out.append(Component.text("/crews").color(ACCENT_COLOR)
+                .append(Component.text(" - Lists all crews on the server").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR)));
         out = out.append(Component.text("--------------------------------").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
         return out;
     }
@@ -610,9 +624,9 @@ public class CrewCommand extends NautilusCommand {
             case "makecaptain" -> Component.text("/crew makecaptain <player>").color(ACCENT_COLOR)
                     .append(Component.text(" - Makes specified player captian of your crew").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
             case "open" -> Component.text("/crew open").color(ACCENT_COLOR)
-                    .append(Component.text(" Opens crew for anyone to join").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
+                    .append(Component.text(" - Opens crew for anyone to join").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
             case "close" -> Component.text("/crew close").color(ACCENT_COLOR)
-                    .append(Component.text(" Closes crew to invite only").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
+                    .append(Component.text(" - Closes crew to invite only").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
             case "invite" -> Component.text("/crew invite").color(ACCENT_COLOR)
                     .append(Component.text(" - Invites a player to your crew").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
             case "info" -> Component.text("/crew info <name>").color(ACCENT_COLOR)

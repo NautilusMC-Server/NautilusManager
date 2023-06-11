@@ -11,11 +11,12 @@ import org.nautilusmc.nautilusmanager.crews.Crew;
 import org.nautilusmc.nautilusmanager.crews.CrewHandler;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class CrewsCommand implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        ArrayList<Crew> crews = CrewHandler.getCrews();
+        List<Crew> crews = CrewHandler.getCrews();
         if (crews.isEmpty()) {
             commandSender.sendMessage(Component.text("No crews on the server!").color(NautilusCommand.MAIN_COLOR));
             return true;
