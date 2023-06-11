@@ -7,11 +7,11 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.PacketSendListener;
-import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundPlayerCombatKillPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -40,6 +40,7 @@ import org.nautilusmc.nautilusmanager.discord.DiscordBot;
 import org.nautilusmc.nautilusmanager.gui.page.GuiPage;
 import org.nautilusmc.nautilusmanager.util.Emoji;
 import org.nautilusmc.nautilusmanager.util.FancyText;
+import org.nautilusmc.nautilusmanager.util.Permission;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.text.DateFormat;
@@ -126,7 +127,7 @@ public class MessageStyler implements Listener {
                 // TODO: do something with this? currently just copying nms
                 String s = nmsMessage.getString(256);
                 MutableComponent hover = net.minecraft.network.chat.Component.translatable("death.attack.message_too_long", net.minecraft.network.chat.Component.literal(s).withStyle(ChatFormatting.YELLOW));
-                MutableComponent newComp = net.minecraft.network.chat.Component.translatable("death.attack.even_more_magic", PaperAdventure.asVanilla(e.getPlayer().displayName())).withStyle((chatmodifier) -> chatmodifier.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
+                MutableComponent newComp = net.minecraft.network.chat.Component.translatable("death.attack.even_more_magic", PaperAdventure.asVanilla(e.getPlayer().displayName())).withStyle((chatmodifier) -> chatmodifier.withHoverEvent(new net.minecraft.network.chat.HoverEvent(net.minecraft.network.chat.HoverEvent.Action.SHOW_TEXT, hover)));
                 return new ClientboundPlayerCombatKillPacket(nms.getCombatTracker(), newComp);
             }));
         }, 1);
@@ -144,7 +145,7 @@ public class MessageStyler implements Listener {
 
     @EventHandler
     public void onRespawn(PlayerRespawnEvent e) {
-        e.getPlayer().sendMessage(Component.text("Your coordinates: (" + Math.round(e.getPlayer().getLocation().getX()) + ", " +
+        e.getPlayer().sendMessage(Component.text("Your death coordinates: (" + Math.round(e.getPlayer().getLocation().getX()) + ", " +
                 Math.round(e.getPlayer().getLocation().getZ()) + ")").color(TextColor.color(200, 200, 200)).decorate(TextDecoration.BOLD));
     }
 
@@ -164,16 +165,16 @@ public class MessageStyler implements Listener {
     public static Component getBanMessage(BanEntry entry) {
         return Component.empty()
                 .append(Component.text("You are banned from NautilusMC. If this is a mistake, please contact a staff member on Discord.")
-                        .color(TextColor.color(199, 9, 22))
+                        .color(Command.ERROR_COLOR)
                         .decorate(TextDecoration.BOLD))
                 .append(Component.newline())
                 .append(Component.newline())
                 .append(Component.text("Reason: ")
-                        .color(Command.MAIN_COLOR))
+                        .color(Command.INFO_COLOR))
                 .append(Component.text(entry.getReason()))
                 .append(Component.newline())
                 .append(Component.text("Expires: ")
-                        .color(Command.MAIN_COLOR))
+                        .color(Command.INFO_COLOR))
                 .append(Component.text(entry.getExpiration() == null ? "Never" : DATE_FORMAT.format(entry.getExpiration())))
                 .color(Command.ERROR_COLOR);
     }
@@ -228,7 +229,7 @@ public class MessageStyler implements Listener {
         String renameText = e.getInventory().getRenameText();
         ItemStack result = e.getResult();
 
-        if (e.getView().getPlayer().hasPermission(Command.Permission.USE_CHAT_FORMATTING) && renameText != null && !renameText.isEmpty() && result != null) {
+        if (e.getView().getPlayer().hasPermission(Permission.USE_CHAT_FORMATTING.toString()) && renameText != null && !renameText.isEmpty() && result != null) {
             ItemMeta meta = result.getItemMeta();
             meta.displayName(FancyText.parseChatFormatting(renameText));
             result.setItemMeta(meta);
@@ -247,9 +248,10 @@ public class MessageStyler implements Listener {
 
         sendMessageAsUser(
                 player.displayName(),
-                player.hasPermission(Command.CHAT_FORMATTING_PERM),
+                player.hasPermission(Permission.USE_CHAT_FORMATTING.toString()),
                 message,
-                Bukkit.getOnlinePlayers().stream().filter(p->!MuteManager.isMuted(p, player)).toList());
+                Bukkit.getOnlinePlayers().stream().filter(p -> !MuteManager.isMuted(p, player)).toList()
+        );
     }
 
     public static void sendMessageAsUser(Component displayName, boolean withChatFormatting, Component message, Collection<? extends Player> recipients) {
@@ -260,12 +262,12 @@ public class MessageStyler implements Listener {
                 .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
                 .append(formatUserMessage(withChatFormatting, message).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
 
-        recipients.forEach(r->r.sendMessage(styledMessage));
+        recipients.forEach(recipient -> recipient.sendMessage(styledMessage));
         runningMessages.add(styledMessage);
     }
 
     public static Component formatUserMessage(CommandSender player, Component message) {
-        return formatUserMessage(player.hasPermission(Command.CHAT_FORMATTING_PERM), message);
+        return formatUserMessage(player.hasPermission(Permission.USE_CHAT_FORMATTING.toString()), message);
     }
 
     public static Component formatUserMessage(boolean withChatFormatting, Component message) {
@@ -281,7 +283,7 @@ public class MessageStyler implements Listener {
 
     public static Component styleURL(Component component, String url) {
         return component.clickEvent(ClickEvent.openUrl(url))
-                .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Go to " + url)))
+                .hoverEvent(HoverEvent.showText(Component.text("Go to " + url)))
                 .color(TextColor.color(57, 195, 255))
                 .decorate(TextDecoration.UNDERLINED);
     }

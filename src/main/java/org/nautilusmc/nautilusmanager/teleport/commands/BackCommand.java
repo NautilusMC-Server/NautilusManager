@@ -12,19 +12,19 @@ public class BackCommand extends Command {
     public static final Component NO_PREV_LOCATION_ERROR = Component.text("Nowhere to return to!").color(ERROR_COLOR);
 
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Command.NOT_PLAYER_ERROR);
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Command.NOT_PLAYER_ERROR);
             return true;
         }
 
-        Location lastLoc = TeleportHandler.getLastTeleportLocation(player);
-        if (lastLoc == null) {
-            commandSender.sendMessage(NO_PREV_LOCATION_ERROR);
+        Location lastLocation = TeleportHandler.getLastTeleportLocation(player);
+        if (lastLocation == null) {
+            sender.sendMessage(NO_PREV_LOCATION_ERROR);
             return true;
         }
 
-        TeleportHandler.teleportAfterDelay(player, lastLoc);
+        TeleportHandler.teleportAfterDelay(player, lastLocation);
 
         return true;
     }

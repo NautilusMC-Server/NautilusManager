@@ -9,8 +9,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.Command.Default;
-import org.nautilusmc.nautilusmanager.commands.Command.Permission;
+import org.nautilusmc.nautilusmanager.commands.Command;
+import org.nautilusmc.nautilusmanager.util.Permission;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ public class VanishManager implements Listener {
         for (int i = VANISHED_PLAYERS.size() - 1; i >= 0; i--) {
             Player player = Bukkit.getPlayer(VANISHED_PLAYERS.get(i));
             if (player == null) continue;
-            player.sendMessage(Component.text("Plugin unloaded, you are now visible").color(Default.ERROR_COLOR));
+            player.sendMessage(Component.text("Plugin unloaded, you are now visible").color(Command.ERROR_COLOR));
             unvanish(player);
         }
     }
@@ -44,7 +44,7 @@ public class VanishManager implements Listener {
     private static void setVanished(Player vanisher, Player player, boolean vanished) {
         if (!vanished) {
             player.showPlayer(NautilusManager.INSTANCE, vanisher);
-        } else if (!player.hasPermission(Permission.VANISH)) {
+        } else if (!player.hasPermission(Permission.VANISH.toString())) {
             player.hidePlayer(NautilusManager.INSTANCE, vanisher);
         }
     }

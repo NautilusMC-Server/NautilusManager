@@ -22,7 +22,7 @@ public enum Permission {
     TPA("nautilusmanager.tpa"),
     USE_HOMES("nautilusmanager.home"),
     USE_WARPS("nautilusmanager.warp"),
-    CREATE_WARPS("nautilusmanager.warp.create"),
+    MANAGE_WARPS("nautilusmanager.warp.create"),
     // Crews
     CREATE_CREW("nautilusmanager.crew.create"),
     JOIN_CREW("nautilusmanager.crew.join"),

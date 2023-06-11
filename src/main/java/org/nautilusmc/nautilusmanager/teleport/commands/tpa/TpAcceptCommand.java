@@ -6,8 +6,9 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.commands.Command;
-import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.teleport.TpaManager;
+import org.nautilusmc.nautilusmanager.util.Permission;
+import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,35 +16,35 @@ import java.util.Objects;
 
 public class TpAcceptCommand extends Command {
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Command.NOT_PLAYER_ERROR);
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Command.NOT_PLAYER_ERROR);
             return true;
         }
 
-        if (!player.hasPermission(Permission.TPA)) {
+        if (!player.hasPermission(Permission.TPA.toString())) {
             player.sendMessage(Command.NO_PERMISSION_ERROR);
             return true;
         }
 
-        TpaManager.acceptRequest(player, strings.length < 1 ? null : strings[0]);
+        TpaManager.acceptRequest(player, args.length < 1 ? null : args[0]);
 
         return true;
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
+    public @Nullable List<String> suggestionList(@NotNull CommandSender sender, @NotNull String[] args) {
         List<String> out = new ArrayList<>();
 
-        if (!(commandSender instanceof Player player)) return out;
+        if (!(sender instanceof Player player)) return out;
 
-        if (strings.length == 1) {
+        if (args.length == 1) {
             out.addAll(TpaManager.incomingRequests(player).stream()
                     .map(Bukkit::getPlayer).filter(Objects::nonNull)
-                    .map(p -> Nickname.getNickname(p) == null ? p.getName() : Nickname.getNickname(p))
+                    .map(Util::getName)
                     .toList());
         }
 
-        return out.stream().filter(str -> str.toLowerCase().startsWith(strings[strings.length - 1].toLowerCase())).toList();
+        return out;
     }
 }

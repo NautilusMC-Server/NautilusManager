@@ -34,6 +34,7 @@ public abstract class Command implements CommandExecutor, TabCompleter {
     public static final Component NOT_IN_CREW_ERROR = Component.text("You must be part of a crew to use this command!").color(ERROR_COLOR);
     public static final Component NOT_CAPTAIN_ERROR = Component.text("You must be a captain to use this command!").color(ERROR_COLOR);
     public static final Component NO_OUTGOING_TP_REQUEST_ERROR = Component.text("You don't have an outgoing request!").color(ERROR_COLOR);
+    public static final Component PENDING_TP_REQUEST_ERROR = Component.text("You already have a pending request!").color(ERROR_COLOR);
     public static final Component NO_PENDING_TP_REQUEST_ERROR = Component.text("No pending request found!").color(ERROR_COLOR);
 
     protected static String getMessageFromArgs(String[] args, int start) {

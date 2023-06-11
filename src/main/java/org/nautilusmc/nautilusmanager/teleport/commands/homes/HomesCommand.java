@@ -7,35 +7,42 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.teleport.Homes;
+import org.nautilusmc.nautilusmanager.util.ListDisplay;
+import org.nautilusmc.nautilusmanager.util.Permission;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.Map;
 
 public class HomesCommand extends Command {
+    public static final ListDisplay<Map.Entry<String, Location>> HOME_LIST_DISPLAY = new ListDisplay<>(
+            "Your Homes",
+            6,
+            null,
+            (home) -> Component.empty()
+                    .append(Component.text(home.getKey()).color(INFO_ACCENT_COLOR))
+                    .append(Component.text(" (%d, %d, %d)".formatted(home.getValue().getBlockX(), home.getValue().getBlockY(), home.getValue().getBlockZ())))
+    );
+
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Command.NOT_PLAYER_ERROR);
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(NOT_PLAYER_ERROR);
             return true;
         }
 
-        if (!player.hasPermission(Permission.USE_HOMES)) {
-            player.sendMessage(Command.NO_PERMISSION_ERROR);
+        if (!player.hasPermission(Permission.USE_HOMES.toString())) {
+            player.sendMessage(NO_PERMISSION_ERROR);
             return true;
         }
 
-        player.sendMessage(Component.text("Homes: ").color(Default.INFO_COLOR));
         Map<String, Location> homes = Homes.getHomes(player);
         if (homes == null || homes.isEmpty()) {
-            player.sendMessage(Component.text("  No homes set. Use ").color(Default.INFO_COLOR)
-                    .append(Util.clickableCommand("/sethome <name>", false).color(Default.INFO_ACCENT_COLOR))
+            player.sendMessage(Component.text("  No homes set. Use ").color(INFO_COLOR)
+                    .append(Util.clickableCommand("/sethome <name>", false).color(INFO_ACCENT_COLOR))
                     .append(Component.text(" to create your first home!")));
         } else {
-            for (Map.Entry<String, Location> home : homes.entrySet()) {
-                Location location = home.getValue();
-                player.sendMessage(Component.text(" - ").color(Default.INFO_COLOR).append(Component.text(home.getKey()).color(Default.INFO_ACCENT_COLOR))
-                        .append(Component.text(" (%d, %d, %d)".formatted(location.getBlockX(), location.getBlockY(), location.getBlockZ()))));
-            }
+            HOME_LIST_DISPLAY.setList(homes.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList());
+            HOME_LIST_DISPLAY.sendPageTo(args.length >= 1 ? args[0] : null, player);
         }
 
         return true;

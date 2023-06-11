@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.Team;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.events.AfkManager;
+import org.nautilusmc.nautilusmanager.events.AFKManager;
 import org.nautilusmc.nautilusmanager.util.Emoji;
 
 public class TabListManager {
@@ -28,28 +28,28 @@ public class TabListManager {
 
     public static void init() {
         Bukkit.getScheduler().runTaskTimer(NautilusManager.INSTANCE, () -> {
-            for (Player p : Bukkit.getOnlinePlayers()) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
                 Component tabEntry = Component.empty();
 
-                Team team = p.getScoreboard().getEntityTeam(p);
+                Team team = player.getScoreboard().getEntityTeam(player);
                 if (team != null) {
                     tabEntry = tabEntry.append(team.prefix()).appendSpace();
                 }
 
-                if (AfkManager.isAfk(p)) {
+                if (AFKManager.isAFK(player)) {
                     tabEntry = tabEntry.append(Component.text("AFK").color(NamedTextColor.GRAY)).appendSpace();
                 }
 
-                tabEntry = tabEntry.append(p.displayName());
+                tabEntry = tabEntry.append(player.displayName());
 
-                if (Nickname.getNickname(p) != null) {
-                    tabEntry = tabEntry.appendSpace().append(Component.text("(" + p.getName() + ")").color(NamedTextColor.GRAY));
+                if (Nickname.getNickname(player) != null) {
+                    tabEntry = tabEntry.appendSpace().append(Component.text("(" + player.getName() + ")").color(NamedTextColor.GRAY));
                 }
 
-                if (p.getGameMode() != GameMode.CREATIVE && p.getGameMode() != GameMode.SPECTATOR) {
+                if (player.getGameMode() != GameMode.CREATIVE && player.getGameMode() != GameMode.SPECTATOR) {
                     tabEntry = tabEntry.appendSpace();
 
-                    if (p.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+                    if (player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
                         // don't show the real health if they are invisible to preserve anonymity
                         tabEntry = tabEntry.append(Component.text("20").color(INVIS_HEALTH_COLOR)
                                 .append(Component.text(Emoji.HEART.toString()).color(INVIS_HEART_COLOR)));
@@ -57,26 +57,26 @@ public class TabListManager {
                         TextColor healthColor = NORMAL_HEALTH_COLOR;
                         TextColor heartColor = NORMAL_HEART_COLOR;
 
-                        if (p.hasPotionEffect(PotionEffectType.ABSORPTION)) {
+                        if (player.hasPotionEffect(PotionEffectType.ABSORPTION)) {
                             healthColor = GOLDEN_HEALTH_COLOR;
                             heartColor = GOLDEN_HEART_COLOR;
-                        } else if (p.hasPotionEffect(PotionEffectType.POISON)) {
+                        } else if (player.hasPotionEffect(PotionEffectType.POISON)) {
                             healthColor = POISON_HEALTH_COLOR;
                             heartColor = POISON_HEART_COLOR;
-                        } else if (p.hasPotionEffect(PotionEffectType.WITHER)) {
+                        } else if (player.hasPotionEffect(PotionEffectType.WITHER)) {
                             healthColor = WITHER_HEALTH_COLOR;
                             heartColor = WITHER_HEART_COLOR;
-                        } else if (p.isFrozen()) {
+                        } else if (player.isFrozen()) {
                             healthColor = FROZEN_HEALTH_COLOR;
                             heartColor = FROZEN_HEART_COLOR;
                         }
 
-                        tabEntry = tabEntry.append(Component.text(Math.round(p.getHealth())).color(healthColor)
+                        tabEntry = tabEntry.append(Component.text(Math.round(player.getHealth())).color(healthColor)
                                 .append(Component.text(Emoji.HEART.toString()).color(heartColor)));
                     }
                 }
 
-                p.playerListName(tabEntry);
+                player.playerListName(tabEntry);
             }
         }, 0, 20);
     }
