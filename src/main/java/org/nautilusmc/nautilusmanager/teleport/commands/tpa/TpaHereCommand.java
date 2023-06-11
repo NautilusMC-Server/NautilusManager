@@ -1,27 +1,26 @@
 package org.nautilusmc.nautilusmanager.teleport.commands.tpa;
 
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.teleport.TpaManager;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TpaHereCommand extends NautilusCommand {
+public class TpaHereCommand extends Command {
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(ErrorMessage.NOT_PLAYER);
+            commandSender.sendMessage(Command.NOT_PLAYER_ERROR);
             return true;
         }
 
         if (!player.hasPermission(Permission.TPA)) {
-            player.sendMessage(ErrorMessage.NO_PERMISSION);
+            player.sendMessage(Command.NO_PERMISSION_ERROR);
             return true;
         }
 
@@ -29,12 +28,12 @@ public class TpaHereCommand extends NautilusCommand {
 
         Player recipient = Util.getOnlinePlayer(strings[0]);
         if (recipient == null) {
-            commandSender.sendMessage(ErrorMessage.INVALID_PLAYER);
+            commandSender.sendMessage(Command.INVALID_PLAYER_ERROR);
             return true;
         }
 
         if (recipient.equals(commandSender)) {
-            commandSender.sendMessage(ErrorMessage.CANNOT_TP_TO_SELF);
+            commandSender.sendMessage(TpaManager.CANNOT_TP_TO_SELF_ERROR);
             return true;
         }
 
@@ -44,7 +43,7 @@ public class TpaHereCommand extends NautilusCommand {
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
         List<String> out = new ArrayList<>();
 
         if (strings.length == 1) {

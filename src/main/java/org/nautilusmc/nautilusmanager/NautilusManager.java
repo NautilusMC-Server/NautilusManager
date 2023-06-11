@@ -2,18 +2,9 @@ package org.nautilusmc.nautilusmanager;
 
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.commands.*;
 import org.nautilusmc.nautilusmanager.cosmetics.MuteManager;
-import org.nautilusmc.nautilusmanager.crews.CrewHandler;
-import org.nautilusmc.nautilusmanager.crews.commands.CrewCommand;
-import org.nautilusmc.nautilusmanager.crews.commands.CrewsCommand;
-import org.nautilusmc.nautilusmanager.crews.commands.InviteCommand;
-import org.nautilusmc.nautilusmanager.crews.commands.WarCommand;
 import org.nautilusmc.nautilusmanager.discord.DiscordBot;
 import org.nautilusmc.nautilusmanager.teleport.TpaManager;
 import org.nautilusmc.nautilusmanager.teleport.commands.homes.BuyHomeCommand;
@@ -33,9 +24,7 @@ import org.nautilusmc.nautilusmanager.teleport.commands.homes.HomesCommand;
 import org.nautilusmc.nautilusmanager.teleport.commands.homes.SetHomeCommand;
 import org.nautilusmc.nautilusmanager.teleport.commands.tpa.*;
 import org.nautilusmc.nautilusmanager.teleport.commands.warp.*;
-import org.nautilusmc.nautilusmanager.util.PermsUtil;
-
-import java.util.List;
+import org.nautilusmc.nautilusmanager.util.Permission;
 
 public final class NautilusManager extends JavaPlugin {
 
@@ -56,7 +45,7 @@ public final class NautilusManager extends JavaPlugin {
         Warps.init();
         TpaManager.init();
         MuteManager.init();
-        PermsUtil.init();
+        Permission.init();
         CrewHandler.init();
 
         registerCommands();

@@ -8,9 +8,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.sql.SQLHandler;
-import org.nautilusmc.nautilusmanager.util.PermsUtil;
+import org.nautilusmc.nautilusmanager.util.Permission;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.sql.ResultSet;
@@ -197,16 +197,16 @@ public class CrewHandler implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         if (getCrew(player) == null && (player.hasPermission("group.captain") || player.hasPermission("group.crewmember"))) {
-            PermsUtil.removeGroup(player, "captain");
-            PermsUtil.removeGroup(player, "crewmember");
-            player.sendMessage(Component.text("You are no longer a part of your crew").color(NautilusCommand.MAIN_COLOR));
+            Permission.removeGroup(player, "captain");
+            Permission.removeGroup(player, "crewmember");
+            player.sendMessage(Component.text("You are no longer a part of your crew").color(Command.MAIN_COLOR));
             return;
         }
         if (getCrew(player).getCaptain().equals(player) && !player.hasPermission("group.captain")) {
-            if (PermsUtil.removeGroup(player, "crewmember"))  {
-                player.sendMessage(Component.text("You were made captain of your crew!").color(NautilusCommand.MAIN_COLOR));
+            if (Permission.removeGroup(player, "crewmember"))  {
+                player.sendMessage(Component.text("You were made captain of your crew!").color(Command.MAIN_COLOR));
             }
-            PermsUtil.addGroup(player, "captain");
+            Permission.addGroup(player, "captain");
         }
     }
 }

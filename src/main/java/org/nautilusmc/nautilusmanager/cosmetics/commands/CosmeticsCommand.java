@@ -5,45 +5,45 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.minecraft.ChatFormatting;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.cosmetics.CosmeticsMenu;
 import org.nautilusmc.nautilusmanager.cosmetics.NameColor;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.util.FancyText;
+import org.nautilusmc.nautilusmanager.util.Permission;
 
 import java.util.*;
 
-public class CosmeticsCommand extends NautilusCommand {
-
-    // setting name : # args
-    private static final Map<String, Integer> SETTINGS = ImmutableMap.of(
+public class CosmeticsCommand extends Command {
+    public static final Component INVALID_COLOR_ERROR = Component.text("Invalid color!").color(ERROR_COLOR);
+    
+    private static final Map<String, Integer> SETTINGS_ARG_COUNTS = ImmutableMap.of(
             "color", 2,
             "nickname", 1
     );
 
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (strings.length < 1) {
-            commandSender.sendMessage(getUsageMessage(strings));
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (args.length < 1) {
+            sender.sendMessage(getUsageMessage(args));
             return true;
         }
 
-        switch (strings[0]) {
-            case "menu" -> CosmeticsMenu.openMenu(commandSender, strings);
-            case "set" -> setCosmetic(commandSender, strings);
-            case "clear" -> clearCosmetic(commandSender, strings);
-            default -> commandSender.sendMessage(getUsageMessage(strings));
+        switch (args[0]) {
+            case "menu" -> CosmeticsMenu.openMenu(sender, args);
+            case "set" -> setCosmetic(sender, args);
+            case "clear" -> clearCosmetic(sender, args);
+            default -> sender.sendMessage(getUsageMessage(args));
         }
 
         return true;
     }
 
-    private Component getUsageMessage(String[] args) {
+    public Component getUsageMessage(String[] args) {
         StringBuilder out = new StringBuilder();
 
         if (args.length < 1) {
@@ -58,9 +58,9 @@ public class CosmeticsCommand extends NautilusCommand {
                 case "set" -> {
                     if (args.length < 2) {
                         out.append("set <");
-                        for (int i = 0; i < SETTINGS.size(); i++) {
-                            out.append(SETTINGS.keySet().stream().toList().get(i));
-                            if (i != SETTINGS.size() - 1) out.append("|");
+                        for (int i = 0; i < SETTINGS_ARG_COUNTS.size(); i++) {
+                            out.append(SETTINGS_ARG_COUNTS.keySet().stream().toList().get(i));
+                            if (i != SETTINGS_ARG_COUNTS.size() - 1) out.append("|");
                         }
                         out.append("> [args]");
                     } else {
@@ -79,9 +79,9 @@ public class CosmeticsCommand extends NautilusCommand {
                 case "menu" -> out.append("menu");
                 case "clear" -> {
                     out.append("clear <");
-                    for (int i = 0; i < SETTINGS.size(); i++) {
-                        out.append(SETTINGS.keySet().stream().toList().get(i));
-                        if (i != SETTINGS.size() - 1) out.append("|");
+                    for (int i = 0; i < SETTINGS_ARG_COUNTS.size(); i++) {
+                        out.append(SETTINGS_ARG_COUNTS.keySet().stream().toList().get(i));
+                        if (i != SETTINGS_ARG_COUNTS.size() - 1) out.append("|");
                     }
                     out.append(">");
                 }
@@ -101,7 +101,7 @@ public class CosmeticsCommand extends NautilusCommand {
 
         Player player = null;
 
-        int playerIndex = SETTINGS.containsKey(strings[1]) ? SETTINGS.get(strings[1]) + 3 : -1;
+        int playerIndex = SETTINGS_ARG_COUNTS.containsKey(strings[1]) ? SETTINGS_ARG_COUNTS.get(strings[1]) + 3 : -1;
 
         Optional<FancyText.ColorType> colorType = Optional.empty();
         if (playerIndex != -1 && strings.length > 2 && strings[1].equalsIgnoreCase("color")) {
@@ -113,20 +113,20 @@ public class CosmeticsCommand extends NautilusCommand {
         }
 
         if (playerIndex != -1 && strings.length >= playerIndex) {
-            if (!sender.hasPermission(Permission.MODIFY_OTHER_PLAYERS)) {
-                sender.sendMessage(ErrorMessage.NO_PERMISSION);
+            if (!sender.hasPermission(Permission.MODIFY_OTHER_PLAYERS.toString())) {
+                sender.sendMessage(Command.NO_PERMISSION_ERROR);
                 return;
             }
 
             if ((player = Bukkit.getPlayerExact(strings[playerIndex - 1])) == null) {
-                sender.sendMessage(ErrorMessage.INVALID_PLAYER);
+                sender.sendMessage(Command.INVALID_PLAYER_ERROR);
                 return;
             }
         }
 
         if (player == null) {
             if (!(sender instanceof Player)) {
-                sender.sendMessage(ErrorMessage.NOT_PLAYER);
+                sender.sendMessage(Command.NOT_PLAYER_ERROR);
                 return;
             }
             player = (Player) sender;
@@ -140,7 +140,7 @@ public class CosmeticsCommand extends NautilusCommand {
 
             Component hasAccess = colorType.get().hasAccess(sender);
             if (hasAccess != null) {
-                sender.sendMessage(hasAccess.color(Default.ERROR_COLOR));
+                sender.sendMessage(hasAccess.color(ERROR_COLOR));
                 return;
             }
 
@@ -150,7 +150,7 @@ public class CosmeticsCommand extends NautilusCommand {
             }
 
             if (Arrays.stream(colors).anyMatch(Objects::isNull)) {
-                sender.sendMessage(ErrorMessage.INVALID_COLOR);
+                sender.sendMessage(INVALID_COLOR_ERROR);
                 return;
             }
 
@@ -158,8 +158,8 @@ public class CosmeticsCommand extends NautilusCommand {
 
             return;
         } else if (strings[1].equalsIgnoreCase("nickname")) {
-            if (!sender.hasPermission(Permission.NICKNAME)) {
-                sender.sendMessage(ErrorMessage.NOT_SPONSOR);
+            if (!sender.hasPermission(Permission.NICKNAME.toString())) {
+                sender.sendMessage(Command.NOT_SPONSOR_ERROR);
                 return;
             }
 
@@ -170,7 +170,7 @@ public class CosmeticsCommand extends NautilusCommand {
 
             String error = Nickname.validateNickname(player, strings[2]);
             if (error != null) {
-                sender.sendMessage(Component.text(error).color(Default.ERROR_COLOR));
+                sender.sendMessage(Component.text(error).color(ERROR_COLOR));
                 return;
             }
 
@@ -191,13 +191,13 @@ public class CosmeticsCommand extends NautilusCommand {
         Player player = null;
         if (strings[0].equalsIgnoreCase("clear")) {
             if (strings.length > 2) {
-                if (!sender.hasPermission(Permission.MODIFY_OTHER_PLAYERS)) {
-                    sender.sendMessage(ErrorMessage.NO_PERMISSION);
+                if (!sender.hasPermission(Permission.MODIFY_OTHER_PLAYERS.toString())) {
+                    sender.sendMessage(Command.NO_PERMISSION_ERROR);
                     return;
                 }
 
                 if ((player = Bukkit.getPlayerExact(strings[2])) == null) {
-                    sender.sendMessage(ErrorMessage.INVALID_PLAYER);
+                    sender.sendMessage(Command.INVALID_PLAYER_ERROR);
                     return;
                 }
             }
@@ -205,7 +205,7 @@ public class CosmeticsCommand extends NautilusCommand {
 
         if (player == null) {
             if (!(sender instanceof Player)) {
-                sender.sendMessage(ErrorMessage.NOT_PLAYER);
+                sender.sendMessage(Command.NOT_PLAYER_ERROR);
                 return;
             }
             player = (Player) sender;
@@ -223,44 +223,44 @@ public class CosmeticsCommand extends NautilusCommand {
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public @Nullable List<String> suggestionList(@NotNull CommandSender sender, @NotNull String[] args) {
         List<String> out = new ArrayList<>();
 
-        if (strings.length == 1) {
+        if (args.length == 1) {
             out.add("menu");
             out.add("set");
             out.add("clear");
-        } else if (strings.length == 2) {
-            if (strings[0].equalsIgnoreCase("set") || strings[0].equalsIgnoreCase("clear")) {
-                out.addAll(SETTINGS.keySet());
+        } else if (args.length == 2) {
+            if (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("clear")) {
+                out.addAll(SETTINGS_ARG_COUNTS.keySet());
             }
-        } else if (strings.length == 3) {
-            if (strings[0].equalsIgnoreCase("set")) {
-                if (strings[1].equalsIgnoreCase("color")) {
+        } else if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("set")) {
+                if (args[1].equalsIgnoreCase("color")) {
                     for (FancyText.ColorType type : FancyText.ColorType.values()) {
-                        if (type.hasAccess(commandSender) == null) out.add(type.name().toLowerCase());
+                        if (type.hasAccess(sender) == null) out.add(type.name().toLowerCase());
                     }
                 }
             }
         }
 
-        int idx = strings.length >= 2 && SETTINGS.containsKey(strings[1]) ? SETTINGS.get(strings[1])+3 : -1;
+        int idx = args.length >= 2 && SETTINGS_ARG_COUNTS.containsKey(args[1]) ? SETTINGS_ARG_COUNTS.get(args[1])+3 : -1;
 
         Optional<FancyText.ColorType> type;
-        if (idx >= 0 && strings.length > 2 && strings[1].equalsIgnoreCase("color") &&
-                (type = Arrays.stream(FancyText.ColorType.values()).filter(t -> t.name().equalsIgnoreCase(strings[2])).findFirst()).isPresent()) {
+        if (idx >= 0 && args.length > 2 && args[1].equalsIgnoreCase("color") &&
+                (type = Arrays.stream(FancyText.ColorType.values()).filter(t -> t.name().equalsIgnoreCase(args[2])).findFirst()).isPresent()) {
             idx += type.get().numColors - 1;
-            if (strings.length - 3 <= type.get().numColors) {
+            if (args.length - 3 <= type.get().numColors) {
                 out.addAll(Arrays.stream(ChatFormatting.values()).filter(ChatFormatting::isColor).map(ChatFormatting::getName).toList());
                 out.add("#FFFFFF");
             }
         }
 
-        if (idx >= 0 && (strings[0].equalsIgnoreCase("set") || strings[0].equalsIgnoreCase("clear")) && strings.length == idx &&
-                commandSender.hasPermission(Permission.MODIFY_OTHER_PLAYERS)) {
+        if (idx >= 0 && (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("clear")) && args.length == idx &&
+                sender.hasPermission(Permission.MODIFY_OTHER_PLAYERS.toString())) {
             out.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
         }
 
-        return out.stream().filter(str -> str.toLowerCase().startsWith(strings[strings.length - 1].toLowerCase())).toList();
+        return out;
     }
 }

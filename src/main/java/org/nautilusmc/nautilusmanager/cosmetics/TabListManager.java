@@ -13,50 +13,70 @@ import org.nautilusmc.nautilusmanager.events.AfkManager;
 import org.nautilusmc.nautilusmanager.util.Emoji;
 
 public class TabListManager {
+    public static final TextColor NORMAL_HEALTH_COLOR = NamedTextColor.RED;
+    public static final TextColor NORMAL_HEART_COLOR = NamedTextColor.DARK_RED;
+    public static final TextColor GOLDEN_HEALTH_COLOR = NamedTextColor.YELLOW;
+    public static final TextColor GOLDEN_HEART_COLOR = NamedTextColor.GOLD;
+    public static final TextColor POISON_HEALTH_COLOR = TextColor.color(187, 183, 66);
+    public static final TextColor POISON_HEART_COLOR = TextColor.color(139, 135, 18);
+    public static final TextColor WITHER_HEALTH_COLOR = NamedTextColor.DARK_GRAY;
+    public static final TextColor WITHER_HEART_COLOR = NamedTextColor.BLACK;
+    public static final TextColor FROZEN_HEALTH_COLOR = NamedTextColor.AQUA;
+    public static final TextColor FROZEN_HEART_COLOR = NamedTextColor.DARK_AQUA;
+    public static final TextColor INVIS_HEALTH_COLOR = NORMAL_HEALTH_COLOR; // TextColor.color(180, 180, 180);
+    public static final TextColor INVIS_HEART_COLOR = NORMAL_HEART_COLOR; // TextColor.color(210, 210, 210);
+
     public static void init() {
         Bukkit.getScheduler().runTaskTimer(NautilusManager.INSTANCE, () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
+                Component tabEntry = Component.empty();
+
                 Team team = p.getScoreboard().getEntityTeam(p);
-
-                Component prefix = team == null ? Component.empty() : team.prefix().append(Component.space());
-                Component afk = Component.empty();
-                Component name = p.displayName();
-                Component realName = Component.empty();
-                Component health = Component.empty();
-
-                if (AfkManager.isAfk(p)) {
-                    afk = Component.text("AFK ").color(NamedTextColor.GRAY);
+                if (team != null) {
+                    tabEntry = tabEntry.append(team.prefix()).appendSpace();
                 }
 
+                if (AfkManager.isAfk(p)) {
+                    tabEntry = tabEntry.append(Component.text("AFK").color(NamedTextColor.GRAY)).appendSpace();
+                }
+
+                tabEntry = tabEntry.append(p.displayName());
+
                 if (Nickname.getNickname(p) != null) {
-                    realName = Component.text(" (" + p.getName() + ")").color(NamedTextColor.GRAY);;
+                    tabEntry = tabEntry.appendSpace().append(Component.text("(" + p.getName() + ")").color(NamedTextColor.GRAY));
                 }
 
                 if (p.getGameMode() != GameMode.CREATIVE && p.getGameMode() != GameMode.SPECTATOR) {
-                    if (p.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
-                        health = Component.text("20").color(TextColor.color(180, 180, 180))
-                                .append(Component.text(Emoji.HEART.getRaw()).color(TextColor.color(210, 210, 210)));
-                    } else {
-                        TextColor healthValueColor = NamedTextColor.RED;
-                        TextColor heartColor = NamedTextColor.DARK_RED;
+                    tabEntry = tabEntry.appendSpace();
 
-                        if (p.hasPotionEffect(PotionEffectType.POISON)) {
-                            healthValueColor = TextColor.color(187, 183, 66);
-                            heartColor = TextColor.color(139, 135, 18);
+                    if (p.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+                        // don't show the real health if they are invisible to preserve anonymity
+                        tabEntry = tabEntry.append(Component.text("20").color(INVIS_HEALTH_COLOR)
+                                .append(Component.text(Emoji.HEART.toString()).color(INVIS_HEART_COLOR)));
+                    } else {
+                        TextColor healthColor = NORMAL_HEALTH_COLOR;
+                        TextColor heartColor = NORMAL_HEART_COLOR;
+
+                        if (p.hasPotionEffect(PotionEffectType.ABSORPTION)) {
+                            healthColor = GOLDEN_HEALTH_COLOR;
+                            heartColor = GOLDEN_HEART_COLOR;
+                        } else if (p.hasPotionEffect(PotionEffectType.POISON)) {
+                            healthColor = POISON_HEALTH_COLOR;
+                            heartColor = POISON_HEART_COLOR;
                         } else if (p.hasPotionEffect(PotionEffectType.WITHER)) {
-                            healthValueColor = NamedTextColor.DARK_GRAY;
-                            heartColor = NamedTextColor.BLACK;
+                            healthColor = WITHER_HEALTH_COLOR;
+                            heartColor = WITHER_HEART_COLOR;
                         } else if (p.isFrozen()) {
-                            healthValueColor = NamedTextColor.AQUA;
-                            heartColor = NamedTextColor.DARK_AQUA;
+                            healthColor = FROZEN_HEALTH_COLOR;
+                            heartColor = FROZEN_HEART_COLOR;
                         }
 
-                        health = Component.text(" " + Math.round(p.getHealth())).color(healthValueColor)
-                                .append(Component.text(Emoji.HEART.getRaw()).color(heartColor));
+                        tabEntry = tabEntry.append(Component.text(Math.round(p.getHealth())).color(healthColor)
+                                .append(Component.text(Emoji.HEART.toString()).color(heartColor)));
                     }
                 }
 
-                p.playerListName(Component.empty().append(prefix).append(afk).append(name).append(realName).append(health));
+                p.playerListName(tabEntry);
             }
         }, 0, 20);
     }

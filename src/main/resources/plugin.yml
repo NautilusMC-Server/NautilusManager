@@ -142,4 +142,4 @@ commands:
     usage: /mutelist
   ban:
     description: Ban a player
-    usage: /ban <player> <time> [reason]
+    usage: /ban <player> [time] [reason]

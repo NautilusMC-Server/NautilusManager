@@ -1,5 +1,6 @@
 package org.nautilusmc.nautilusmanager.cosmetics;
 
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -20,8 +21,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class NameColor {
-
-    public static final NameColor DEFAULT_COLOR = new NameColor(FancyText.ColorType.SOLID, TextColor.color(255, 255, 255));
+    public static final NameColor DEFAULT_COLOR = new NameColor(FancyText.ColorType.SOLID, NamedTextColor.WHITE);
 
     private static final Map<UUID, NameColor> playerColors = new HashMap<>();
     private static SQLHandler SQL_HANDLER;
@@ -90,7 +90,9 @@ public class NameColor {
 
             Map<String, Object> values = new HashMap<>();
             values.put("color_type", color.type.ordinal());
-            for (int i = 0; i < color.type.numColors; i++) values.put("color" + (i + 1), color.colors[i].value());
+            for (int i = 0; i < color.type.numColors; i++) {
+                values.put("color" + (i + 1), color.colors[i].value());
+            }
             SQL_HANDLER.setSQL(uuid, values);
         }
     }
@@ -105,7 +107,9 @@ public class NameColor {
             setNameColor(player.getUniqueId(), color.equals(DEFAULT_COLOR) ? null : color);
         }
 
-        if (sendMessage) player.sendMessage(FancyText.colorText(color.type, "Name color changed", color.colors));
+        if (sendMessage) {
+            player.sendMessage(FancyText.colorText(color.type, "Name color successfully changed.", color.colors));
+        }
     }
 
     public static void updateNameColor(Player player, NameColor color) {

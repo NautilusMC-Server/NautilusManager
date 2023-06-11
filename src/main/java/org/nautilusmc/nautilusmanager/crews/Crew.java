@@ -9,13 +9,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand.Default;
-import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
-import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
+import org.nautilusmc.nautilusmanager.commands.Command.Default;
 import org.nautilusmc.nautilusmanager.util.Util;
 
-import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;

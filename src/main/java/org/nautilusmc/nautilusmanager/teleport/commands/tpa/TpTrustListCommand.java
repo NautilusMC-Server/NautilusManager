@@ -3,38 +3,36 @@ package org.nautilusmc.nautilusmanager.teleport.commands.tpa;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.teleport.TpaManager;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
-public class TpTrustListCommand extends NautilusCommand {
+public class TpTrustListCommand extends Command {
 
     private static final int PAGE_SIZE = 10;
 
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Component.text("Only players can use this command.").color(NautilusCommand.ERROR_COLOR));
+            commandSender.sendMessage(Component.text("Only players can use this command.").color(Command.ERROR_COLOR));
             return true;
         }
         if (!player.hasPermission(TPA_PERM)) {
-            player.sendMessage(Component.text("Not enough permissions!").color(NautilusCommand.ERROR_COLOR));
+            player.sendMessage(Component.text("Not enough permissions!").color(Command.ERROR_COLOR));
             return true;
         }
 
         List<String> trusted = TpaManager.getTrusted(player).stream().map(u-> Util.getName(Bukkit.getOfflinePlayer(u))).sorted().toList();
 
         if (trusted.isEmpty()) {
-            player.sendMessage(Component.text("You don't trust anyone!").color(NautilusCommand.MAIN_COLOR));
+            player.sendMessage(Component.text("You don't trust anyone!").color(Command.MAIN_COLOR));
             return true;
         }
 
@@ -59,7 +57,7 @@ public class TpTrustListCommand extends NautilusCommand {
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
         return new ArrayList<>();
     }
 }

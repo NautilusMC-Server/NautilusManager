@@ -5,95 +5,88 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.minecraft.ChatFormatting;
 import org.apache.commons.lang.WordUtils;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.util.Emoji;
+import org.nautilusmc.nautilusmanager.util.ListDisplay;
+import org.nautilusmc.nautilusmanager.util.Permission;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class FormattingCommand extends NautilusCommand {
-    private static final int PAGE_SIZE = 10;
+public class FormattingCommand extends Command {
     private static final String EXAMPLE_STRING = "NautilusMC";
 
+    private static final ListDisplay<ChatFormatting> CODES_LIST_DISPLAY = new ListDisplay<>(
+            "Formatting Codes",
+            10,
+            List.of(ChatFormatting.values()),
+            (formatting) -> Component.empty()
+                    .append(Component.text(" - "))
+                    .append(Component.text("`" + formatting.getChar()).color(INFO_ACCENT_COLOR))
+                    .append(Component.text(" " + Emoji.RIGHT + " "))
+                    .append(Util.nmsFormat(Component.text(EXAMPLE_STRING), formatting))
+                    .color(INFO_COLOR)
+    );
+    private static final ListDisplay<ChatFormatting> NAMES_LIST_DISPLAY = new ListDisplay<>(
+            "Formatting Names",
+            10,
+            List.of(ChatFormatting.values()),
+            (formatting) -> Component.empty()
+                    .append(Component.text(" - "))
+                    .append(Component.text("``" + formatting.getName().toLowerCase()).color(INFO_ACCENT_COLOR))
+                    .append(Component.text(" " + Emoji.RIGHT + " "))
+                    .append(Util.nmsFormat(Component.text(EXAMPLE_STRING), formatting))
+                    .color(INFO_COLOR)
+    );
+
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!commandSender.hasPermission(Permission.USE_CHAT_FORMATTING)) {
-            commandSender.sendMessage(ErrorMessage.NOT_SPONSOR);
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!sender.hasPermission(Permission.USE_CHAT_FORMATTING.toString())) {
+            sender.sendMessage(Command.NOT_SPONSOR_ERROR);
             return true;
         }
 
-        if (strings.length > 0) {
-            boolean listNames = strings[0].equalsIgnoreCase("names");
-            if (!strings[0].equalsIgnoreCase("codes") && !listNames) return false;
+        if (args.length > 0) {
+            boolean listNames = args[0].equalsIgnoreCase("names");
+            if (!args[0].equalsIgnoreCase("codes") && !listNames) return false;
 
-            // TODO: abstract this list behavior
-            int pageCount = (int) Math.ceil((double) ChatFormatting.values().length / PAGE_SIZE);
-            int page = strings.length > 1 ? Math.max(Math.min(Integer.parseInt(strings[1]), pageCount), 1) : 1;
+            (listNames ? NAMES_LIST_DISPLAY : CODES_LIST_DISPLAY).sendPageTo(args[1], sender);
 
-            commandSender.sendMessage(Component.empty()
-                    .append(Component.text("----- "))
-                    .append(Component.text(WordUtils.capitalizeFully(strings[0])))
-                    .append(Component.text(" (Page " + page + "/" + pageCount + ") -----"))
-                    .color(Default.INFO_COLOR).decorate(TextDecoration.BOLD));
-
-            for (int i = 0; i < PAGE_SIZE; i++) {
-                int idx = (page - 1) * PAGE_SIZE + i;
-                if (idx >= ChatFormatting.values().length) break;
-
-                ChatFormatting formatting = ChatFormatting.values()[idx];
-                String string = strings[0].equalsIgnoreCase("codes") ? "`" + formatting.getChar() : "``" + formatting.getName().toLowerCase();
-
-                Component message = Component.empty()
-                        .append(Component.text(" - "))
-                        .append(Component.text(string).color(Default.INFO_ACCENT_COLOR))
-                        .append(Component.text(" " + Emoji.RIGHT.getRaw() + " "))
-                        .append(Util.nmsFormat(Component.text(EXAMPLE_STRING), formatting))
-                        .color(Default.INFO_COLOR);
-                commandSender.sendMessage(message);
-            }
-
-            if (strings[0].equalsIgnoreCase("codes")) {
-                return true;
-            } else if (strings[0].equalsIgnoreCase("names")) {
-                // TODO: implement
-                // xarkenz note: what?
-                return true;
-            }
+            return true;
         }
 
-        commandSender.sendMessage(Component.empty()
-                .append(Component.text("Codes: ").color(Default.INFO_COLOR).decorate(TextDecoration.BOLD))
-                .append(Component.text("`x").color(Default.INFO_ACCENT_COLOR)));
-        commandSender.sendMessage(Component.text("    Default Minecraft chat code (0-9, a-f, k-o, r)").color(Default.INFO_COLOR));
-        commandSender.sendMessage(Component.text("    `l`cBold and Red " + Emoji.RIGHT.getRaw() + " ").color(Default.INFO_COLOR)
+        sender.sendMessage(Component.empty()
+                .append(Component.text("Codes: ").color(INFO_COLOR).decorate(TextDecoration.BOLD))
+                .append(Component.text("`x").color(INFO_ACCENT_COLOR)));
+        sender.sendMessage(Component.text("    Default Minecraft chat code (0-9, a-f, k-o, r)").color(INFO_COLOR));
+        sender.sendMessage(Component.text("    `l`cBold and Red " + Emoji.RIGHT + " ").color(INFO_COLOR)
                 .append(Component.text("Bold and Red").decorate(TextDecoration.BOLD).color(PaperAdventure.asAdventure(ChatFormatting.RED))));
-        commandSender.sendMessage(Component.empty());
-        commandSender.sendMessage(Component.empty()
-                .append(Component.text("Names: ").decorate(TextDecoration.BOLD).color(Default.INFO_COLOR))
-                .append(Component.text("``name").color(Default.INFO_ACCENT_COLOR)));
-        commandSender.sendMessage(Component.text("    Full name of the color or format").color(Default.INFO_COLOR));
-        commandSender.sendMessage(Component.text("    ``bold``redBold and Red " + Emoji.RIGHT.getRaw() + " ").color(Default.INFO_COLOR)
+        sender.sendMessage(Component.empty());
+        sender.sendMessage(Component.empty()
+                .append(Component.text("Names: ").decorate(TextDecoration.BOLD).color(INFO_COLOR))
+                .append(Component.text("``name").color(INFO_ACCENT_COLOR)));
+        sender.sendMessage(Component.text("    Full name of the color or format").color(INFO_COLOR));
+        sender.sendMessage(Component.text("    ``bold``redBold and Red " + Emoji.RIGHT + " ").color(INFO_COLOR)
                 .append(Component.text("Bold and Red").decorate(TextDecoration.BOLD).color(PaperAdventure.asAdventure(ChatFormatting.RED))));
-        commandSender.sendMessage(Component.empty());
-        commandSender.sendMessage(Component.text("/formatting <codes|names> for lists").color(Default.INFO_COLOR));
+        sender.sendMessage(Component.empty());
+        sender.sendMessage(Component.text("/formatting <codes|names> for lists").color(INFO_COLOR));
 
         return true;
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public @Nullable List<String> suggestionList(@NotNull CommandSender sender, @NotNull String[] args) {
         List<String> out = new ArrayList<>();
 
-        if (strings.length == 1) {
+        if (args.length == 1) {
             out.add("codes");
             out.add("names");
         }
 
-        return out.stream().filter(s1 -> s1.toLowerCase().startsWith(strings[strings.length - 1].toLowerCase())).toList();
+        return out;
     }
 }

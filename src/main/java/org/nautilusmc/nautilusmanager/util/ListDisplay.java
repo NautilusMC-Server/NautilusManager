@@ -2,15 +2,15 @@ package org.nautilusmc.nautilusmanager.util;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.bukkit.command.CommandSender;
+import org.nautilusmc.nautilusmanager.commands.Command;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 
 public class ListDisplay<T> {
+    public static final Component INVALID_PAGE_NUMBER_ERROR = Component.text("Invalid page number!").color(Command.ERROR_COLOR);
+    
     private String title;
     private int pageSize;
     private List<T> list;
@@ -54,23 +54,30 @@ public class ListDisplay<T> {
     public void setFormatter(Function<T, Component> formatter) {
         this.formatter = formatter;
     }
+    
+    public int getPageCount() {
+        return Math.max((int) Math.ceil((double) list.size() / pageSize), 1);
+    }
 
-    public boolean sendPageTo(int page, Player player) {
+    public void sendPageTo(String pageArg, CommandSender recipient) {
         try {
-            int onlinePlayerCount = Bukkit.getOnlinePlayers().size();
-            int pageCount = (int) Math.ceil((double) onlinePlayerCount / PAGE_SIZE);
-            int page = Math.max(Math.min(strings.length > 1 ? Integer.parseInt(strings[1]) : 1, pageCount), 1);
+            int pageCount = getPageCount();
+            int page = Math.max(Math.min(pageArg == null ? 1 : Integer.parseInt(pageArg), pageCount), 1);
 
-            commandSender.sendMessage(Component.text("----- Nicknames (Page " + page + "/" + pageCount + ") -----").color(NautilusCommand.Default.INFO_COLOR).decorate(TextDecoration.BOLD));
+            recipient.sendMessage(Component.text("----- ")
+                    .append(Component.text(title).color(Command.INFO_ACCENT_COLOR).decorate(TextDecoration.BOLD))
+                    .append(Component.text(" (page " + page + " of " + pageCount + ") -----"))
+                    .color(Command.INFO_COLOR));
 
-            List<? extends Player> playerList = Bukkit.getOnlinePlayers().stream().sorted(Comparator.comparing(Player::getName)).toList();
-            for (int i = 0; i < PAGE_SIZE; i++) {
-                int playerIndex = (page - 1) * PAGE_SIZE + i;
-                if (playerIndex >= onlinePlayerCount) break;
-                commandSender.sendMessage(Component.text(" - ").append(generateNicknameListing.apply(playerList.get(playerIndex))).color(NautilusCommand.Default.INFO_COLOR));
+            for (int row = 0; row < pageSize; row++) {
+                int index = (page - 1) * pageSize + row;
+                if (index >= list.size()) break;
+                recipient.sendMessage(Component.text(" - ")
+                        .append(formatter.apply(list.get(index)))
+                        .color(Command.INFO_COLOR));
             }
         } catch (NumberFormatException e) {
-            commandSender.sendMessage(NautilusCommand.ErrorMessage.INVALID_PAGE_NUMBER);
+            recipient.sendMessage(INVALID_PAGE_NUMBER_ERROR);
         }
     }
 }

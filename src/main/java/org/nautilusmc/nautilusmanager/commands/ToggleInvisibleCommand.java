@@ -2,7 +2,6 @@ package org.nautilusmc.nautilusmanager.commands;
 
 import net.kyori.adventure.text.Component;
 import org.apache.commons.lang.WordUtils;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
@@ -10,55 +9,48 @@ import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.nautilusmc.nautilusmanager.util.Permission;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ToggleInvisibleCommand extends NautilusCommand {
+public class ToggleInvisibleCommand extends Command {
+    public static final Component INVALID_TARGET_ERROR = Component.text("You must be looking at an item frame or armor stand to use this command!").color(ERROR_COLOR);
+
+    public static final int MAX_TARGET_DISTANCE_BLOCKS = 5;
+
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Component.text("Only players can use this command!").color(NautilusCommand.ERROR_COLOR));
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(NOT_PLAYER_ERROR);
             return true;
         }
 
-        if (!player.hasPermission(ITEM_FRAME_ARMOR_STAND_INVISIBILITY_PERM)) {
-            player.sendMessage(Component.text(SPONSOR_PERM_MESSAGE).color(NautilusCommand.ERROR_COLOR));
+        if (!player.hasPermission(Permission.INVISIBLE_FRAMES_STANDS.toString())) {
+            player.sendMessage(NOT_SPONSOR_ERROR);
             return true;
         }
 
-        Entity lookingAt = player.getTargetEntity(5);
+        Entity target = player.getTargetEntity(MAX_TARGET_DISTANCE_BLOCKS);
+        boolean visible;
 
-        boolean changed = false;
-        boolean visible = false;
-
-        if (lookingAt instanceof ItemFrame frame) {
+        if (target instanceof ItemFrame frame) {
             frame.setVisible(!frame.isVisible());
             visible = frame.isVisible();
-
-            changed = true;
-        } else if (lookingAt instanceof ArmorStand stand) {
+        } else if (target instanceof ArmorStand stand) {
             stand.setVisible(!stand.isVisible());
             visible = stand.isVisible();
-
-            changed = true;
-        }
-
-        if (changed) {
-            player.sendMessage(Component.text(WordUtils.capitalizeFully(lookingAt.getName().replace("_", " ")))
-                    .append(Component.text(" is now "))
-                    .append(Component.text(visible ? "visible" : "invisible").color(NautilusCommand.ACCENT_COLOR))
-                    .append(Component.text("."))
-                    .color(NautilusCommand.MAIN_COLOR));
         } else {
-            player.sendMessage(Component.text("You must be looking at an item frame or armor stand").color(NautilusCommand.ERROR_COLOR));
+            player.sendMessage(INVALID_TARGET_ERROR);
+            return true;
         }
+
+        player.sendMessage(Component.text(WordUtils.capitalizeFully(target.getName().replace("_", " ")))
+                .append(Component.text(" is now "))
+                .append(Component.text(visible ? "visible" : "invisible").color(INFO_ACCENT_COLOR))
+                .append(Component.text("."))
+                .color(INFO_COLOR));
 
         return true;
-    }
-
-    @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        return new ArrayList<>();
     }
 }

@@ -1,21 +1,21 @@
 package org.nautilusmc.nautilusmanager.commands;
 
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.nautilusmc.nautilusmanager.util.ConfirmationMessage;
+import org.nautilusmc.nautilusmanager.util.Permission;
 
-public class ConfirmCommand extends NautilusCommand {
+public class ConfirmCommand extends Command {
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(ErrorMessage.NOT_PLAYER);
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Command.NOT_PLAYER_ERROR);
             return true;
         }
 
-        if (!player.hasPermission(Permission.CONFIRM)) {
-            player.sendMessage(ErrorMessage.NO_PERMISSION);
+        if (!player.hasPermission(Permission.CONFIRM.toString())) {
+            player.sendMessage(Command.NO_PERMISSION_ERROR);
             return true;
         }
 

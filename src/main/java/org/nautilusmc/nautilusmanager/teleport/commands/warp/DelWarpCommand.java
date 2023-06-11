@@ -2,27 +2,26 @@ package org.nautilusmc.nautilusmanager.teleport.commands.warp;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.teleport.Warps;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DelWarpCommand extends NautilusCommand {
+public class DelWarpCommand extends Command {
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(ErrorMessage.NOT_PLAYER);
+            commandSender.sendMessage(Command.NOT_PLAYER_ERROR);
             return true;
         }
 
         if (!player.hasPermission(Permission.CREATE_WARPS)) {
-            player.sendMessage(ErrorMessage.NO_PERMISSION);
+            player.sendMessage(Command.NO_PERMISSION_ERROR);
             return true;
         }
 
@@ -47,7 +46,7 @@ public class DelWarpCommand extends NautilusCommand {
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
         List<String> out = new ArrayList<>();
 
         if (!(commandSender instanceof Player)) return out;

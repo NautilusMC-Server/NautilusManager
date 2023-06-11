@@ -1,15 +1,14 @@
 package org.nautilusmc.nautilusmanager.crews.commands;
 
 import net.kyori.adventure.text.Component;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.crews.CrewHandler;
 
-public class CrewsCommand extends NautilusCommand {
+public class CrewsCommand extends Command {
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
         if (CrewHandler.CREWS.isEmpty()) {
             commandSender.sendMessage(Component.text("There are currently no crews on the server.").color(Default.INFO_COLOR));
             return true;

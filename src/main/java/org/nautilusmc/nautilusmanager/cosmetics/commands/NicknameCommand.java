@@ -1,102 +1,92 @@
 package org.nautilusmc.nautilusmanager.cosmetics.commands;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.util.Emoji;
+import org.nautilusmc.nautilusmanager.util.ListDisplay;
+import org.nautilusmc.nautilusmanager.util.Permission;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 
-public class NicknameCommand extends NautilusCommand {
-
-    private static final int PAGE_SIZE = 5;
+public class NicknameCommand extends Command {
+    private static final ListDisplay<OfflinePlayer> NICKNAME_LIST_DISPLAY = new ListDisplay<>(
+            "Nicknames",
+            5,
+            null,
+            (player) -> {
+                String username = Objects.requireNonNullElse(player.getName(), "(unknown player)");
+                String nickname = Objects.requireNonNullElse(Nickname.getNickname(player), username);
+                return Component.text(username)
+                        .append(Component.text(" " + Emoji.RIGHT + " "))
+                        .append(player instanceof Player onlinePlayer ? onlinePlayer.displayName() : Component.text(nickname));
+            }
+    );
 
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (strings.length < 1) return false;
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (args.length < 1) return false;
 
-        Function<OfflinePlayer, Component> generateNicknameListing = player -> {
-            String username = Objects.requireNonNullElse(player.getName(), "(unknown player)");
-            String nickname = Objects.requireNonNullElse(Nickname.getNickname(player), username);
-            return Component.text(username)
-                    .append(Component.text(" " + Emoji.RIGHT.getRaw() + " "))
-                    .append(player instanceof Player onlinePlayer ? onlinePlayer.displayName() : Component.text(nickname));
-        };
-
-        switch (strings[0]) {
+        switch (args[0]) {
             case "list" -> {
-                if (!commandSender.hasPermission(Permission.NICKNAME_LIST)) {
-                    commandSender.sendMessage(ErrorMessage.NO_PERMISSION);
+                if (!sender.hasPermission(Permission.NICKNAME_LIST.toString())) {
+                    sender.sendMessage(NO_PERMISSION_ERROR);
                     return true;
                 }
 
-                try {
-                    int onlinePlayerCount = Bukkit.getOnlinePlayers().size();
-                    int pageCount = (int) Math.ceil((double) onlinePlayerCount / PAGE_SIZE);
-                    int page = Math.max(Math.min(strings.length > 1 ? Integer.parseInt(strings[1]) : 1, pageCount), 1);
-
-                    commandSender.sendMessage(Component.text("----- Nicknames (Page " + page + "/" + pageCount + ") -----").color(Default.INFO_COLOR).decorate(TextDecoration.BOLD));
-
-                    List<? extends Player> playerList = Bukkit.getOnlinePlayers().stream().sorted(Comparator.comparing(Player::getName)).toList();
-                    for (int i = 0; i < PAGE_SIZE; i++) {
-                        int playerIndex = (page - 1) * PAGE_SIZE + i;
-                        if (playerIndex >= onlinePlayerCount) break;
-                        commandSender.sendMessage(Component.text(" - ").append(generateNicknameListing.apply(playerList.get(playerIndex))).color(Default.INFO_COLOR));
-                    }
-                } catch (NumberFormatException e) {
-                    commandSender.sendMessage(ErrorMessage.INVALID_PAGE_NUMBER);
-                }
+                NICKNAME_LIST_DISPLAY.setList(Bukkit.getOnlinePlayers().stream()
+                        .sorted(Comparator.comparing(Player::getName))
+                        .map(player -> (OfflinePlayer) player) // the compiler is picky about this :(
+                        .toList());
+                NICKNAME_LIST_DISPLAY.sendPageTo(args.length < 2 ? null : args[1], sender);
 
             }
             case "nickname" -> {
-                if (!commandSender.hasPermission(Permission.NICKNAME_LIST)) {
-                    commandSender.sendMessage(ErrorMessage.NO_PERMISSION);
+                if (!sender.hasPermission(Permission.NICKNAME_LIST.toString())) {
+                    sender.sendMessage(NO_PERMISSION_ERROR);
                     return true;
                 }
 
-                if (strings.length < 2) return false;
+                if (args.length < 2) return false;
 
-                OfflinePlayer player = Nickname.getPlayerFromNickname(strings[1]);
+                OfflinePlayer player = Nickname.getPlayerFromNickname(args[1]);
                 if (player == null || player.getName() == null) {
-                    commandSender.sendMessage(ErrorMessage.INVALID_PLAYER);
+                    sender.sendMessage(INVALID_PLAYER_ERROR);
                     return true;
                 } else {
-                    commandSender.sendMessage(generateNicknameListing.apply(player).color(Default.INFO_COLOR));
+                    sender.sendMessage(NICKNAME_LIST_DISPLAY.getFormatter().apply(player).color(INFO_COLOR));
                 }
 
             }
             case "player" -> {
-                if (!commandSender.hasPermission(Permission.NICKNAME_LIST)) {
-                    commandSender.sendMessage(ErrorMessage.NO_PERMISSION);
+                if (!sender.hasPermission(Permission.NICKNAME_LIST.toString())) {
+                    sender.sendMessage(NO_PERMISSION_ERROR);
                     return true;
                 }
 
-                if (strings.length < 2) return false;
+                if (args.length < 2) return false;
 
-                OfflinePlayer player = Util.getOfflinePlayerIfCached(strings[1]);
+                OfflinePlayer player = Util.getOfflinePlayerIfCached(args[1]);
                 if (player == null || player.getName() == null) {
-                    commandSender.sendMessage(ErrorMessage.INVALID_PLAYER);
+                    sender.sendMessage(INVALID_PLAYER_ERROR);
                     return true;
                 } else {
-                    commandSender.sendMessage(generateNicknameListing.apply(player).color(Default.INFO_COLOR));
+                    sender.sendMessage(NICKNAME_LIST_DISPLAY.getFormatter().apply(player).color(INFO_COLOR));
                 }
 
             }
             case "set", "clear" -> {
-                Bukkit.dispatchCommand(commandSender, "cosmetics %s nickname %s %s".formatted(strings[0], strings.length > 1 ? strings[1] : "", strings.length > 2 ? strings[2] : ""));
+                Bukkit.dispatchCommand(sender, "cosmetics %s nickname %s %s".formatted(args[0], args.length > 1 ? args[1] : "", args.length > 2 ? args[2] : ""));
             }
             default -> {
                 return false;
@@ -107,31 +97,31 @@ public class NicknameCommand extends NautilusCommand {
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public @Nullable List<String> suggestionList(@NotNull CommandSender sender, @NotNull String[] args) {
         List<String> out = new ArrayList<>();
 
-        if (strings.length == 1) {
-            if (commandSender.hasPermission(Permission.NICKNAME_LIST)) {
+        if (args.length == 1) {
+            if (sender.hasPermission(Permission.NICKNAME_LIST.toString())) {
                 out.add("list");
                 out.add("player");
                 out.add("nickname");
             }
             out.add("set");
             out.add("clear");
-        } else if (strings.length == 2) {
-            if (commandSender.hasPermission(Permission.NICKNAME_LIST)) {
-                if (strings[0].equalsIgnoreCase("player")) {
+        } else if (args.length == 2) {
+            if (sender.hasPermission(Permission.NICKNAME_LIST.toString())) {
+                if (args[0].equalsIgnoreCase("player")) {
                     out.addAll(getOnlineUsernames());
-                } else if (strings[0].equalsIgnoreCase("nickname")) {
+                } else if (args[0].equalsIgnoreCase("nickname")) {
                     out.addAll(Nickname.getNicknames());
                 }
             }
-        } else if (strings.length == 3) {
-            if (strings[0].equalsIgnoreCase("set") && commandSender.hasPermission(Permission.MODIFY_OTHER_PLAYERS)) {
+        } else if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("set") && sender.hasPermission(Permission.MODIFY_OTHER_PLAYERS.toString())) {
                 out.addAll(getOnlineUsernames());
             }
         }
 
-        return out.stream().filter(str -> str.toLowerCase().startsWith(strings[strings.length - 1].toLowerCase())).toList();
+        return out;
     }
 }

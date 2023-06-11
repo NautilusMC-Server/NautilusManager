@@ -1,10 +1,8 @@
-package org.nautilusmc.nautilusmanager.cosmetics.commands;
+package org.nautilusmc.nautilusmanager.commands;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,46 +12,54 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.ChatMsgCommand;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.util.Permission;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.*;
 
-public class ChatCommand extends NautilusCommand {
+public class ChatCommand extends Command {
+    public record ChatType(String commandOption, UUID uuid) {
+        public static final ChatType STAFF = new ChatType("staff", null);
+    }
 
     private static final Map<UUID, ChatType> CHATS = new HashMap<>();
 
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Component.text("You must be a player to use this command").color(Default.ERROR_COLOR));
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(NOT_PLAYER_ERROR);
             return true;
         }
 
-        if (strings.length == 0 || strings[0].equalsIgnoreCase("all")) {
-            player.sendMessage(Component.text("Now chatting with all players").color(TextColor.color(255, 211, 41)));
+        if (args.length < 1 || args[0].equalsIgnoreCase("all")) {
+            player.sendMessage(Component.text("Now chatting with all players.").color(INFO_COLOR));
             CHATS.remove(player.getUniqueId());
             return true;
-        } else if (strings[0].equalsIgnoreCase("player")) {
-            if (strings.length < 2) return false;
-            Player chat = Util.getOnlinePlayer(strings[1]);
+
+        } else if (args[0].equalsIgnoreCase("player")) {
+            if (args.length < 2) return false;
+
+            Player chat = Util.getOnlinePlayer(args[1]);
 
             if (chat == null) {
-                commandSender.sendMessage(Component.text("Player not found").color(Default.ERROR_COLOR));
+                sender.sendMessage(INVALID_PLAYER_ERROR);
                 return true;
             }
 
-            player.sendMessage(Component.text("Now chatting with ").append(chat.getPlayer().displayName()).color(TextColor.color(255, 211, 41)));
+            player.sendMessage(Component.text("Now chatting with ")
+                    .append(Component.empty().append(chat.getPlayer().displayName()).color(INFO_ACCENT_COLOR))
+                    .append(Component.text("."))
+                    .color(INFO_COLOR));
             CHATS.put(player.getUniqueId(), new ChatType("player", chat.getUniqueId()));
             return true;
-        } else if (strings[0].equalsIgnoreCase("staff")) {
-            if (!commandSender.hasPermission(Permission.STAFF_CHAT)) {
-                commandSender.sendMessage(Component.text("Not enough permissions").color(Default.ERROR_COLOR));
+
+        } else if (args[0].equalsIgnoreCase("staff")) {
+            if (!sender.hasPermission(Permission.STAFF_CHAT.toString())) {
+                sender.sendMessage(NO_PERMISSION_ERROR);
                 return true;
             }
 
-            player.sendMessage(Component.text("Now in staff chat").color(TextColor.color(255, 211, 41)));
+            player.sendMessage(Component.text("Now chatting with staff.").color(INFO_COLOR));
             CHATS.put(player.getUniqueId(), ChatType.STAFF);
             return true;
 
@@ -63,21 +69,9 @@ public class ChatCommand extends NautilusCommand {
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public @Nullable List<String> suggestionList(@NotNull CommandSender commandSender, @NotNull String[] strings) {
         // lazy but sure?
-        return new ChatMsgCommand().onTabComplete(commandSender, command, s, strings);
-    }
-
-    private static class ChatType {
-        public static final ChatType STAFF = new ChatType("staff", null);
-
-        public final String commandOption;
-        public final UUID uuid;
-
-        public ChatType(String commandOption, UUID uuid) {
-            this.commandOption = commandOption;
-            this.uuid = uuid;
-        }
+        return new ChatMsgCommand().suggestionList(commandSender, strings);
     }
 
     public static class ChatListener implements Listener {
