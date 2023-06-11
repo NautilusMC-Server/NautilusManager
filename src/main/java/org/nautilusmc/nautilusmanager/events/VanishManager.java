@@ -9,8 +9,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand.Default;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand.Permission;
+import org.nautilusmc.nautilusmanager.commands.Command.Default;
+import org.nautilusmc.nautilusmanager.commands.Command.Permission;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;

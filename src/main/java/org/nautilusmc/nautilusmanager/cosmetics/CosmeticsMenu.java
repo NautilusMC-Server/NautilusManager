@@ -13,9 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand.Default;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand.ErrorMessage;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand.Permission;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.gui.Gui;
 import org.nautilusmc.nautilusmanager.gui.components.BackGuiComponent;
 import org.nautilusmc.nautilusmanager.gui.components.ButtonGuiComponent;
@@ -24,6 +22,7 @@ import org.nautilusmc.nautilusmanager.gui.page.BasicGuiPage;
 import org.nautilusmc.nautilusmanager.gui.page.GuiPage;
 import org.nautilusmc.nautilusmanager.gui.page.TextInputGuiPage;
 import org.nautilusmc.nautilusmanager.util.FancyText;
+import org.nautilusmc.nautilusmanager.util.Permission;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.Arrays;
@@ -160,7 +159,7 @@ public class CosmeticsMenu {
                         .setItem(
                                 new ItemStack(Material.REDSTONE_TORCH),
                                 Component.text("Reset")
-                                        .color(Default.ERROR_COLOR)
+                                        .color(Command.ERROR_COLOR)
                                         .decoration(TextDecoration.ITALIC, false)
                         ), 3, 4);
 
@@ -191,7 +190,7 @@ public class CosmeticsMenu {
                             null,
                             hasAccess == null ? new Component[]{} :
                                     new Component[]{
-                                            hasAccess.color(Default.ERROR_COLOR)
+                                            hasAccess.color(Command.ERROR_COLOR)
                                                     .decoration(TextDecoration.ITALIC, false)
                                     }
                     ), (i / 3) + 1, (i % 3) * 2 + 2);
@@ -205,11 +204,11 @@ public class CosmeticsMenu {
 
     public static void openMenu(CommandSender sender, String[] strings) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ErrorMessage.NOT_PLAYER);
+            sender.sendMessage(Command.NOT_PLAYER_ERROR);
             return;
         }
 
-        boolean hasNicknamePerm = sender.hasPermission(Permission.NICKNAME);
+        boolean hasNicknamePerm = sender.hasPermission(Permission.NICKNAME.toString());
         Bukkit.getPluginManager().registerEvents(
                 new Gui()
                         .setRoot(new BasicGuiPage()
@@ -230,9 +229,9 @@ public class CosmeticsMenu {
                                                 Component.text("Nickname")
                                                         .color(TextColor.color(33, 245, 169))
                                                         .decoration(TextDecoration.ITALIC, false),
-                                                hasNicknamePerm ? new Component[]{} :
+                                                hasNicknamePerm ? new Component[] {} :
                                                         new Component[] {
-                                                                Component.empty().append(ErrorMessage.NOT_SPONSOR).decoration(TextDecoration.ITALIC, false)
+                                                                Component.empty().append(Command.NOT_SPONSOR_ERROR).decoration(TextDecoration.ITALIC, false)
                                                         }
                                         ), 1, 3)
                                 .addComponent(new BackGuiComponent()
@@ -240,7 +239,7 @@ public class CosmeticsMenu {
                                                 new ItemStack(Material.RED_TERRACOTTA),
                                                 Component.text("Exit")
                                                         .decoration(TextDecoration.ITALIC, false)
-                                                        .color(Default.ERROR_COLOR)
+                                                        .color(Command.ERROR_COLOR)
                                         ), 4, 4)
                                 .addChild(selectColorTypeMenu((Player) sender))
                                 .addChild(new TextInputGuiPage()
@@ -252,10 +251,10 @@ public class CosmeticsMenu {
                                                         Component.text(" - 3 characters or more").decoration(TextDecoration.ITALIC, false).color(TextColor.color(133, 194, 201)),
                                                         Component.text(" - 16 characters or less").decoration(TextDecoration.ITALIC, false).color(TextColor.color(133, 194, 201)),
                                                         Component.text(" - Cannot be the same as an existing player name or nickname").decoration(TextDecoration.ITALIC, false).color(TextColor.color(133, 194, 201)),
-                                                        !sender.hasPermission(Permission.NICKNAME_SPECIAL_CHARS) ? Component.text(" - No special characters").decoration(TextDecoration.ITALIC, false).color(TextColor.color(133, 194, 201)) : null
+                                                        !sender.hasPermission(Permission.NICKNAME_SPECIAL_CHARS.toString()) ? Component.text(" - No special characters").decoration(TextDecoration.ITALIC, false).color(TextColor.color(133, 194, 201)) : null
                                                 ).filter(Objects::nonNull).toArray(Component[]::new))
                                         .setWindowName("Nickname")
-                                        .setAction(e-> Nickname.setNickname((Player) e.getWhoClicked(), Util.getTextContent(e.getCurrentItem().getItemMeta().displayName()), true))
+                                        .setAction(e -> Nickname.setNickname((Player) e.getWhoClicked(), Util.getTextContent(e.getCurrentItem().getItemMeta().displayName()), true))
                                         .setCloseOnClick(true)
                                         .setGenerateResult((anvil) -> {
                                             if (Nickname.validateNickname((Player) sender, anvil.itemName) == null) {

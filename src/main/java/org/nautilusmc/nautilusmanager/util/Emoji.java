@@ -172,13 +172,13 @@ public enum Emoji {
     X("❌"),
     YIN_YANG("☯");
 
-    private final String raw;
+    public final String raw;
 
     Emoji(String raw) {
         this.raw = raw;
     }
 
-    public String getRaw() {
+    public String toString() {
         return raw;
     }
 
@@ -186,16 +186,17 @@ public enum Emoji {
         // sue me
         try {
             return valueOf(id);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException ignored) {
             return null;
         }
     }
 
     public static String parseText(String text) {
-        int start = text.indexOf(':'), end = -1;
+        int start = text.indexOf(':'), end;
         if (start < 0) {
             return text;
         }
+
         StringBuilder output = new StringBuilder(text.length()).append(text, 0, start);
         while (true) {
             end = text.indexOf(':', start + 1);
@@ -203,9 +204,10 @@ public enum Emoji {
                 output.append(text, start, text.length());
                 break;
             }
+
             Emoji emoji = find(text.substring(start + 1, end).toUpperCase());
             if (emoji != null) {
-                output.append(emoji.getRaw());
+                output.append(emoji);
                 start = text.indexOf(':', end + 1);
                 if (start < 0) {
                     output.append(text, end + 1, text.length());
@@ -218,6 +220,7 @@ public enum Emoji {
                 start = end;
             }
         }
+
         return output.toString();
     }
 

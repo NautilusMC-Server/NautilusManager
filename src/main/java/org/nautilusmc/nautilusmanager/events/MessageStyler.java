@@ -4,11 +4,9 @@ import com.google.common.collect.EvictingQueue;
 import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.minecraft.ChatFormatting;
@@ -34,9 +32,8 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.commands.SuicideCommand;
 import org.nautilusmc.nautilusmanager.cosmetics.MuteManager;
 import org.nautilusmc.nautilusmanager.discord.DiscordBot;
@@ -103,7 +100,7 @@ public class MessageStyler implements Listener {
         }
 
         Component deathMessage = Component.empty()
-                .append(Component.text(Emoji.SKULL.getRaw())
+                .append(Component.text(Emoji.SKULL.toString())
                         .append(Component.text(" Death").decorate(TextDecoration.BOLD))
                         .color(TextColor.color(46, 230, 255)))
                 .append(Component.text(" | ")
@@ -172,13 +169,13 @@ public class MessageStyler implements Listener {
                 .append(Component.newline())
                 .append(Component.newline())
                 .append(Component.text("Reason: ")
-                        .color(NautilusCommand.MAIN_COLOR))
+                        .color(Command.MAIN_COLOR))
                 .append(Component.text(entry.getReason()))
                 .append(Component.newline())
                 .append(Component.text("Expires: ")
-                        .color(NautilusCommand.MAIN_COLOR))
+                        .color(Command.MAIN_COLOR))
                 .append(Component.text(entry.getExpiration() == null ? "Never" : DATE_FORMAT.format(entry.getExpiration())))
-                .color(NautilusCommand.ERROR_COLOR);
+                .color(Command.ERROR_COLOR);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -231,7 +228,7 @@ public class MessageStyler implements Listener {
         String renameText = e.getInventory().getRenameText();
         ItemStack result = e.getResult();
 
-        if (e.getView().getPlayer().hasPermission(NautilusCommand.Permission.USE_CHAT_FORMATTING) && renameText != null && !renameText.isEmpty() && result != null) {
+        if (e.getView().getPlayer().hasPermission(Command.Permission.USE_CHAT_FORMATTING) && renameText != null && !renameText.isEmpty() && result != null) {
             ItemMeta meta = result.getItemMeta();
             meta.displayName(FancyText.parseChatFormatting(renameText));
             result.setItemMeta(meta);
@@ -250,7 +247,7 @@ public class MessageStyler implements Listener {
 
         sendMessageAsUser(
                 player.displayName(),
-                player.hasPermission(NautilusCommand.CHAT_FORMATTING_PERM),
+                player.hasPermission(Command.CHAT_FORMATTING_PERM),
                 message,
                 Bukkit.getOnlinePlayers().stream().filter(p->!MuteManager.isMuted(p, player)).toList());
     }
@@ -268,7 +265,7 @@ public class MessageStyler implements Listener {
     }
 
     public static Component formatUserMessage(CommandSender player, Component message) {
-        return formatUserMessage(player.hasPermission(NautilusCommand.CHAT_FORMATTING_PERM), message);
+        return formatUserMessage(player.hasPermission(Command.CHAT_FORMATTING_PERM), message);
     }
 
     public static Component formatUserMessage(boolean withChatFormatting, Component message) {

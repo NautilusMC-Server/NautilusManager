@@ -10,10 +10,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand.ErrorMessage;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.sql.SQLHandler;
 import org.nautilusmc.nautilusmanager.util.CaseInsensitiveString;
+import org.nautilusmc.nautilusmanager.util.Permission;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.sql.ResultSet;
@@ -40,13 +40,13 @@ public class Nickname {
                 // reset any invalid nicknames
                 playerNames.forEach((uuid, name) -> {
                     OfflinePlayer p = Bukkit.getOfflinePlayer(uuid);
-                    if (validateNickname(p, name.string) != null) {
+                    if (validateNickname(p, name.toString()) != null) {
                         setNickname(uuid, null);
                     }
                 });
 
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    String nickname = playerNames.getOrDefault(p.getUniqueId(), new CaseInsensitiveString(p.getName())).string;
+                    String nickname = playerNames.getOrDefault(p.getUniqueId(), new CaseInsensitiveString(p.getName())).toString();
 
                     if (!Util.getTextContent(p.displayName()).equals(nickname)) {
                         updateNickname(p, nickname);
@@ -90,7 +90,7 @@ public class Nickname {
      * Get a player's nickname (inverse of #getPlayerFromNickname).
      */
     public static String getNickname(OfflinePlayer p) {
-        return playerNames.getOrDefault(p.getUniqueId(), new CaseInsensitiveString(null)).string;
+        return playerNames.getOrDefault(p.getUniqueId(), new CaseInsensitiveString(null)).toString();
     }
 
     /**
@@ -110,19 +110,21 @@ public class Nickname {
      * Get a list of all nicknames.
      */
     public static List<String> getNicknames() {
-        return playerNames.values().stream().map(name -> name.string).toList();
+        return playerNames.values().stream().map(CaseInsensitiveString::toString).toList();
     }
 
     /**
      * Set a player's nickname.
      */
-    public static void setNickname(Player p, String name, boolean sendMessage) {
-        if (!name.equals(getNickname(p))) {
-            setNickname(p.getUniqueId(), name.equals(p.getName()) ? null : name);
-            updateNickname(p, name);
+    public static void setNickname(Player player, String name, boolean sendMessage) {
+        if (!name.equals(getNickname(player))) {
+            setNickname(player.getUniqueId(), name.equals(player.getName()) ? null : name);
+            updateNickname(player, name);
         }
 
-        if (sendMessage) p.sendMessage(Component.text("Nickname set to ").append(p.displayName()));
+        if (sendMessage) {
+            player.sendMessage(Component.text("Nickname set to ").append(player.displayName()));
+        }
     }
 
     /**
@@ -135,7 +137,7 @@ public class Nickname {
             return "That nickname is too short! Minimum length is " + MIN_LENGTH + ".";
         if (name.contains(" "))
             return "Nicknames cannot contain spaces!";
-        if (!name.matches("[a-zA-Z0-9_]+") && player instanceof Player onlinePlayer && !onlinePlayer.hasPermission(NautilusCommand.Permission.NICKNAME_SPECIAL_CHARS))
+        if (!name.matches("[a-zA-Z0-9_]+") && player instanceof Player onlinePlayer && !onlinePlayer.hasPermission(Permission.NICKNAME_SPECIAL_CHARS.toString()))
             return "Become a supporter to unlock non-alphanumeric characters!";
 
         OfflinePlayer existing = Util.getOfflinePlayerIfCached(name);
@@ -147,6 +149,8 @@ public class Nickname {
     }
 
     public static class NicknameListener implements Listener {
+        public static final Component NICKNAME_CONFLICT_RESET_MESSAGE = Component.text("Your nickname was reset because a player by that name has joined.").color(Command.ERROR_COLOR);
+
         @EventHandler(priority = org.bukkit.event.EventPriority.HIGH)
         public void onPlayerJoin(PlayerJoinEvent e) {
             String nickname = getNickname(e.getPlayer());
@@ -156,14 +160,14 @@ public class Nickname {
             OfflinePlayer player = getPlayerFromNickname(e.getPlayer().getName());
             if (player instanceof Player onlinePlayer) {
                 setNickname(onlinePlayer, onlinePlayer.getName(), false);
-                onlinePlayer.sendMessage(ErrorMessage.NICKNAME_CONFLICT_RESET);
+                onlinePlayer.sendMessage(NICKNAME_CONFLICT_RESET_MESSAGE);
             }
 
             // if there is a player whose name is the joining player's nickname, reset the joining player's nick
             // otherwise, update the player's nickname as usual
             if (Util.getOfflinePlayerIfCached(nickname) != null) {
                 setNickname(e.getPlayer(), e.getPlayer().getName(), false);
-                e.getPlayer().sendMessage(ErrorMessage.NICKNAME_CONFLICT_RESET);
+                e.getPlayer().sendMessage(NICKNAME_CONFLICT_RESET_MESSAGE);
             } else {
                 updateNickname(e.getPlayer(), nickname);
             }

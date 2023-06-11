@@ -4,13 +4,15 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand.Default;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand.ErrorMessage;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand.Permission;
+import org.nautilusmc.nautilusmanager.commands.Command;
+import org.nautilusmc.nautilusmanager.commands.Command.Default;
+import org.nautilusmc.nautilusmanager.commands.Command.Permission;
 
 import java.util.*;
 
 public class ConfirmationMessage {
+    public static final Component NO_PENDING_CONFIRM_ERROR = Component.text("No pending tasks to confirm!").color(Command.ERROR_COLOR);
+    public static final Component NO_PENDING_DENY_ERROR = Component.text("No pending tasks to deny!").color(Command.ERROR_COLOR);
     private static final HashMap<UUID, Stack<ConfirmationMessage>> PENDING = new HashMap<>();
 
     private Player player;
@@ -68,7 +70,7 @@ public class ConfirmationMessage {
     public static void confirm(Player player) {
         UUID uuid = player.getUniqueId();
         if (!PENDING.containsKey(uuid)) {
-            player.sendMessage(ErrorMessage.NO_PENDING_CONFIRM);
+            player.sendMessage(NO_PENDING_CONFIRM_ERROR);
             return;
         }
 
@@ -82,7 +84,7 @@ public class ConfirmationMessage {
     public static void deny(Player player) {
         UUID uuid = player.getUniqueId();
         if (!PENDING.containsKey(uuid)) {
-            player.sendMessage(ErrorMessage.NO_PENDING_DENY);
+            player.sendMessage(NO_PENDING_DENY_ERROR);
             return;
         }
 

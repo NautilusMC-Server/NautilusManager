@@ -2,25 +2,24 @@ package org.nautilusmc.nautilusmanager.teleport.commands.homes;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.teleport.Homes;
 
-public class BuyHomeCommand extends NautilusCommand {
+public class BuyHomeCommand extends Command {
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(ErrorMessage.NOT_PLAYER);
+            commandSender.sendMessage(Command.NOT_PLAYER_ERROR);
             return true;
         }
 
         if (!player.hasPermission(Permission.USE_HOMES)) {
-            player.sendMessage(ErrorMessage.NO_PERMISSION);
+            player.sendMessage(Command.NO_PERMISSION_ERROR);
             return true;
         }
 

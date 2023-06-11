@@ -6,8 +6,8 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand.Default;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand.ErrorMessage;
+import org.nautilusmc.nautilusmanager.commands.Command;
+import org.nautilusmc.nautilusmanager.commands.Command.Default;
 import org.nautilusmc.nautilusmanager.events.TeleportHandler;
 import org.nautilusmc.nautilusmanager.sql.SQLSyncedPerPlayerList;
 import org.nautilusmc.nautilusmanager.teleport.commands.homes.HomeCommand;
@@ -16,6 +16,7 @@ import org.nautilusmc.nautilusmanager.util.Util;
 import java.util.*;
 
 public class TpaManager implements Listener {
+    public static final Component CANNOT_TP_TO_SELF_ERROR = Component.text("You can't teleport to yourself!").color(Command.ERROR_COLOR);
     public static int MAX_TRUSTED = 99; // the SQL can have 2 digits
 
     private static final Map<UUID, Map.Entry<UUID, TpRequestType>> requests = new HashMap<>(); // from Request Maker to Request Receiver, Request Type
@@ -120,7 +121,7 @@ public class TpaManager implements Listener {
         Player requester;
         if (requesterName == null) {
             if (!LAST_REQUESTS.containsKey(recipient.getUniqueId())) {
-                recipient.sendMessage(ErrorMessage.NO_PENDING_TP_REQUEST);
+                recipient.sendMessage(Command.NO_PENDING_TP_REQUEST_ERROR);
                 return null;
             }
 
@@ -130,12 +131,12 @@ public class TpaManager implements Listener {
         }
 
         if (requester == null) {
-            recipient.sendMessage(ErrorMessage.INVALID_PLAYER);
+            recipient.sendMessage(Command.INVALID_PLAYER_ERROR);
             return null;
         }
 
         if (!recipient.getUniqueId().equals(outgoingRequest(requester))) {
-            recipient.sendMessage(ErrorMessage.NO_PENDING_TP_REQUEST);
+            recipient.sendMessage(Command.NO_PENDING_TP_REQUEST_ERROR);
             return null;
         }
 
@@ -149,7 +150,7 @@ public class TpaManager implements Listener {
                     (type == TpRequestType.TP_TO ? requested : requester).sendMessage(Component.text("Teleport canceled, ")
                             .append((type == TpRequestType.TP_TO ? requester : requested).displayName())
                             .append(Component.text(" moved"))
-                            .color(NautilusCommand.ERROR_COLOR));
+                            .color(Command.ERROR_COLOR));
                 });
     }
 
@@ -192,12 +193,12 @@ public class TpaManager implements Listener {
     public static void cancelRequest(Player requester) {
         UUID recipientID = outgoingRequest(requester);
         if (recipientID == null) {
-            requester.sendMessage(ErrorMessage.NO_OUTGOING_TP_REQUEST);
+            requester.sendMessage(Command.NO_OUTGOING_TP_REQUEST_ERROR);
             return;
         }
         Player requested = Bukkit.getPlayer(recipientID);
         if (requested == null) {
-            requester.sendMessage(ErrorMessage.INVALID_PLAYER);
+            requester.sendMessage(Command.INVALID_PLAYER_ERROR);
             return;
         }
 

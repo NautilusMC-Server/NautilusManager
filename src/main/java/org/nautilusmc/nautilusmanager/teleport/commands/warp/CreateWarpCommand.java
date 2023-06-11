@@ -1,11 +1,10 @@
 package org.nautilusmc.nautilusmanager.teleport.commands.warp;
 
 import net.kyori.adventure.text.Component;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.teleport.Warps;
 import org.nautilusmc.nautilusmanager.util.Util;
 
@@ -13,19 +12,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class CreateWarpCommand extends NautilusCommand {
+public class CreateWarpCommand extends Command {
 
     private static final List<UUID> confirming = new ArrayList<>();
 
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(ErrorMessage.NOT_PLAYER);
+            commandSender.sendMessage(Command.NOT_PLAYER_ERROR);
             return true;
         }
 
         if (!player.hasPermission(Permission.CREATE_WARPS)) {
-            player.sendMessage(ErrorMessage.NO_PERMISSION);
+            player.sendMessage(Command.NO_PERMISSION_ERROR);
             return true;
         }
 

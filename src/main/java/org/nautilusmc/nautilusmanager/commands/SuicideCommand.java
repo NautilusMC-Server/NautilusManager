@@ -3,19 +3,18 @@ package org.nautilusmc.nautilusmanager.commands;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-public class SuicideCommand extends NautilusCommand {
+public class SuicideCommand extends Command {
     public static final String SUICIDE_TRANSLATION_KEY = "death.suicide";
 
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(ErrorMessage.NOT_PLAYER);
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(NOT_PLAYER_ERROR);
             return true;
         }
 
@@ -27,6 +26,7 @@ public class SuicideCommand extends NautilusCommand {
             }
         }, (float) player.getHealth(), (float) player.getHealth());
         player.setHealth(0);
+
         return true;
     }
 }

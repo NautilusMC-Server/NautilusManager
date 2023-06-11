@@ -1,27 +1,25 @@
 package org.nautilusmc.nautilusmanager.crews.commands;
 
 import net.kyori.adventure.text.Component;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
-import org.nautilusmc.nautilusmanager.crews.Invite;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.crews.WarDeclaration;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class WarCommand extends NautilusCommand {
+public class WarCommand extends Command {
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
         if (!(commandSender instanceof Player player)) {
             commandSender.sendMessage(Component.text("Only players can use this command").color(Default.ERROR_COLOR));
             return true;
         }
         if (!player.hasPermission(Permission.DECLARE_WAR)) {
-            player.sendMessage(ErrorMessage.NOT_CAPTAIN);
+            player.sendMessage(Command.NOT_CAPTAIN_ERROR);
             return true;
         }
         if (strings.length == 0) {
@@ -43,7 +41,7 @@ public class WarCommand extends NautilusCommand {
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
         ArrayList<String> tabCompletions = new ArrayList<>();
 
         if (!(commandSender instanceof Player player) || !player.hasPermission(Permission.DECLARE_WAR)) return tabCompletions;
