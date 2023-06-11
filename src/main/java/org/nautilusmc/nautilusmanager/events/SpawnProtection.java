@@ -19,10 +19,9 @@ import org.bukkit.event.raid.RaidTriggerEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.util.BoundingBox;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.Command.Permission;
+import org.nautilusmc.nautilusmanager.util.Permission;
 
 public class SpawnProtection implements Listener {
-
     public static final String PROTECTED_AREA_ALERT = "You can't do that here";
     public static final long ALERT_FLASH_TICKS = 7;
     public static final TextColor ALERT_FLASH_COLOR = TextColor.color(255, 149, 146);
@@ -74,7 +73,7 @@ public class SpawnProtection implements Listener {
     }
 
     public boolean canEditSpawn(Player player) {
-        return player.hasPermission(Permission.EDIT_SPAWN);
+        return player.hasPermission(Permission.EDIT_SPAWN.toString());
     }
 
     @EventHandler

@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.cosmetics.MuteManager;
-import org.nautilusmc.nautilusmanager.events.AfkManager;
+import org.nautilusmc.nautilusmanager.events.AFKManager;
 import org.nautilusmc.nautilusmanager.events.GeneralEventManager;
 import org.nautilusmc.nautilusmanager.events.MessageStyler;
 import org.nautilusmc.nautilusmanager.util.Util;
@@ -41,7 +41,7 @@ public class MsgCommand extends Command {
             ReplyCommand.update(player.getUniqueId(), recipient.getUniqueId());
         }
 
-        if (AfkManager.isAfk(recipient)) {
+        if (AFKManager.isAFK(recipient)) {
             GeneralEventManager.pingPlayer(recipient);
         }
 

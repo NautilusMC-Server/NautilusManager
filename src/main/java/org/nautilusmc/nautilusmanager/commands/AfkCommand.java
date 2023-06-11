@@ -5,7 +5,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.nautilusmc.nautilusmanager.events.AfkManager;
+import org.nautilusmc.nautilusmanager.events.AFKManager;
 import org.nautilusmc.nautilusmanager.util.Permission;
 
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ public class AfkCommand extends Command {
             }
         }
 
-        AfkManager.toggleAFK(player);
+        AFKManager.toggleAFK(player);
         return true;
     }
 

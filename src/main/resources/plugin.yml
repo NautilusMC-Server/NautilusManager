@@ -16,7 +16,7 @@ commands:
     usage: /nickname <list|original|nickname|set> [page|name]
   formatting:
     description: See information about chat formatting. (Sponsor only)
-    usage: /formatting [code|name] [page]
+    usage: /formatting [codes|names] [page]
   emoji:
     description: See information about emoji shortcuts.
     usage: /emoji <list|search> [page|query]
@@ -46,7 +46,7 @@ commands:
     usage: /home <name>
   homes:
     description: List all set homes.
-    usage: /homes
+    usage: /homes [page]
   sethome:
     description: Set a new home at the current location.
     usage: /sethome <name>
@@ -63,7 +63,7 @@ commands:
     description: Teleport back to the location you last teleported from.
     usage: /back
   reloadnautilus:
-    description: Reload the Nautilus plugins. (Staff only)
+    description: Reload the Nautilus plugin. (Staff only)
     usage: /reloadnautilus
   tpa:
     description: Request to teleport to a player.
@@ -72,11 +72,11 @@ commands:
     description: Request a player to teleport to you.
     usage: /tpahere <player>
   tptrust:
-    description: Trusts a player to tp to you without a request
+    description: Trust a player to teleport to you without request.
     usage: /tptrust <player>
   tptrustlist:
-    description: Lists the currently trusted players
-    usage: /tptrustlist
+    description: List your currently trusted players.
+    usage: /tptrustlist [page]
   tpaccept:
     description: Accept an incoming teleport request.
     usage: /tpaccept [player]
@@ -132,14 +132,14 @@ commands:
     description: Accept or decline a declaration of war.
     usage: /war [accept|decline]
   toggleinvisible:
-    description: Targets an item frame or armor stand's invisibility
+    description: Toggle the invisibility of the targeted item frame or armor stand. (Sponsor only)
     usage: /toggleinvisible
   mute:
-    description: Personally mutes another player
+    description: Hide a player's messages from your feed.
     usage: /mute <player>
   mutelist:
-    description: List your currently muted players
-    usage: /mutelist
+    description: List your currently muted players.
+    usage: /mutelist [page]
   ban:
-    description: Ban a player
+    description: Ban a player from the server. (Staff only)
     usage: /ban <player> [time] [reason]

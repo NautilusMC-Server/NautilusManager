@@ -5,16 +5,17 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.teleport.TpaManager;
+import org.nautilusmc.nautilusmanager.util.Permission;
 
 public class TpCancelCommand extends Command {
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Command.NOT_PLAYER_ERROR);
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Command.NOT_PLAYER_ERROR);
             return true;
         }
 
-        if (!player.hasPermission(Permission.TPA)) {
+        if (!player.hasPermission(Permission.TPA.toString())) {
             player.sendMessage(Command.NO_PERMISSION_ERROR);
             return true;
         }

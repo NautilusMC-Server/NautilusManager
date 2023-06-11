@@ -9,52 +9,54 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.teleport.TpaManager;
+import org.nautilusmc.nautilusmanager.util.Permission;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class TpTrustCommand extends Command {
+    public static final Component CANNOT_TRUST_SELF_ERROR = Component.text("You don't need to trust yourself!").color(ERROR_COLOR);
 
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Component.text("Only players can use this command.").color(Command.ERROR_COLOR));
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(NOT_PLAYER_ERROR);
             return true;
         }
-        if (!player.hasPermission(TPA_PERM)) {
-            player.sendMessage(Component.text("Not enough permissions!").color(Command.ERROR_COLOR));
+        if (!player.hasPermission(Permission.TPA.toString())) {
+            player.sendMessage(NO_PERMISSION_ERROR);
             return true;
         }
-        if (strings.length < 1) return false;
+        if (args.length < 1) return false;
 
-        OfflinePlayer trusted = Util.getOfflinePlayerIfCachedByNick(strings[0]);
-        if (trusted == null) {
-            player.sendMessage(Component.text("Player not found!").color(Command.ERROR_COLOR));
+        OfflinePlayer target = Util.getOfflinePlayerIfCachedByNick(args[0]);
+        if (target == null) {
+            player.sendMessage(INVALID_PLAYER_ERROR);
             return true;
         }
 
-        if (trusted.getPlayer() == player) {
-            player.sendMessage(Component.text("You don't need to trust yourself!").color(Command.ERROR_COLOR));
+        if (target.getPlayer() == player) {
+            player.sendMessage(CANNOT_TRUST_SELF_ERROR);
             return true;
         }
 
         if (TpaManager.getTrusted(player).size() >= TpaManager.MAX_TRUSTED) {
-            player.sendMessage(Component.text("You can't trust more than " + TpaManager.MAX_TRUSTED + " players!").color(Command.ERROR_COLOR));
+            player.sendMessage(Component.text("You can't trust more than " + TpaManager.MAX_TRUSTED + " players!").color(ERROR_COLOR));
             return true;
         }
 
-        boolean isTrusted = TpaManager.toggleTrust(player, trusted);
+        boolean trusted = TpaManager.toggleTrust(player, target);
 
         player.sendMessage(Component.empty()
-                .append(Component.text(Util.getName(trusted)).color(Command.ACCENT_COLOR))
-                .append(Component.text(" is " + (isTrusted ? "now" : "no longer")+ " trusted."))
-                .color(Command.MAIN_COLOR));
+                .append(Component.text(Util.getName(target)).color(INFO_ACCENT_COLOR))
+                .append(Component.text(" is " + (trusted ? "now" : "no longer") + " trusted."))
+                .color(INFO_COLOR));
         return true;
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String str, @NotNull String[] strings) {
-        return Arrays.stream(Bukkit.getOfflinePlayers()).map(Util::getName).filter(s->s.toLowerCase().startsWith(strings[strings.length-1].toLowerCase())).toList();
+    public @Nullable List<String> suggestionList(@NotNull CommandSender sender, @NotNull String[] args) {
+        return getOfflineNames();
     }
 }

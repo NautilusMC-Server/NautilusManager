@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.teleport.Homes;
+import org.nautilusmc.nautilusmanager.util.Permission;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
@@ -15,65 +16,65 @@ import java.util.Map;
 import java.util.UUID;
 
 public class SetHomeCommand extends Command {
-
-    private static final List<UUID> confirming = new ArrayList<>();
+    private static final List<UUID> PENDING_CONFIRMATIONS = new ArrayList<>();
 
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Command.NOT_PLAYER_ERROR);
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(NOT_PLAYER_ERROR);
             return true;
         }
 
-        if (!player.hasPermission(Permission.USE_HOMES)) {
-            player.sendMessage(Command.NO_PERMISSION_ERROR);
+        if (!player.hasPermission(Permission.USE_HOMES.toString())) {
+            player.sendMessage(NO_PERMISSION_ERROR);
             return true;
         }
 
-        if (strings.length < 1) return false;
+        if (args.length < 1) return false;
 
-        if (strings[0].length() > Homes.MAX_NAME_LENGTH) {
+        if (args[0].length() > Homes.MAX_NAME_LENGTH) {
             player.sendMessage(Component.text("Home name cannot be more than ")
-                    .append(Component.text(Homes.MAX_NAME_LENGTH).color(Default.ERROR_ACCENT_COLOR))
+                    .append(Component.text(Homes.MAX_NAME_LENGTH).color(ERROR_ACCENT_COLOR))
                     .append(Component.text(" characters!"))
-                    .color(Default.ERROR_COLOR));
+                    .color(ERROR_COLOR));
             return true;
         }
 
-        boolean overriding = Homes.getHome(player, strings[0]) != null;
-        if (overriding && !confirming.contains(player.getUniqueId())) {
+        boolean overriding = Homes.getHome(player, args[0]) != null;
+        if (overriding && !PENDING_CONFIRMATIONS.contains(player.getUniqueId())) {
             // TODO: this should probably use ConfirmationMessage instead
             player.sendMessage(Component.text("You already have a home with that name. Run \"")
-                    .append(Util.clickableCommand("/sethome " + strings[0], true).color(Default.INFO_ACCENT_COLOR))
+                    .append(Util.clickableCommand("/sethome " + args[0], true).color(INFO_ACCENT_COLOR))
                     .append(Component.text("\" again to overwrite it."))
-                    .color(Default.INFO_COLOR));
-            confirming.add(player.getUniqueId());
+                    .color(INFO_COLOR));
+            PENDING_CONFIRMATIONS.add(player.getUniqueId());
             return true;
         }
-        confirming.remove(player.getUniqueId());
+        PENDING_CONFIRMATIONS.remove(player.getUniqueId());
 
         Map<String, Location> homes = Homes.getHomes(player);
         if (!overriding && (homes != null && homes.size() >= Homes.getMaxHomes(player))) {
             player.sendMessage(Component.text("You already have the maximum number of homes. Consider using ")
-                    .append(Util.clickableCommand("/delhome", false).color(Default.INFO_ACCENT_COLOR))
+                    .append(Util.clickableCommand("/delhome", false).color(INFO_ACCENT_COLOR))
                     .append(Component.text(" to remove one or "))
-                    .append(Util.clickableCommand("/buyhome", false).color(Default.INFO_ACCENT_COLOR))
+                    .append(Util.clickableCommand("/buyhome", false).color(INFO_ACCENT_COLOR))
                     .append(Component.text(" to buy a new one."))
-                    .color(Default.INFO_COLOR));
+                    .color(INFO_COLOR));
             return true;
         }
 
         Location location = player.getLocation();
-        Homes.setHome(player, strings[0], location);
+        Homes.setHome(player, args[0], location);
         player.sendMessage(Component.text("Set home \"")
-                .append(Component.text(strings[0]).color(Default.INFO_ACCENT_COLOR))
+                .append(Component.text(args[0]).color(INFO_ACCENT_COLOR))
                 .append(Component.text("\" at "))
-                .append(Component.text(location.getBlockX()).color(Default.INFO_ACCENT_COLOR))
+                .append(Component.text(location.getBlockX()).color(INFO_ACCENT_COLOR))
                 .append(Component.text(", "))
-                .append(Component.text(location.getBlockY()).color(Default.INFO_ACCENT_COLOR))
+                .append(Component.text(location.getBlockY()).color(INFO_ACCENT_COLOR))
                 .append(Component.text(", "))
-                .append(Component.text(location.getBlockZ()).color(Default.INFO_ACCENT_COLOR))
-                .color(Default.INFO_COLOR));
+                .append(Component.text(location.getBlockZ()).color(INFO_ACCENT_COLOR))
+                .color(INFO_COLOR));
+
         return true;
     }
 }

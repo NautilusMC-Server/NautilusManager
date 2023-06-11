@@ -34,7 +34,7 @@ public class MuteListCommand extends Command {
         }
 
         MUTED_LIST_DISPLAY.setList(MuteManager.getMuted(player));
-        MUTED_LIST_DISPLAY.sendPageTo(args[0], player);
+        MUTED_LIST_DISPLAY.sendPageTo(args.length >= 1 ? args[0] : null, player);
 
         return true;
     }

@@ -104,7 +104,7 @@ public final class NautilusManager extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new ChatCommand.ChatListener(), this);
         Bukkit.getPluginManager().registerEvents(new MessageStyler(), this);
 
-        Bukkit.getPluginManager().registerEvents(new AfkManager(), this);
+        Bukkit.getPluginManager().registerEvents(new AFKManager(), this);
         Bukkit.getPluginManager().registerEvents(new VanishManager(), this);
         Bukkit.getPluginManager().registerEvents(new TeleportHandler(), this);
         Bukkit.getPluginManager().registerEvents(new GeneralEventManager(), this);
