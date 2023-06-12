@@ -37,6 +37,7 @@ public enum Permission {
     CREW_INFO("nautilusmanager.crew.info"),
     DELETE_OTHER_CREWS("nautilusmanager.crew.delete.other"),
     DECLARE_WAR("nautilusmanager.crew.declarewar"),
+    END_WAR("nautilusmanager.crew.endwar"),
     SET_CREW_PREFIX("nautilusmanager.crew.setprefix"),
     CLEAR_CREW_PREFIX("nautilusmanager.crew.clearprefix"),
     // Other
@@ -70,12 +71,18 @@ public enum Permission {
 
     public static void addGroup(OfflinePlayer player, String group) {
         User user = getUser(player);
+        if (user == null) {
+            return;
+        }
         user.data().add(InheritanceNode.builder(group).build());
         save(user);
     }
 
     public static boolean removeGroup(OfflinePlayer player, String group) {
         User user = getUser(player);
+        if (user == null) {
+            return false;
+        }
         if (!user.getNodes().contains(InheritanceNode.builder(group).build())) {
             return false;
         }
@@ -85,6 +92,9 @@ public enum Permission {
     }
 
     private static User getUser(OfflinePlayer player) {
+        if (player == null) {
+            return null;
+        }
         return LUCKPERMS.getUserManager().getUser(player.getUniqueId());
     }
 

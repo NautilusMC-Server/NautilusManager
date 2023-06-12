@@ -2,14 +2,14 @@ package org.nautilusmc.nautilusmanager.crews;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
-import org.nautilusmc.nautilusmanager.commands.Command.Default;
+import org.nautilusmc.nautilusmanager.NautilusManager;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
@@ -153,12 +153,14 @@ public class Crew {
             team.prefix(Component.empty());
         } else {
             team.prefix(Component.text("[")
-                    .append(Component.text(prefix).color(NautilusCommand.ACCENT_COLOR))
+                    .append(Component.text(prefix).color(Command.INFO_ACCENT_COLOR))
                     .append(Component.text("]"))
                     .color(NamedTextColor.GRAY));
         }
-        this.members.stream().filter(OfflinePlayer::isOnline).map(OfflinePlayer::getPlayer).
-                forEach(p->Util.updateNameTag(p, p.displayName(), Bukkit.getOnlinePlayers()));
+        this.members.stream()
+                .filter(OfflinePlayer::isOnline)
+                .map(OfflinePlayer::getPlayer)
+                .forEach(player -> Util.updateNameTag(player, player.displayName(), Bukkit.getOnlinePlayers()));
     }
 
 /*
@@ -229,32 +231,32 @@ public class Crew {
     public Component toComponent() {
         Component out = Component.text("--------------------------------").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR);
         out = out.appendNewline();
-        out = out.append(Component.text("Name: ")
-                .append(Component.text(name).color(Default.INFO_ACCENT_COLOR))
+        out = out.append(Component.text("Name: "))
+                .append(Component.text(name).color(Command.INFO_ACCENT_COLOR))
                 .appendNewline()
                 .append(Component.text("Captain: "))
-                .append(Component.text(Util.getName(captain)).color(Default.INFO_ACCENT_COLOR))
+                .append(Component.text(Util.getName(captain)).color(Command.INFO_ACCENT_COLOR))
                 .appendNewline()
                 .append(Component.text("Members: "))
-                .color(Default.INFO_COLOR);
+                .color(Command.INFO_COLOR);
         OfflinePlayer member;
         List<OfflinePlayer> membersNoCaptain = getMembers(true);
         for (int i = 0; i < membersNoCaptain.size(); i++) {
             member = membersNoCaptain.get(i);
-            out = out.append(Component.text(Util.getName(member)).color(Default.INFO_ACCENT_COLOR));
+            out = out.append(Component.text(Util.getName(member)).color(Command.INFO_ACCENT_COLOR));
             if (i < membersNoCaptain.size() - 1) {
-                out = out.append(Component.text(", ").color(Default.INFO_ACCENT_COLOR));
+                out = out.append(Component.text(", ").color(Command.INFO_ACCENT_COLOR));
             }
         }
         out = out.appendNewline();
-        out = out.append(Component.text("Status: ").color(Default.INFO_COLOR))
-                .append(Component.text(isOpen() ? "Open" : "Closed for invitation only").color(Default.INFO_ACCENT_COLOR));
+        out = out.append(Component.text("Status: ").color(Command.INFO_COLOR))
+                .append(Component.text(isOpen() ? "Open" : "Closed for invitation only").color(Command.INFO_ACCENT_COLOR));
         /*out = out.appendNewline();
-        out = out.append(Component.text("PVP: ").color(Default.INFO_COLOR))
-                .append(Component.text(allowsPvp() ? "Allowed" : "Not Allowed").color(Default.INFO_ACCENT_COLOR));*/
+        out = out.append(Component.text("PVP: ").color(Command.INFO_COLOR))
+                .append(Component.text(allowsPvp() ? "Allowed" : "Not Allowed").color(Command.INFO_ACCENT_COLOR));*/
         out = out.appendNewline();
-        out = out.append(Component.text("Wars: ").color(Default.INFO_COLOR))
-                .append(Component.text(wars.isEmpty() ? "None" : warsToString()).color(Default.INFO_ACCENT_COLOR));
+        out = out.append(Component.text("Wars: ").color(Command.INFO_COLOR))
+                .append(Component.text(wars.isEmpty() ? "None" : warsToString()).color(Command.INFO_ACCENT_COLOR));
         out = out.appendNewline();
         out = out.append(Component.text("--------------------------------").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
         return out;

@@ -3,7 +3,6 @@ package org.nautilusmc.nautilusmanager.crews;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.nautilusmc.nautilusmanager.commands.Command;
-import org.nautilusmc.nautilusmanager.commands.Command.Default;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.*;
@@ -40,14 +39,14 @@ public class WarDeclaration {
             return;
         }
         Player captain = warReceiver.getCaptain().getPlayer();
-        captain.sendMessage(Component.text("Crew \"").color(Default.INFO_COLOR)
-                .append(Component.text(warDeclarer.getName()).color(Default.INFO_ACCENT_COLOR))
-                .append(Component.text("\" has declared war on your crew!").color(Default.INFO_COLOR)));
-        captain.sendMessage(Util.clickableCommand("/war accept", true).color(Default.INFO_ACCENT_COLOR)
-                .append(Component.text(" to accept").color(Default.INFO_COLOR)));
+        captain.sendMessage(Component.text("Crew \"").color(Command.INFO_COLOR)
+                .append(Component.text(warDeclarer.getName()).color(Command.INFO_ACCENT_COLOR))
+                .append(Component.text("\" has declared war on your crew!").color(Command.INFO_COLOR)));
+        captain.sendMessage(Util.clickableCommand("/war accept", true).color(Command.INFO_ACCENT_COLOR)
+                .append(Component.text(" to accept").color(Command.INFO_COLOR)));
 
-        captain.sendMessage(Util.clickableCommand("/war decline", true).color(Default.INFO_ACCENT_COLOR)
-                .append(Component.text(" to decline").color(Default.INFO_COLOR)));
+        captain.sendMessage(Util.clickableCommand("/war decline", true).color(Command.INFO_ACCENT_COLOR)
+                .append(Component.text(" to decline").color(Command.INFO_COLOR)));
 
         if (!PENDING.containsKey(warReceiver)) {
             PENDING.put(warReceiver, new Stack<>());
@@ -80,14 +79,14 @@ public class WarDeclaration {
         CrewHandler.registerWar(war);
 
         warDeclaration.getReceiver().sendMessageToMembers(Component.text("Your crew is now at war with \"")
-                .append(Component.text(warDeclaration.getSender().getName()).color(Default.INFO_ACCENT_COLOR))
+                .append(Component.text(warDeclaration.getSender().getName()).color(Command.INFO_ACCENT_COLOR))
                 .append(Component.text("\"!"))
-                .color(Default.INFO_COLOR));
+                .color(Command.INFO_COLOR));
 
         warDeclaration.getSender().sendMessageToMembers(Component.text("Your crew is now at war with \"")
-                .append(Component.text(warDeclaration.getReceiver().getName()).color(Default.INFO_ACCENT_COLOR))
+                .append(Component.text(warDeclaration.getReceiver().getName()).color(Command.INFO_ACCENT_COLOR))
                 .append(Component.text("\"!"))
-                .color(Default.INFO_COLOR));
+                .color(Command.INFO_COLOR));
     }
 
     public static void deny(Player player) {
@@ -107,9 +106,9 @@ public class WarDeclaration {
 
        if (warDeclaration.getSender().getCaptain().isOnline()) {
             Player senderCaptain = warDeclaration.getSender().getCaptain().getPlayer();
-            senderCaptain.sendMessage(Component.text(warDeclaration.getReceiver().getName()).color(Default.INFO_ACCENT_COLOR)
-                    .append(Component.text(" declined your war declaration!").color(Default.INFO_COLOR)));
+            senderCaptain.sendMessage(Component.text(warDeclaration.getReceiver().getName()).color(Command.INFO_ACCENT_COLOR)
+                    .append(Component.text(" declined your war declaration!").color(Command.INFO_COLOR)));
         }
-        player.sendMessage(Component.text("War declaration declined!").color(Default.INFO_COLOR));
+        player.sendMessage(Component.text("War declaration declined!").color(Command.INFO_COLOR));
     }
 }
