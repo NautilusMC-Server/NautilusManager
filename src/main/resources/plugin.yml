@@ -143,3 +143,6 @@ commands:
   ban:
     description: Ban a player from the server. (Staff only)
     usage: /ban <player> [time] [reason]
+  pardon:
+    description: Pardon a previously banned player. (Staff only)
+    usage: /pardon <player>

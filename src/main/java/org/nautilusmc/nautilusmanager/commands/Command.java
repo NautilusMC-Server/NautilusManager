@@ -7,6 +7,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.util.Util;
@@ -38,7 +39,7 @@ public abstract class Command implements CommandExecutor, TabCompleter {
     public static final Component NO_PENDING_TP_REQUEST_ERROR = Component.text("No pending request found!").color(ERROR_COLOR);
 
     protected static String getMessageFromArgs(String[] args, int start) {
-        return String.join(" ", Arrays.copyOfRange(args, start, args.length));
+        return start >= args.length ? "" : String.join(" ", Arrays.copyOfRange(args, start, args.length));
     }
 
     public static List<String> getOnlineUsernames() {
@@ -63,7 +64,7 @@ public abstract class Command implements CommandExecutor, TabCompleter {
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command command, @NotNull String alias, @NotNull String[] args) {
         List<String> out = suggestionList(sender, args);
         return out == null ? null : out.stream()
-                .filter(str -> str.toLowerCase().startsWith(args[args.length - 1].toLowerCase()))
+                .filter(str -> StringUtil.startsWithIgnoreCase(str, args[args.length - 1]))
                 .toList();
     }
 

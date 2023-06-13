@@ -169,7 +169,7 @@ public class Nickname {
                 setNickname(e.getPlayer(), e.getPlayer().getName(), false);
                 e.getPlayer().sendMessage(NICKNAME_CONFLICT_RESET_MESSAGE);
             } else {
-                updateNickname(e.getPlayer(), nickname);
+                updateNickname(e.getPlayer(), Objects.requireNonNullElse(nickname, e.getPlayer().getName()));
             }
         }
     }

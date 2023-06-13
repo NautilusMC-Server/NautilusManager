@@ -9,7 +9,6 @@ import org.nautilusmc.nautilusmanager.crews.CrewHandler;
 import org.nautilusmc.nautilusmanager.crews.commands.*;
 import org.nautilusmc.nautilusmanager.discord.DiscordBot;
 import org.nautilusmc.nautilusmanager.teleport.TpaManager;
-import org.nautilusmc.nautilusmanager.teleport.commands.homes.BuyHomeCommand;
 import org.nautilusmc.nautilusmanager.cosmetics.NameColor;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.cosmetics.TabListManager;
@@ -96,6 +95,8 @@ public final class NautilusManager extends JavaPlugin {
 
         this.getCommand("ban").setExecutor(new BanCommand());
         Bukkit.getCommandMap().getKnownCommands().put("ban", this.getCommand("ban"));
+        this.getCommand("pardon").setExecutor(new PardonCommand());
+        Bukkit.getCommandMap().getKnownCommands().put("pardon", this.getCommand("pardon"));
     }
 
     private void registerEvents() {

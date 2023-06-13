@@ -17,7 +17,6 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.logging.Level;
 
-
 public class CrewHandler implements Listener {
     private static List<Crew> crews;
     private static List<War> wars;
@@ -34,7 +33,7 @@ public class CrewHandler implements Listener {
             public void updateSQL(ResultSet results) throws SQLException {
                 //Bukkit.getLogger().log(Level.INFO, "Updating \"crews\"");
                 crews.clear();
-                while(results.next()) {
+                while (results.next()) {
                     if (!Arrays.stream(Bukkit.getOfflinePlayers()).toList().contains(Bukkit.getOfflinePlayer(UUID.fromString(results.getString("captain"))))) {
                         continue;
                     }

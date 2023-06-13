@@ -31,7 +31,7 @@ public class SpawnProtection implements Listener {
         Location loc1 = NautilusManager.INSTANCE.getConfig().getLocation("spawnProtection.loc1");
         Location loc2 = NautilusManager.INSTANCE.getConfig().getLocation("spawnProtection.loc2");
 
-        if (loc1 == null || loc2 == null) {
+        if (loc1 == null || loc2 == null || loc1.equals(loc2)) {
             NautilusManager.INSTANCE.getLogger().warning("Spawn protection disabled. To enable, provide values for loc1 and loc2.");
         } else if (!loc1.getWorld().equals(loc2.getWorld())) {
             NautilusManager.INSTANCE.getLogger().warning("Spawn protection is configured improperly! loc1 and loc2 are not in the same world (loc2's world will be ignored).");

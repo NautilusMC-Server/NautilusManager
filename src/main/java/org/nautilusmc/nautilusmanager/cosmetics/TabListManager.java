@@ -26,6 +26,8 @@ public class TabListManager {
     public static final TextColor INVIS_HEALTH_COLOR = NORMAL_HEALTH_COLOR; // TextColor.color(180, 180, 180);
     public static final TextColor INVIS_HEART_COLOR = NORMAL_HEART_COLOR; // TextColor.color(210, 210, 210);
 
+    public static final int UPDATE_INTERVAL_TICKS = 20;
+
     public static void init() {
         Bukkit.getScheduler().runTaskTimer(NautilusManager.INSTANCE, () -> {
             for (Player player : Bukkit.getOnlinePlayers()) {
@@ -71,13 +73,14 @@ public class TabListManager {
                             heartColor = FROZEN_HEART_COLOR;
                         }
 
-                        tabEntry = tabEntry.append(Component.text(Math.round(player.getHealth())).color(healthColor)
+                        // take the ceiling of the health instead of rounding to more accurately reflect the health bar
+                        tabEntry = tabEntry.append(Component.text(Math.ceil(player.getHealth())).color(healthColor)
                                 .append(Component.text(Emoji.HEART.toString()).color(heartColor)));
                     }
                 }
 
                 player.playerListName(tabEntry);
             }
-        }, 0, 20);
+        }, 0, UPDATE_INTERVAL_TICKS);
     }
 }

@@ -36,6 +36,8 @@ public class BanCommand extends Command {
             return true;
         }
 
+        if (args.length < 1) return false;
+
         Date expiry = null;
         if (args.length > 1 && !args[1].equalsIgnoreCase("infinite")) {
             try {
@@ -73,6 +75,7 @@ public class BanCommand extends Command {
                 .append(Component.text(": "))
                 .append(Component.text(reason).color(INFO_ACCENT_COLOR))
                 .color(INFO_COLOR));
+
         return true;
     }
 

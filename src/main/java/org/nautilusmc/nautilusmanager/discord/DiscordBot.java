@@ -87,6 +87,8 @@ public class DiscordBot implements Listener {
     }
 
     private static void updateStatusMessage() {
+        if (jda == null) return;
+
         TextChannel statusChannel = jda.getTextChannelById(NautilusManager.INSTANCE.getConfig().getLong("discord.status_channel"));
 
         MessageEmbed embed = new EmbedBuilder()
