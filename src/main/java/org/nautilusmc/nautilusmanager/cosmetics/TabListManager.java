@@ -34,8 +34,8 @@ public class TabListManager {
 
                 if (p.getGameMode() != GameMode.CREATIVE && p.getGameMode() != GameMode.SPECTATOR) {
                     if (p.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
-                        health = Component.text("20").color(TextColor.color(180, 180, 180))
-                                .append(Component.text("♥").color(TextColor.color(210, 210, 210)));
+                        health = Component.text("20").color(NamedTextColor.RED)
+                                .append(Component.text("♥").color(NamedTextColor.DARK_RED));
                     } else {
                         TextColor color1 = NamedTextColor.RED;
                         TextColor color2 = NamedTextColor.DARK_RED;

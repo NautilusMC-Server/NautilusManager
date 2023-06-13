@@ -30,6 +30,7 @@ public class SpawnProtection implements Listener {
     }
 
     private boolean isProtected(Location loc) {
+        if(!loc.getWorld().getName().equalsIgnoreCase("world")) return false;
         Location loc1 = NautilusManager.INSTANCE.getConfig().getLocation("spawnProtection.loc1");
         Location loc2 = NautilusManager.INSTANCE.getConfig().getLocation("spawnProtection.loc2");
 

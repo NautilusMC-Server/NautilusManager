@@ -140,3 +140,12 @@ commands:
   ban:
     description: Ban a player
     usage: /ban <player> <time> [reason]
+  timetop:
+    description: Gets a leaderboard of server playtime
+    usage: /timetop
+  traveltop:
+    description: Gets a leaderboard of distance traveled
+    usage: /traveltop
+  language:
+    description: Allows users to set their language
+    usage: /language [language code]

@@ -1,5 +1,6 @@
 package org.nautilusmc.nautilusmanager.discord;
 
+import com.deepl.api.DeepLException;
 import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -376,7 +377,7 @@ public class DiscordBot implements Listener {
     }
 
     @SubscribeEvent
-    public void onMessage(MessageReceivedEvent e) {
+    public void onMessage(MessageReceivedEvent e) throws DeepLException, InterruptedException {
         if (inChannelAndGuild(e.getChannel()) && e.getAuthor().getIdLong() != jda.getSelfUser().getIdLong()) {
             boolean hasPermission = e.getMember().getRoles().contains(getSponsorRole());
             Component bukkitMessage = discordToBukkit(e.getMember(), e.getMessage().getContentDisplay());
