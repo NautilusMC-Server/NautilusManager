@@ -20,12 +20,18 @@ public class PermsUtil {
 
     public static void addGroup(OfflinePlayer player, String group) {
         User user = getUser(player);
+        if (user == null) {
+            return;
+        }
         user.data().add(InheritanceNode.builder(group).build());
         save(user);
     }
 
     public static boolean removeGroup(OfflinePlayer player, String group) {
         User user = getUser(player);
+        if (user == null) {
+            return false;
+        }
         if (!user.getNodes().contains(InheritanceNode.builder(group).build())) {
             return false;
         }
@@ -35,6 +41,9 @@ public class PermsUtil {
     }
 
     private static User getUser(OfflinePlayer player) {
+        if (player == null) {
+            return null;
+        }
         return LP.getUserManager().getUser(player.getUniqueId());
     }
 

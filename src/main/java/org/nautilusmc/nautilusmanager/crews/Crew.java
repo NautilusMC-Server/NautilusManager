@@ -1,6 +1,7 @@
 package org.nautilusmc.nautilusmanager.crews;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class Crew {
     private UUID uuid;
@@ -51,29 +53,26 @@ public class Crew {
         setPrefix(prefix);
     }
 
-    public Crew(UUID uuid, OfflinePlayer captain, String name, boolean open) {
+    //Constructor used in updateSQL()
+    public Crew(UUID uuid, OfflinePlayer captain, String name, boolean open, String prefix) {
         this.uuid = uuid;
         this.captain = captain;
         this.name = name;
         this.open = open;
+        this.prefix = prefix;
+        wars = new ArrayList<>();
+        members = new ArrayList<>();
 
         Scoreboard board = Bukkit.getScoreboardManager().getMainScoreboard();
         if (board.getTeam(name) == null) {
             team = board.registerNewTeam(name);
+            updatePrefix();
             addMemberToTeam(captain);
         }
         team = board.getTeam(name);
-        if (team == null) {
-            team = board.registerNewTeam(name);
-        }
         if (!team.hasPlayer(captain)) {
             addMemberToTeam(captain);
         }
-        prefix = Util.getTextContent(team.prefix());
-
-        wars = new ArrayList<>();
-        members = new ArrayList<>();
-        setPrefix(prefix);
     }
 
     public String getName() {
@@ -101,7 +100,7 @@ public class Crew {
 
     public void setCaptain(OfflinePlayer captain) {
         this.captain = captain;
-        CrewHandler.CREW_HANDLER.setSQL(uuid.toString(), Map.of("captain", captain));
+        CrewHandler.CREW_HANDLER.setSQL(uuid.toString(), Map.of("captain", captain.getUniqueId().toString()));
     }
 
     public ArrayList<OfflinePlayer> getMembers() {
@@ -142,16 +141,19 @@ public class Crew {
 
     public void setPrefix(@NotNull String prefix) {
         this.prefix = prefix;
+        CrewHandler.CREW_HANDLER.setSQL(uuid.toString(), Map.of("prefix", prefix));
+        updatePrefix();
+    }
+
+    private void updatePrefix() {
         if (prefix.equals("")) {
             team.prefix(Component.empty());
-            return;
+        } else {
+            team.prefix(Component.text("[")
+                    .append(Component.text(prefix).color(NautilusCommand.ACCENT_COLOR))
+                    .append(Component.text("]"))
+                    .color(NamedTextColor.GRAY));
         }
-
-        team.prefix(Component.text("[")
-                .append(Component.text(prefix).color(NautilusCommand.ACCENT_COLOR))
-                .append(Component.text("]"))
-                .color(NautilusCommand.MAIN_COLOR));
-
         this.members.stream().filter(OfflinePlayer::isOnline).map(OfflinePlayer::getPlayer).
                 forEach(p->Util.updateNameTag(p, p.displayName(), Bukkit.getOnlinePlayers()));
     }
@@ -189,14 +191,18 @@ public class Crew {
         wars.add(war);
     }
     public void removeWar(War war) {
-        wars.remove(war);
+        boolean ended = wars.remove(war);
     }
     public War getWar(Crew other) {
         War out = null;
         for (War war : wars) {
             if (war.equals(new War(this, other))) {
                 out = war;
+
             }
+        }
+        if (out == null) {
+            Bukkit.getLogger().log(Level.WARNING, "No war found with between " + name + " and " + other.getName());
         }
         return out;
     }
@@ -213,13 +219,15 @@ public class Crew {
     }
 
     public Component toComponent() {
-        Component out  = Component.text("Name: ").color(NautilusCommand.MAIN_COLOR)
+        Component out = Component.text("--------------------------------").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR);
+        out = out.appendNewline();
+        out = out.append(Component.text("Name: ").color(NautilusCommand.MAIN_COLOR)
                 .append(Component.text(name).color(NautilusCommand.ACCENT_COLOR))
                 .appendNewline()
                 .append(Component.text("Captain: ").color(NautilusCommand.MAIN_COLOR))
                 .append(Component.text(Util.getName(captain)).color(NautilusCommand.ACCENT_COLOR))
                 .appendNewline()
-                .append(Component.text("Members: ").color(NautilusCommand.MAIN_COLOR));
+                .append(Component.text("Members: ").color(NautilusCommand.MAIN_COLOR)));
         OfflinePlayer member;
         ArrayList<OfflinePlayer> membersNoCaptain = getMembers(false);
         for (int i = 0; i < membersNoCaptain.size(); i++) {
@@ -238,6 +246,8 @@ public class Crew {
         out = out.appendNewline();
         out = out.append(Component.text("Wars: ").color(NautilusCommand.MAIN_COLOR))
                 .append(Component.text(wars.isEmpty() ? "None" : warsToString()).color(NautilusCommand.ACCENT_COLOR));
+        out = out.appendNewline();
+        out = out.append(Component.text("--------------------------------").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
         return out;
     }
 
@@ -284,7 +294,7 @@ public class Crew {
         String out = "";
         for (int i = 0; i < wars.size(); i++) {
             War war = wars.get(i);
-            out += war.getAttacker().equals(this) ? war.getDefender() : war.getAttacker();
+            out += war.getAttacker().equals(this) ? war.getDefender().getName() : war.getAttacker().getName();
             if (i != wars.size() - 1) {
                 out += ", ";
             }
