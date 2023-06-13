@@ -19,26 +19,26 @@ import java.util.logging.Level;
 
 
 public class CrewHandler implements Listener {
-    private static List<Crew> CREWS;
+    private static List<Crew> crews;
     private static List<War> wars;
 
-    public static SQLHandler CREW_HANDLER;
-    public static SQLHandler PLAYER_CREW_HANDLER;
-    public static SQLHandler WAR_HANDLER;
+    public static SQLHandler crewDatabase;
+    public static SQLHandler playerCrewDatabase;
+    public static SQLHandler warDatabase;
 
     public static void init() {
-        CREWS = new ArrayList<>();
+        crews = new ArrayList<>();
         wars = new ArrayList<>();
-        CREW_HANDLER = new SQLHandler("crews") {
+        crewDatabase = new SQLHandler("crews") {
             @Override
             public void updateSQL(ResultSet results) throws SQLException {
                 //Bukkit.getLogger().log(Level.INFO, "Updating \"crews\"");
-                CREWS.clear();
+                crews.clear();
                 while(results.next()) {
                     if (!Arrays.stream(Bukkit.getOfflinePlayers()).toList().contains(Bukkit.getOfflinePlayer(UUID.fromString(results.getString("captain"))))) {
                         continue;
                     }
-                    CREWS.add(new Crew(
+                    crews.add(new Crew(
                             UUID.fromString(results.getString("uuid")),
                             Bukkit.getOfflinePlayer(UUID.fromString(results.getString("captain"))),
                             results.getString("name"),
@@ -48,12 +48,12 @@ public class CrewHandler implements Listener {
             }
         };
 
-        Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, (Runnable) () -> PLAYER_CREW_HANDLER = new SQLHandler("player_crews") {
+        Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, (Runnable) () -> playerCrewDatabase = new SQLHandler("player_crews") {
             @Override
             public void updateSQL(ResultSet results) throws SQLException {
                 //Bukkit.getLogger().log(Level.INFO, "Updating \"player_crews\"");
-                CREWS.forEach(crew -> crew.getMembers().clear());
-                CREWS.forEach(Crew::clearTeam);
+                crews.forEach(crew -> crew.getMembers().clear());
+                crews.forEach(Crew::clearTeam);
                 while (results.next()) {
                     UUID uuid = UUID.fromString(results.getString("uuid"));
 
@@ -71,18 +71,18 @@ public class CrewHandler implements Listener {
                     crew.addMember(player);
                 }
                 //If crews are empty -> delete them
-                List<Crew> emptyCrews =  CREWS.stream().filter(crew -> crew.getMembers().isEmpty()).toList();
+                List<Crew> emptyCrews = crews.stream().filter(crew -> crew.getMembers().isEmpty()).toList();
                 for (Crew crew : emptyCrews) {
                     deleteCrew(crew);
                 }
             }
         },0);
-        Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, (Runnable) () -> WAR_HANDLER = new SQLHandler("wars") {
+        Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> warDatabase = new SQLHandler("wars") {
             @Override
             public void updateSQL(ResultSet results) throws SQLException {
                 //Bukkit.getLogger().log(Level.INFO, "Updating \"wars\"");
                 wars.clear();
-                CREWS.forEach(crew -> crew.getWars().clear());
+                crews.forEach(crew -> crew.getWars().clear());
                 while (results.next()) {
                     UUID uuid = UUID.fromString(results.getString("uuid"));
                     if (getWar(uuid) != null) {
@@ -111,36 +111,38 @@ public class CrewHandler implements Listener {
     }
 
     public static void registerCrew(Crew crew) {
-        CREWS.add(crew);
-        CREW_HANDLER.setSQL(crew.getUuid().toString(), Map.of(
+        crews.add(crew);
+        crewDatabase.setSQL(crew.getUuid().toString(), Map.of(
                 "name", crew.getName(),
                 "captain",crew.getCaptain().getUniqueId().toString(),
                 "open", crew.isOpen(),
                 "prefix", crew.getPrefix()));
-        PLAYER_CREW_HANDLER.setSQL(crew.getCaptain().getUniqueId().toString(), Map.of("crew", crew.getUuid().toString()));
+        playerCrewDatabase.setSQL(crew.getCaptain().getUniqueId().toString(), Map.of("crew", crew.getUuid().toString()));
     }
 
     public static void deleteCrew(Crew crew) {
-        CREWS.remove(crew);
+        crews.remove(crew);
         crew.removeAllMembers();
         List<War> endedWars = crew.getWars();
         endedWars.forEach(CrewHandler::endWar);
 
         crew.deleteTeam();
-        CREW_HANDLER.deleteSQL(crew.getUuid().toString());
+        crewDatabase.deleteSQL(crew.getUuid().toString());
     }
 
     public static List<Crew> getCrews() {
-        return CREWS;
+        return crews;
     }
+
     public static List<War> getWars() {
         return wars;
     }
+
     public static Crew getCrew(OfflinePlayer player) {
         Crew returned = null;
-        for (int i = 0; i < CREWS.size(); i++) {
-            if (CREWS.get(i).containsPlayer(player)) {
-                returned = CREWS.get(i);
+        for (int i = 0; i < crews.size(); i++) {
+            if (crews.get(i).containsPlayer(player)) {
+                returned = crews.get(i);
             }
         }
         return returned;
@@ -148,9 +150,9 @@ public class CrewHandler implements Listener {
 
     public static Crew getCrew(String name) {
         Crew returned = null;
-        for (int i = 0; i < CREWS.size(); i++) {
-            if (CREWS.get(i).getName().equals(name)) {
-                returned = CREWS.get(i);
+        for (int i = 0; i < crews.size(); i++) {
+            if (crews.get(i).getName().equals(name)) {
+                returned = crews.get(i);
             }
         }
         return returned;
@@ -158,7 +160,7 @@ public class CrewHandler implements Listener {
 
     public static Crew getCrew(UUID uuid) {
         Crew returned = null;
-        for (Crew crew : CREWS) {
+        for (Crew crew : crews) {
             if (crew.getUuid().equals(uuid)) {
                 returned = crew;
             }
@@ -170,7 +172,7 @@ public class CrewHandler implements Listener {
         wars.add(war);
         war.getAttacker().addWar(war);
         war.getDefender().addWar(war);
-        WAR_HANDLER.setSQL(war.getUuid().toString(), Map.of(
+        warDatabase.setSQL(war.getUuid().toString(), Map.of(
                 "attacker", war.getAttacker().getUuid().toString(),
                 "defender", war.getDefender().getUuid().toString()
         ));
@@ -180,17 +182,16 @@ public class CrewHandler implements Listener {
         wars.remove(war);
         war.getAttacker().removeWar(war);
         war.getDefender().removeWar(war);
-        WAR_HANDLER.deleteSQL(war.getUuid().toString());
+        warDatabase.deleteSQL(war.getUuid().toString());
     }
 
     public static War getWar(UUID uuid) {
-        War returned = null;
-        for (int i = 0; i < wars.size(); i++) {
-            if (wars.get(i).getUuid().equals(uuid)) {
-                returned = wars.get(i);
+        for (War war : wars) {
+            if (war.getUuid().equals(uuid)) {
+                return war;
             }
         }
-        return returned;
+        return null;
     }
 
     //Updates player perms if crew was deleted or if they were kicked/made captain
@@ -200,12 +201,12 @@ public class CrewHandler implements Listener {
         if (getCrew(player) == null && (player.hasPermission("group.captain") || player.hasPermission("group.crewmember"))) {
             Permission.removeGroup(player, "captain");
             Permission.removeGroup(player, "crewmember");
-            player.sendMessage(Component.text("You are no longer a part of your crew.").color(Command.INFO_COLOR));
+            player.sendMessage(Component.text("You are no longer a part of your crew.", Command.INFO_COLOR));
             return;
         }
         if (getCrew(player).getCaptain().equals(player) && !player.hasPermission("group.captain")) {
             if (Permission.removeGroup(player, "crewmember"))  {
-                player.sendMessage(Component.text("You were promoted to captain of your crew.").color(Command.INFO_COLOR));
+                player.sendMessage(Component.text("You were promoted to captain of your crew.", Command.INFO_COLOR));
             }
             Permission.addGroup(player, "captain");
         }

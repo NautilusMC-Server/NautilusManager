@@ -83,7 +83,7 @@ public class Crew {
 
     public void setName(String name) {
         this.name = name;
-        CrewHandler.CREW_HANDLER.setSQL(uuid.toString(), Map.of("name", name));
+        CrewHandler.crewDatabase.setSQL(uuid.toString(), Map.of("name", name));
     }
 
     public boolean isOpen() {
@@ -92,7 +92,7 @@ public class Crew {
 
     public void setOpen(boolean open) {
         this.open = open;
-        CrewHandler.CREW_HANDLER.setSQL(uuid.toString(), Map.of("open", open));
+        CrewHandler.crewDatabase.setSQL(uuid.toString(), Map.of("open", open));
     }
 
 
@@ -102,7 +102,7 @@ public class Crew {
 
     public void setCaptain(OfflinePlayer captain) {
         this.captain = captain;
-        CrewHandler.CREW_HANDLER.setSQL(uuid.toString(), Map.of("captain", captain.getUniqueId().toString()));
+        CrewHandler.crewDatabase.setSQL(uuid.toString(), Map.of("captain", captain.getUniqueId().toString()));
     }
 
     public ArrayList<OfflinePlayer> getMembers() {
@@ -144,7 +144,7 @@ public class Crew {
 
     public void setPrefix(@NotNull String prefix) {
         this.prefix = prefix;
-        CrewHandler.CREW_HANDLER.setSQL(uuid.toString(), Map.of("prefix", prefix));
+        CrewHandler.crewDatabase.setSQL(uuid.toString(), Map.of("prefix", prefix));
         updatePrefix();
     }
 
@@ -178,18 +178,18 @@ public class Crew {
         if (!team.hasPlayer(player)) {
             addMemberToTeam(player);
         }
-        CrewHandler.PLAYER_CREW_HANDLER.setSQL(player.getUniqueId().toString(), Map.of("crew", uuid.toString()));
+        CrewHandler.playerCrewDatabase.setSQL(player.getUniqueId().toString(), Map.of("crew", uuid.toString()));
     }
 
     public void removeMember(OfflinePlayer player) {
         members.remove(player);
         team.removePlayer(player);
-        CrewHandler.PLAYER_CREW_HANDLER.deleteSQL(player.getUniqueId().toString());
+        CrewHandler.playerCrewDatabase.deleteSQL(player.getUniqueId().toString());
     }
 
     public void removeAllMembers() {
         for (OfflinePlayer player : members) {
-            CrewHandler.PLAYER_CREW_HANDLER.deleteSQL(player.getUniqueId().toString());
+            CrewHandler.playerCrewDatabase.deleteSQL(player.getUniqueId().toString());
         }
         members.clear();
         clearTeam();
