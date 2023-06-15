@@ -19,7 +19,7 @@ commands:
     usage: /formatting [codes|names] [page]
   emoji:
     description: See information about emoji shortcuts.
-    usage: /emoji <list|search> [page|query]
+    usage: /emoji [list|find] [page|query]
   chat:
     description: Toggle between individual chats and global chat.
     usage: /chat <all|player> [name]

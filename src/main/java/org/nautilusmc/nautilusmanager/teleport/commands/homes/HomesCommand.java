@@ -14,14 +14,13 @@ import org.nautilusmc.nautilusmanager.util.Util;
 import java.util.Map;
 
 public class HomesCommand extends Command {
-    public static final ListDisplay<Map.Entry<String, Location>> HOME_LIST_DISPLAY = new ListDisplay<>(
-            "Your Homes",
-            6,
-            null,
-            (home) -> Component.empty()
+    public static final ListDisplay<Map.Entry<String, Location>> HOME_LIST_DISPLAY = new ListDisplay<Map.Entry<String, Location>>("Your Homes", 6)
+            .setFormatter((home) -> Component.text(" - ")
                     .append(Component.text(home.getKey()).color(INFO_ACCENT_COLOR))
-                    .append(Component.text(" (%d, %d, %d)".formatted(home.getValue().getBlockX(), home.getValue().getBlockY(), home.getValue().getBlockZ())))
-    );
+                    .append(Component.text(" (%d, %d, %d)".formatted(home.getValue().getBlockX(), home.getValue().getBlockY(), home.getValue().getBlockZ()))))
+            .setEmptyMessage(Component.text("No homes set. Use ")
+                    .append(Util.clickableCommand("/sethome <name>", false).color(INFO_ACCENT_COLOR))
+                    .append(Component.text(" to create your first home!")));
 
     @Override
     public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
@@ -36,14 +35,10 @@ public class HomesCommand extends Command {
         }
 
         Map<String, Location> homes = Homes.getHomes(player);
-        if (homes == null || homes.isEmpty()) {
-            player.sendMessage(Component.text("  No homes set. Use ").color(INFO_COLOR)
-                    .append(Util.clickableCommand("/sethome <name>", false).color(INFO_ACCENT_COLOR))
-                    .append(Component.text(" to create your first home!")));
-        } else {
-            HOME_LIST_DISPLAY.setList(homes.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList());
-            HOME_LIST_DISPLAY.sendPageTo(args.length >= 1 ? args[0] : null, player);
-        }
+        HOME_LIST_DISPLAY.setList(homes == null ? null : homes.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .toList());
+        player.sendMessage(HOME_LIST_DISPLAY.fetchPageContent(args.length >= 1 ? args[0] : null));
 
         return true;
     }

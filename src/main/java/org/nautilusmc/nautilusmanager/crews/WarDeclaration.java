@@ -3,11 +3,13 @@ package org.nautilusmc.nautilusmanager.crews;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.nautilusmc.nautilusmanager.commands.Command;
+import org.nautilusmc.nautilusmanager.crews.commands.CrewCommand;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.*;
 
 public class WarDeclaration {
+    public static final Component NO_PENDING_WARS_ERROR = Component.text("No pending war declarations!").color(Command.ERROR_COLOR);
     private static final HashMap<Crew, Stack<WarDeclaration>> PENDING = new HashMap<>();
 
     private Crew sender;
@@ -60,11 +62,11 @@ public class WarDeclaration {
 
     public static void accept(Player player) {
         if (CrewHandler.getCrew(player) == null || !CrewHandler.getCrew(player).getCaptain().equals(player)) {
-            player.sendMessage(Command.NOT_CAPTAIN_ERROR);
+            player.sendMessage(CrewCommand.NOT_CAPTAIN_ERROR);
         }
         Crew crew = CrewHandler.getCrew(player);
         if (!PENDING.containsKey(crew)) {
-            player.sendMessage(Command.NO_PENDING_WARS_ERROR);
+            player.sendMessage(NO_PENDING_WARS_ERROR);
             return;
         }
         Stack<WarDeclaration> stack = PENDING.get(crew);
@@ -91,11 +93,11 @@ public class WarDeclaration {
 
     public static void deny(Player player) {
         if (CrewHandler.getCrew(player) == null || !CrewHandler.getCrew(player).getCaptain().equals(player)) {
-            player.sendMessage(Command.NOT_CAPTAIN_ERROR);
+            player.sendMessage(CrewCommand.NOT_CAPTAIN_ERROR);
         }
         Crew crew = CrewHandler.getCrew(player);
         if (!PENDING.containsKey(crew)) {
-            player.sendMessage(Command.NO_PENDING_WARS_ERROR);
+            player.sendMessage(NO_PENDING_WARS_ERROR);
             return;
         }
         Stack<WarDeclaration> stack = PENDING.get(crew);

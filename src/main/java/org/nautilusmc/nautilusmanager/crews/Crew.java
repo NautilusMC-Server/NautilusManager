@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
-import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.util.Util;
 
@@ -105,16 +104,12 @@ public class Crew {
         CrewHandler.crewDatabase.setSQL(uuid.toString(), Map.of("captain", captain.getUniqueId().toString()));
     }
 
-    public ArrayList<OfflinePlayer> getMembers() {
+    public List<OfflinePlayer> getMembers() {
         return members;
     }
 
-    public ArrayList<OfflinePlayer> getMembers(boolean excludeCaptain) {
-        ArrayList<OfflinePlayer> returned = members;
-        if (excludeCaptain) {
-            returned.remove(captain);
-        }
-        return returned;
+    public List<OfflinePlayer> getMembers(boolean excludeCaptain) {
+        return members.stream().filter(member -> !(excludeCaptain && captain.equals(member))).toList();
     }
 
     public ArrayList<War> getWars() {
@@ -229,7 +224,7 @@ public class Crew {
     }
 
     public Component toComponent() {
-        Component out = Component.text("--------------------------------").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR);
+        Component out = Component.text("--------------------------------").color(Command.INFO_COLOR);
         out = out.appendNewline();
         out = out.append(Component.text("Name: "))
                 .append(Component.text(name).color(Command.INFO_ACCENT_COLOR))
@@ -258,7 +253,7 @@ public class Crew {
         out = out.append(Component.text("Wars: ").color(Command.INFO_COLOR))
                 .append(Component.text(wars.isEmpty() ? "None" : warsToString()).color(Command.INFO_ACCENT_COLOR));
         out = out.appendNewline();
-        out = out.append(Component.text("--------------------------------").color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
+        out = out.append(Component.text("--------------------------------").color(Command.INFO_COLOR));
         return out;
     }
 

@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.teleport.TpaManager;
+import org.nautilusmc.nautilusmanager.util.Emoji;
 import org.nautilusmc.nautilusmanager.util.ListDisplay;
 import org.nautilusmc.nautilusmanager.util.Permission;
 import org.nautilusmc.nautilusmanager.util.Util;
@@ -14,12 +15,10 @@ import org.nautilusmc.nautilusmanager.util.Util;
 import java.util.UUID;
 
 public class TpTrustListCommand extends Command {
-    private static final ListDisplay<UUID> TRUST_LIST_DISPLAY = new ListDisplay<>(
-            "Trusted Players",
-            10,
-            null,
-            (uuid) -> Component.text(Util.getName(Bukkit.getOfflinePlayer(uuid)), INFO_ACCENT_COLOR)
-    );
+    private static final ListDisplay<UUID> TRUST_LIST_DISPLAY = new ListDisplay<UUID>("Trusted Players")
+            .setFormatter(uuid -> Component.text(" - ")
+                    .append(Component.text(Util.getName(Bukkit.getOfflinePlayer(uuid)), INFO_ACCENT_COLOR)))
+            .setEmptyMessage(Component.text("You don't trust anyone! " + Emoji.FROWN));
 
     @Override
     public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
@@ -34,7 +33,7 @@ public class TpTrustListCommand extends Command {
         }
 
         TRUST_LIST_DISPLAY.setList(TpaManager.getTrusted(player));
-        TRUST_LIST_DISPLAY.sendPageTo(args.length >= 1 ? args[0] : null, player);
+        player.sendMessage(TRUST_LIST_DISPLAY.fetchPageContent(args.length >= 1 ? args[0] : null));
 
         return true;
     }

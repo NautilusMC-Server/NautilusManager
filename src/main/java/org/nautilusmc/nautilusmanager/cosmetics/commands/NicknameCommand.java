@@ -20,18 +20,15 @@ import java.util.List;
 import java.util.Objects;
 
 public class NicknameCommand extends Command {
-    private static final ListDisplay<OfflinePlayer> NICKNAME_LIST_DISPLAY = new ListDisplay<>(
-            "Nicknames",
-            5,
-            null,
-            (player) -> {
+    private static final ListDisplay<OfflinePlayer> NICKNAME_LIST_DISPLAY = new ListDisplay<OfflinePlayer>("Nicknames")
+            .setFormatter((player) -> {
                 String username = Objects.requireNonNullElse(player.getName(), "(unknown player)");
                 String nickname = Objects.requireNonNullElse(Nickname.getNickname(player), username);
-                return Component.text(username)
+                return Component.text(" - ")
+                        .append(Component.text(username))
                         .append(Component.text(" " + Emoji.RIGHT + " "))
                         .append(player instanceof Player onlinePlayer ? onlinePlayer.displayName() : Component.text(nickname));
-            }
-    );
+            });
 
     @Override
     public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
@@ -48,7 +45,7 @@ public class NicknameCommand extends Command {
                         .sorted(Comparator.comparing(Player::getName))
                         .map(player -> (OfflinePlayer) player) // the compiler is picky about this :(
                         .toList());
-                NICKNAME_LIST_DISPLAY.sendPageTo(args.length < 2 ? null : args[1], sender);
+                sender.sendMessage(NICKNAME_LIST_DISPLAY.fetchPageContent(args.length < 2 ? null : args[1]));
 
             }
             case "nickname" -> {

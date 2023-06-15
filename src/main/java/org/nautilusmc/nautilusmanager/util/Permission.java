@@ -60,13 +60,25 @@ public enum Permission {
         return key;
     }
 
-    public static LuckPerms LUCKPERMS;
+    private static LuckPerms luckPerms;
 
     public static void init() {
         RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
         if (provider != null) {
-            LUCKPERMS = provider.getProvider();
+            luckPerms = provider.getProvider();
         }
+    }
+
+    public static LuckPerms getLuckPerms() {
+        return luckPerms;
+    }
+
+    public static boolean hasGroup(OfflinePlayer player, String group) {
+        return hasGroup(getUser(player), group);
+    }
+
+    public static boolean hasGroup(User user, String group) {
+        return user != null && user.getNodes().contains(InheritanceNode.builder(group).build());
     }
 
     public static void addGroup(OfflinePlayer player, String group) {
@@ -74,7 +86,9 @@ public enum Permission {
         if (user == null) {
             return;
         }
+
         user.data().add(InheritanceNode.builder(group).build());
+
         save(user);
     }
 
@@ -83,10 +97,13 @@ public enum Permission {
         if (user == null) {
             return false;
         }
-        if (!user.getNodes().contains(InheritanceNode.builder(group).build())) {
+
+        if (!hasGroup(user, group)) {
             return false;
         }
+
         user.data().remove(InheritanceNode.builder(group).build());
+
         save(user);
         return true;
     }
@@ -95,10 +112,11 @@ public enum Permission {
         if (player == null) {
             return null;
         }
-        return LUCKPERMS.getUserManager().getUser(player.getUniqueId());
+
+        return luckPerms.getUserManager().getUser(player.getUniqueId());
     }
 
     private static void save(User user) {
-        LUCKPERMS.getUserManager().saveUser(user);
+        luckPerms.getUserManager().saveUser(user);
     }
 }

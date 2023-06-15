@@ -19,28 +19,18 @@ import java.util.List;
 public class FormattingCommand extends Command {
     private static final String EXAMPLE_STRING = "NautilusMC";
 
-    private static final ListDisplay<ChatFormatting> CODES_LIST_DISPLAY = new ListDisplay<>(
-            "Formatting Codes",
-            10,
-            List.of(ChatFormatting.values()),
-            (formatting) -> Component.empty()
-                    .append(Component.text(" - "))
-                    .append(Component.text("`" + formatting.getChar()).color(INFO_ACCENT_COLOR))
+    private static final ListDisplay<ChatFormatting> CODES_LIST_DISPLAY = new ListDisplay<ChatFormatting>("Formatting Codes", 16)
+            .setFormatter(formatting -> Component.text(" - ")
+                    .append(Component.text("`" + formatting.getChar(), INFO_ACCENT_COLOR))
                     .append(Component.text(" " + Emoji.RIGHT + " "))
-                    .append(Util.nmsFormat(Component.text(EXAMPLE_STRING), formatting))
-                    .color(INFO_COLOR)
-    );
-    private static final ListDisplay<ChatFormatting> NAMES_LIST_DISPLAY = new ListDisplay<>(
-            "Formatting Names",
-            10,
-            List.of(ChatFormatting.values()),
-            (formatting) -> Component.empty()
-                    .append(Component.text(" - "))
-                    .append(Component.text("``" + formatting.getName().toLowerCase()).color(INFO_ACCENT_COLOR))
+                    .append(Util.nmsFormat(Component.text(EXAMPLE_STRING), formatting)))
+            .setList(List.of(ChatFormatting.values()));
+    private static final ListDisplay<ChatFormatting> NAMES_LIST_DISPLAY = new ListDisplay<ChatFormatting>("Formatting Names", 16)
+            .setFormatter(formatting -> Component.text(" - ")
+                    .append(Component.text("``" + formatting.getName().toLowerCase(), INFO_ACCENT_COLOR))
                     .append(Component.text(" " + Emoji.RIGHT + " "))
-                    .append(Util.nmsFormat(Component.text(EXAMPLE_STRING), formatting))
-                    .color(INFO_COLOR)
-    );
+                    .append(Util.nmsFormat(Component.text(EXAMPLE_STRING), formatting)))
+            .setList(List.of(ChatFormatting.values()));
 
     @Override
     public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
@@ -49,11 +39,11 @@ public class FormattingCommand extends Command {
             return true;
         }
 
-        if (args.length > 0) {
+        if (args.length >= 1) {
             boolean listNames = args[0].equalsIgnoreCase("names");
-            if (!args[0].equalsIgnoreCase("codes") && !listNames) return false;
+            if (!listNames && !args[0].equalsIgnoreCase("codes")) return false;
 
-            (listNames ? NAMES_LIST_DISPLAY : CODES_LIST_DISPLAY).sendPageTo(args[1], sender);
+            sender.sendMessage((listNames ? NAMES_LIST_DISPLAY : CODES_LIST_DISPLAY).fetchPageContent(args.length >= 2 ? args[1] : null));
 
             return true;
         }

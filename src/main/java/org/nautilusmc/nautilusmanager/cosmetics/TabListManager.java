@@ -39,13 +39,13 @@ public class TabListManager {
                 }
 
                 if (AFKManager.isAFK(player)) {
-                    tabEntry = tabEntry.append(Component.text("AFK").color(NamedTextColor.GRAY)).appendSpace();
+                    tabEntry = tabEntry.append(Component.text("AFK ", NamedTextColor.GRAY));
                 }
 
                 tabEntry = tabEntry.append(player.displayName());
 
                 if (Nickname.getNickname(player) != null) {
-                    tabEntry = tabEntry.appendSpace().append(Component.text("(" + player.getName() + ")").color(NamedTextColor.GRAY));
+                    tabEntry = tabEntry.appendSpace().append(Component.text("(" + player.getName() + ")", NamedTextColor.GRAY));
                 }
 
                 if (player.getGameMode() != GameMode.CREATIVE && player.getGameMode() != GameMode.SPECTATOR) {
@@ -53,8 +53,8 @@ public class TabListManager {
 
                     if (player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
                         // don't show the real health if they are invisible to preserve anonymity
-                        tabEntry = tabEntry.append(Component.text("20").color(INVIS_HEALTH_COLOR)
-                                .append(Component.text(Emoji.HEART.toString()).color(INVIS_HEART_COLOR)));
+                        tabEntry = tabEntry.append(Component.text("20", INVIS_HEALTH_COLOR)
+                                .append(Component.text(Emoji.HEART.toString(), INVIS_HEART_COLOR)));
                     } else {
                         TextColor healthColor = NORMAL_HEALTH_COLOR;
                         TextColor heartColor = NORMAL_HEART_COLOR;
@@ -74,8 +74,9 @@ public class TabListManager {
                         }
 
                         // take the ceiling of the health instead of rounding to more accurately reflect the health bar
-                        tabEntry = tabEntry.append(Component.text(Math.ceil(player.getHealth())).color(healthColor)
-                                .append(Component.text(Emoji.HEART.toString()).color(heartColor)));
+                        // (but still use Math.round() to convert to integer... otherwise decimal shows up sometimes)
+                        tabEntry = tabEntry.append(Component.text(Math.round(Math.ceil(player.getHealth())), healthColor)
+                                .append(Component.text(Emoji.HEART.toString(), heartColor)));
                     }
                 }
 

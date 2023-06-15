@@ -10,6 +10,7 @@ import org.nautilusmc.nautilusmanager.util.Util;
 import java.util.*;
 
 public class Invite {
+    public static final Component NO_PENDING_INVITES_ERROR = Component.text("No pending invites!").color(Command.ERROR_COLOR);
     private OfflinePlayer sender;
     private OfflinePlayer receiver;
 
@@ -64,7 +65,7 @@ public class Invite {
     public static void accept(Player player) {
         UUID uuid = player.getUniqueId();
         if (!PENDING.containsKey(uuid)) {
-            player.sendMessage(Command.NO_PENDING_INVITES_ERROR);
+            player.sendMessage(NO_PENDING_INVITES_ERROR);
             return;
         }
         Stack<Invite> stack =  PENDING.get(uuid);
@@ -89,7 +90,7 @@ public class Invite {
     public static void deny(Player player) {
         UUID uuid = player.getUniqueId();
         if (!PENDING.containsKey(uuid)) {
-            player.sendMessage(Command.NO_PENDING_INVITES_ERROR);
+            player.sendMessage(NO_PENDING_INVITES_ERROR);
             return;
         }
         Stack<Invite> stack =  PENDING.get(uuid);

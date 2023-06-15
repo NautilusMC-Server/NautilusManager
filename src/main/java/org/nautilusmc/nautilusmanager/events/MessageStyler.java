@@ -76,15 +76,11 @@ public class MessageStyler implements Listener {
     }
 
     private static Component replace(Component component, String target, String replace) {
-        if (component instanceof TextComponent text) text.content(text.content().replace(target, replace));
-
-        List<Component> children = component.children();
-        for (int i = 0; i < children.size(); i++) {
-            children.set(i, replace(children.get(i), target, replace));
+        if (component instanceof TextComponent text) {
+            return text.content(text.content().replace(target, replace));
+        } else {
+            return component.children(component.children().stream().map(child -> replace(child, target, replace)).toList());
         }
-        component.children(children);
-
-        return component;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -260,7 +256,7 @@ public class MessageStyler implements Listener {
                 .append(Component.text(" "))
                 .append(displayName)
                 .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
-                .append(formatUserMessage(withChatFormatting, message).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR));
+                .append(formatUserMessage(withChatFormatting, message).color(Command.DEFAULT_COLOR));
 
         recipients.forEach(recipient -> recipient.sendMessage(styledMessage));
         runningMessages.add(styledMessage);

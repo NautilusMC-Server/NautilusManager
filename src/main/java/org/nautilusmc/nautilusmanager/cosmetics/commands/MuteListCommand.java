@@ -14,12 +14,10 @@ import org.nautilusmc.nautilusmanager.util.Util;
 import java.util.UUID;
 
 public class MuteListCommand extends Command {
-    private static final ListDisplay<UUID> MUTED_LIST_DISPLAY = new ListDisplay<>(
-            "Muted Players",
-            10,
-            null,
-            (uuid) -> Component.text(Util.getName(Bukkit.getOfflinePlayer(uuid)), INFO_ACCENT_COLOR)
-    );
+    private static final ListDisplay<UUID> MUTED_LIST_DISPLAY = new ListDisplay<UUID>("Muted Players")
+            .setFormatter(uuid -> Component.text(" - ")
+                    .append(Component.text(Util.getName(Bukkit.getOfflinePlayer(uuid)), INFO_ACCENT_COLOR)))
+            .setEmptyMessage(Component.text("You do not have any players muted."));
 
     @Override
     public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
@@ -34,7 +32,7 @@ public class MuteListCommand extends Command {
         }
 
         MUTED_LIST_DISPLAY.setList(MuteManager.getMuted(player));
-        MUTED_LIST_DISPLAY.sendPageTo(args.length >= 1 ? args[0] : null, player);
+        player.sendMessage(MUTED_LIST_DISPLAY.fetchPageContent(args.length >= 1 ? args[0] : null));
 
         return true;
     }

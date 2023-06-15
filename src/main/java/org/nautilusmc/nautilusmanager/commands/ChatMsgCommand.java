@@ -39,14 +39,15 @@ public class ChatMsgCommand extends Command {
             }
 
             Component styledMessage = Component.empty()
-                    .append(Component.empty()
+                    .append(MessageStyler.getTimeStamp())
+                    .append(Component.space()
                             .append(Component.text("["))
                             .append(Component.text("STAFF").color(TextColor.color(59, 214, 213)))
                             .append(Component.text("] "))
                             .color(TextColor.color(37, 129, 144))
                             .decorate(TextDecoration.BOLD))
                     .append(player.displayName())
-                    .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
+                    .append(Component.text(" » ", TextColor.color(150, 150, 150)))
                     .append(MessageStyler.formatUserMessage(player, Component.text(getMessageFromArgs(args, 1)))
                             .decorate(TextDecoration.BOLD));
 

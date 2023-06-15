@@ -47,7 +47,7 @@ public class CrewHandler implements Listener {
             }
         };
 
-        Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, (Runnable) () -> playerCrewDatabase = new SQLHandler("player_crews") {
+        Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> playerCrewDatabase = new SQLHandler("player_crews") {
             @Override
             public void updateSQL(ResultSet results) throws SQLException {
                 //Bukkit.getLogger().log(Level.INFO, "Updating \"player_crews\"");
@@ -137,34 +137,39 @@ public class CrewHandler implements Listener {
         return wars;
     }
 
+    public static boolean isCrewMember(OfflinePlayer player) {
+        return Permission.hasGroup(player, "crewmember");
+    }
+
+    public static boolean isCaptain(OfflinePlayer player) {
+        return Permission.hasGroup(player, "captain");
+    }
+
     public static Crew getCrew(OfflinePlayer player) {
-        Crew returned = null;
-        for (int i = 0; i < crews.size(); i++) {
-            if (crews.get(i).containsPlayer(player)) {
-                returned = crews.get(i);
+        for (Crew crew : crews) {
+            if (crew.containsPlayer(player)) {
+                return crew;
             }
         }
-        return returned;
+        return null;
     }
 
     public static Crew getCrew(String name) {
-        Crew returned = null;
-        for (int i = 0; i < crews.size(); i++) {
-            if (crews.get(i).getName().equals(name)) {
-                returned = crews.get(i);
+        for (Crew crew : crews) {
+            if (crew.getName().equals(name)) {
+                return crew;
             }
         }
-        return returned;
+        return null;
     }
 
     public static Crew getCrew(UUID uuid) {
-        Crew returned = null;
         for (Crew crew : crews) {
             if (crew.getUuid().equals(uuid)) {
-                returned = crew;
+                return crew;
             }
         }
-        return returned;
+        return null;
     }
 
     public static void registerWar(War war) {
@@ -197,13 +202,13 @@ public class CrewHandler implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (getCrew(player) == null && (player.hasPermission("group.captain") || player.hasPermission("group.crewmember"))) {
+        if (getCrew(player) == null && (isCrewMember(player) || isCaptain(player))) {
             Permission.removeGroup(player, "captain");
             Permission.removeGroup(player, "crewmember");
             player.sendMessage(Component.text("You are no longer a part of your crew.", Command.INFO_COLOR));
             return;
         }
-        if (getCrew(player).getCaptain().equals(player) && !player.hasPermission("group.captain")) {
+        if (getCrew(player).getCaptain().equals(player) && !isCaptain(player)) {
             if (Permission.removeGroup(player, "crewmember"))  {
                 player.sendMessage(Component.text("You were promoted to captain of your crew.", Command.INFO_COLOR));
             }

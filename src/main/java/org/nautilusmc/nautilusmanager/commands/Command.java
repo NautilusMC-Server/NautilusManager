@@ -17,26 +17,19 @@ import java.util.Arrays;
 import java.util.List;
 
 public abstract class Command implements CommandExecutor, TabCompleter {
+    public static final TextColor DEFAULT_COLOR = TextColor.color(200, 200, 200);
     public static final TextColor INFO_COLOR = TextColor.color(255, 188, 0);
     public static final TextColor INFO_ACCENT_COLOR = TextColor.color(255, 252, 162);
     public static final TextColor ERROR_COLOR = TextColor.color(255, 42, 52);
     public static final TextColor ERROR_ACCENT_COLOR = TextColor.color(255, 123, 130);
 
-    public static final Component NO_PERMISSION_ERROR = Component.text("You do not have permission to use that command!").color(ERROR_COLOR);
     public static final Component NOT_PLAYER_ERROR = Component.text("You must be a player to use that command!").color(ERROR_COLOR);
+    public static final Component NO_PERMISSION_ERROR = Component.text("You do not have permission to use that command!").color(ERROR_COLOR);
     public static final Component NOT_SPONSOR_ERROR = Component.text("Become a sponsor to unlock that command! (")
             .append(Util.clickableCommand("/sponsor", true).color(ERROR_ACCENT_COLOR))
             .append(Component.text(")"))
             .color(ERROR_COLOR);
     public static final Component INVALID_PLAYER_ERROR = Component.text("Player not found!").color(ERROR_COLOR);
-    public static final Component NO_PENDING_WARS_ERROR = Component.text("No pending war declarations!").color(ERROR_COLOR);
-    public static final Component NO_PENDING_INVITES_ERROR = Component.text("No pending invites!").color(ERROR_COLOR);
-    public static final Component ALREADY_IN_CREW_ERROR = Component.text("You are already in a crew!").color(ERROR_COLOR);
-    public static final Component NOT_IN_CREW_ERROR = Component.text("You must be part of a crew to use this command!").color(ERROR_COLOR);
-    public static final Component NOT_CAPTAIN_ERROR = Component.text("You must be a captain to use this command!").color(ERROR_COLOR);
-    public static final Component NO_OUTGOING_TP_REQUEST_ERROR = Component.text("You don't have an outgoing request!").color(ERROR_COLOR);
-    public static final Component PENDING_TP_REQUEST_ERROR = Component.text("You already have a pending request!").color(ERROR_COLOR);
-    public static final Component NO_PENDING_TP_REQUEST_ERROR = Component.text("No pending request found!").color(ERROR_COLOR);
 
     protected static String getMessageFromArgs(String[] args, int start) {
         return start >= args.length ? "" : String.join(" ", Arrays.copyOfRange(args, start, args.length));
@@ -54,6 +47,12 @@ public abstract class Command implements CommandExecutor, TabCompleter {
         return Arrays.stream(Bukkit.getOfflinePlayers()).map(Util::getName).toList();
     }
 
+    public abstract boolean execute(@NotNull CommandSender sender, @NotNull String[] args);
+
+    public @Nullable List<String> suggestionList(@NotNull CommandSender sender, @NotNull String[] args) {
+        return new ArrayList<>();
+    }
+
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command command, @NotNull String alias, @NotNull String[] args) {
         // TODO: handle some stuff automatically, e.g. permissions?
@@ -66,11 +65,5 @@ public abstract class Command implements CommandExecutor, TabCompleter {
         return out == null ? null : out.stream()
                 .filter(str -> StringUtil.startsWithIgnoreCase(str, args[args.length - 1]))
                 .toList();
-    }
-
-    public abstract boolean execute(@NotNull CommandSender sender, @NotNull String[] args);
-
-    public @Nullable List<String> suggestionList(@NotNull CommandSender sender, @NotNull String[] args) {
-        return new ArrayList<>();
     }
 }

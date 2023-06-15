@@ -1,6 +1,5 @@
 package org.nautilusmc.nautilusmanager;
 
-import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.nautilusmc.nautilusmanager.commands.*;
@@ -26,8 +25,6 @@ import org.nautilusmc.nautilusmanager.util.Permission;
 public final class NautilusManager extends JavaPlugin {
 
     public static NautilusManager INSTANCE;
-
-    public static final TextColor DEFAULT_CHAT_TEXT_COLOR = TextColor.color(200, 200, 200);
 
     @Override
     public void onEnable() {
@@ -56,6 +53,7 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("cosmetics").setExecutor(new CosmeticsCommand());
         this.getCommand("nickname").setExecutor(new NicknameCommand());
         this.getCommand("formatting").setExecutor(new FormattingCommand());
+        this.getCommand("emoji").setExecutor(new EmojiCommand());
         this.getCommand("msg").setExecutor(new MsgCommand());
         this.getCommand("chat").setExecutor(new ChatCommand());
         this.getCommand("reply").setExecutor(new ReplyCommand());

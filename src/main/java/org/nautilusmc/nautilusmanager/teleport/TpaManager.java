@@ -14,6 +14,10 @@ import org.nautilusmc.nautilusmanager.util.Util;
 import java.util.*;
 
 public class TpaManager implements Listener {
+    public static final Component NO_OUTGOING_TP_REQUEST_ERROR = Component.text("You don't have an outgoing request!").color(Command.ERROR_COLOR);
+    public static final Component PENDING_TP_REQUEST_ERROR = Component.text("You already have a pending request!").color(Command.ERROR_COLOR);
+    public static final Component NO_PENDING_TP_REQUEST_ERROR = Component.text("No pending request found!").color(Command.ERROR_COLOR);
+
     public enum TeleportRequest {
         REQUESTER_TO_RECIPIENT("to teleport to you"),
         RECIPIENT_TO_REQUESTER("that you teleport to them");
@@ -63,7 +67,7 @@ public class TpaManager implements Listener {
 
     public static void tpRequest(Player requester, Player recipient, TeleportRequest request) {
         if (REQUESTS.containsKey(requester.getUniqueId())) {
-            requester.sendMessage(Command.PENDING_TP_REQUEST_ERROR);
+            requester.sendMessage(PENDING_TP_REQUEST_ERROR);
             return;
         }
 
@@ -127,7 +131,7 @@ public class TpaManager implements Listener {
         Player requester;
         if (requesterName == null) {
             if (!LAST_REQUESTS.containsKey(recipient.getUniqueId())) {
-                recipient.sendMessage(Command.NO_PENDING_TP_REQUEST_ERROR);
+                recipient.sendMessage(NO_PENDING_TP_REQUEST_ERROR);
                 return null;
             }
 
@@ -142,7 +146,7 @@ public class TpaManager implements Listener {
         }
 
         if (!recipient.getUniqueId().equals(outgoingRequest(requester))) {
-            recipient.sendMessage(Command.NO_PENDING_TP_REQUEST_ERROR);
+            recipient.sendMessage(NO_PENDING_TP_REQUEST_ERROR);
             return null;
         }
 
@@ -214,7 +218,7 @@ public class TpaManager implements Listener {
     public static void cancelRequest(Player requester) {
         UUID recipientID = outgoingRequest(requester);
         if (recipientID == null) {
-            requester.sendMessage(Command.NO_OUTGOING_TP_REQUEST_ERROR);
+            requester.sendMessage(NO_OUTGOING_TP_REQUEST_ERROR);
             return;
         }
         Player recipient = Bukkit.getPlayer(recipientID);
