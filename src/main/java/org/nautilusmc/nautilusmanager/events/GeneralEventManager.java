@@ -158,7 +158,8 @@ public class GeneralEventManager implements Listener {
     @EventHandler
     public void onPlayerInteractWithChair(PlayerInteractEvent e) {
         if (e.getClickedBlock() != null && e.getAction() == Action.RIGHT_CLICK_BLOCK && Objects.equals(e.getHand(), EquipmentSlot.HAND) &&
-                e.getPlayer().getInventory().getItemInMainHand().getType().equals(Material.AIR) && isValidChair(e.getClickedBlock())) {
+                e.getPlayer().getInventory().getItemInMainHand().getType().equals(Material.AIR) && isValidChair(e.getClickedBlock()) &&
+                !(e.getPlayer().getVehicle() instanceof Egg)) {
             Location seatLocation = e.getClickedBlock().getLocation().add(0.5, 0.1, 0.5);
             if (!seatLocation.getNearbyEntitiesByType(Egg.class, 0.2, 0.2, 0.2).isEmpty()) {
                 return;
@@ -169,11 +170,6 @@ public class GeneralEventManager implements Listener {
                         egg.setGravity(false);
                         egg.setInvulnerable(true);
                     });
-            if (e.getPlayer().getVehicle() instanceof Egg currentSeat) {
-                enableChairDismountEvent = false;
-                currentSeat.remove();
-                enableChairDismountEvent = true;
-            }
             seat.addPassenger(e.getPlayer());
         }
     }

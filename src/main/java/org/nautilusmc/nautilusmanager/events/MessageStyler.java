@@ -1,11 +1,12 @@
 package org.nautilusmc.nautilusmanager.events;
 
+import com.deepl.api.DeepLException;
+import com.deepl.api.TextResult;
+import com.deepl.api.Translator;
 import com.google.common.collect.EvictingQueue;
 import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.event.player.AsyncChatEvent;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.*;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.TextColor;
@@ -56,6 +57,9 @@ public class MessageStyler implements Listener {
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
     public static EvictingQueue<Component> runningMessages = EvictingQueue.create(50);
+    public static HashMap<Player, String> languages = new HashMap<>(); //player, language code
+
+    public static Translator translator = new Translator("4e426403-9add-46cc-5fba-daa5bc78e602:fx");
 
     private static TranslatableComponent styleMessage(TranslatableComponent message) {
         List<Component> args = new ArrayList<>(message.args());
@@ -204,6 +208,8 @@ public class MessageStyler implements Listener {
                 .append(Component.text("! ").color(TextColor.color(170, 170, 170)))
                 .append(obfuscation);
         Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> e.getPlayer().sendMessage(welcomeMessage), 1);
+
+        languages.put(e.getPlayer(), "en-US");
     }
 
     @EventHandler
@@ -216,6 +222,7 @@ public class MessageStyler implements Listener {
                 .append(e.getPlayer().displayName()));
 
         runningMessages.add(e.quitMessage());
+        languages.remove(e.getPlayer());
     }
 
     @EventHandler
@@ -247,19 +254,39 @@ public class MessageStyler implements Listener {
                 player.hasPermission(Permission.USE_CHAT_FORMATTING.toString()),
                 message,
                 Bukkit.getOnlinePlayers().stream().filter(p -> !MuteManager.isMuted(p, player)).toList()
-        );
+        ,
+                player);
     }
 
-    public static void sendMessageAsUser(Component displayName, boolean withChatFormatting, Component message, Collection<? extends Player> recipients) {
-        Component styledMessage = Component.empty()
+    public static void sendMessageAsUser(Component displayName, boolean withChatFormatting, Component message, Collection<? extends Player> recipients, Player ... sender) {
+        HashMap<String, Component> translations = new HashMap<>(); //language code, translated message
+
+        if(sender != null && !languages.get(sender[0]).equalsIgnoreCase("en-US")) { //if sender is not using English
+            translations.put("en-US", compileUserMessage(translate(Util.getTextContent(message), "en-US"), displayName, withChatFormatting));
+        }
+        else translations.put("en-US", compileUserMessage(Util.getTextContent(message), displayName, withChatFormatting));
+
+        for(Player p : recipients) {
+            String code = languages.get(p);
+            if(code.equalsIgnoreCase("en")) return; //already translated or in English
+            if(translations.containsKey(code)) return; //already translated
+            translations.put(code, compileUserMessage(translate(Util.getTextContent(message), code), displayName, withChatFormatting));
+        }
+        Bukkit.getLogger().info(Util.getTextContent(translations.get("en")));
+
+        recipients.forEach(r->r.sendMessage(translations.get(languages.get(r))));
+        runningMessages.add(translations.get("en-US"));
+    }
+
+    public static Component compileUserMessage(String message, Component displayName, boolean withChatFormatting) {
+
+        return Component.empty()
                 .append(getTimeStamp())
                 .append(Component.text(" "))
                 .append(displayName)
                 .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
-                .append(formatUserMessage(withChatFormatting, message).color(Command.DEFAULT_COLOR));
-
-        recipients.forEach(recipient -> recipient.sendMessage(styledMessage));
-        runningMessages.add(styledMessage);
+                .append(formatUserMessage(withChatFormatting, Component.text(message)).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR))
+                .clickEvent(ClickEvent.copyToClipboard(message));
     }
 
     public static Component formatUserMessage(CommandSender player, Component message) {
@@ -335,6 +362,21 @@ public class MessageStyler implements Listener {
 
         children.addAll(0, linkChildren);
         return component.children(children);
+    }
+
+    public static void setLanguage(Player player, String code) {
+        languages.put(player, code);
+    }
+
+    public static String translate(String message, String to) {
+        TextResult result;
+        try {
+            result = translator.translateText(message, null, to);
+        } catch (DeepLException | InterruptedException e) {
+            e.printStackTrace();
+            return message;
+        }
+        return result.getText();
     }
 
     public static Component getTimeStamp() {
