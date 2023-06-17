@@ -246,54 +246,60 @@ public class MessageStyler implements Listener {
         sendMessageAsUser(e.getPlayer(), e.message());
     }
 
-    public static void sendMessageAsUser(Player player, Component message) {
-        DiscordBot.onMessage(player, message);
+    public static void sendMessageAsUser(Player sender, Component message) {
+        DiscordBot.onMessage(sender, message);
 
-        sendMessageAsUser(
-                player.displayName(),
-                player.hasPermission(Permission.USE_CHAT_FORMATTING.toString()),
-                message,
-                Bukkit.getOnlinePlayers().stream().filter(p -> !MuteManager.isMuted(p, player)).toList()
-        ,
-                player);
+        sendMessageAsUser(sender, message, Bukkit.getOnlinePlayers().stream()
+                        .filter(recipient -> !MuteManager.isMuted(recipient, sender))
+                        .toList());
     }
 
-    public static void sendMessageAsUser(Component displayName, boolean withChatFormatting, Component message, Collection<? extends Player> recipients, Player ... sender) {
-        HashMap<String, Component> translations = new HashMap<>(); //language code, translated message
+    public static void sendMessageAsUser(Player sender, Component message, Collection<? extends Player> recipients) {
+        sendMessageAsUser(sender.displayName(), sender.hasPermission(Permission.USE_CHAT_FORMATTING.toString()), message, recipients, languages.get(sender));
+    }
 
-        if(sender != null && !languages.get(sender[0]).equalsIgnoreCase("en-US")) { //if sender is not using English
-            translations.put("en-US", compileUserMessage(translate(Util.getTextContent(message), "en-US"), displayName, withChatFormatting));
-        }
-        else translations.put("en-US", compileUserMessage(Util.getTextContent(message), displayName, withChatFormatting));
+    public static void sendMessageAsUser(Component senderName, boolean applyFormatting, Component message, Collection<? extends Player> recipients) {
+        sendMessageAsUser(senderName, applyFormatting, message, recipients, null);
+    }
 
-        for(Player p : recipients) {
-            String code = languages.get(p);
-            if(code.equalsIgnoreCase("en")) return; //already translated or in English
-            if(translations.containsKey(code)) return; //already translated
-            translations.put(code, compileUserMessage(translate(Util.getTextContent(message), code), displayName, withChatFormatting));
+    public static void sendMessageAsUser(Component senderName, boolean applyFormatting, Component message, Collection<? extends Player> recipients, String language) {
+        // language : translated message
+        HashMap<String, Component> translations = new HashMap<>();
+
+        if (language != null && !language.equalsIgnoreCase("en-US")) {
+            translations.put("en-US", compileUserMessage(senderName, translate(Util.getTextContent(message), "en-US"), applyFormatting));
+        } else {
+            translations.put("en-US", compileUserMessage(senderName, Util.getTextContent(message), applyFormatting));
         }
+
+        for (Player recipient : recipients) {
+            String recipientLanguage = languages.get(recipient);
+            if (recipientLanguage.equalsIgnoreCase("en")) continue; // already translated or in English
+            if (translations.containsKey(recipientLanguage)) continue; // already translated
+            // FIXME: i am certain this won't work with formatting codes
+            translations.put(recipientLanguage, compileUserMessage(senderName, translate(Util.getTextContent(message), recipientLanguage), applyFormatting));
+        }
+
         Bukkit.getLogger().info(Util.getTextContent(translations.get("en")));
-
-        recipients.forEach(r->r.sendMessage(translations.get(languages.get(r))));
+        recipients.forEach(recipient -> recipient.sendMessage(translations.get(languages.get(recipient))));
         runningMessages.add(translations.get("en-US"));
     }
 
-    public static Component compileUserMessage(String message, Component displayName, boolean withChatFormatting) {
-
+    public static Component compileUserMessage(Component displayName, String message, boolean applyFormatting) {
         return Component.empty()
                 .append(getTimeStamp())
-                .append(Component.text(" "))
+                .appendSpace()
                 .append(displayName)
-                .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
-                .append(formatUserMessage(withChatFormatting, Component.text(message)).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR))
+                .append(Component.text(" » ", TextColor.color(150, 150, 150)))
+                .append(formatUserMessage(Component.text(message), applyFormatting).colorIfAbsent(Command.DEFAULT_COLOR))
                 .clickEvent(ClickEvent.copyToClipboard(message));
     }
 
-    public static Component formatUserMessage(CommandSender player, Component message) {
-        return formatUserMessage(player.hasPermission(Permission.USE_CHAT_FORMATTING.toString()), message);
+    public static Component formatUserMessage(CommandSender sender, Component message) {
+        return formatUserMessage(message, sender.hasPermission(Permission.USE_CHAT_FORMATTING.toString()));
     }
 
-    public static Component formatUserMessage(boolean withChatFormatting, Component message) {
+    public static Component formatUserMessage(Component message, boolean withChatFormatting) {
         // convert emojis
         message = Component.text(Emoji.parseText(Util.getTextContent(message)));
         // apply formatting tags
@@ -364,8 +370,12 @@ public class MessageStyler implements Listener {
         return component.children(children);
     }
 
-    public static void setLanguage(Player player, String code) {
-        languages.put(player, code);
+    public static String getLanguage(Player player) {
+        return languages.get(player);
+    }
+
+    public static void setLanguage(Player player, String key) {
+        languages.put(player, key);
     }
 
     public static String translate(String message, String to) {

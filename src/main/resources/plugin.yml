@@ -147,11 +147,11 @@ commands:
     description: Pardon a previously banned player. (Staff only)
     usage: /pardon <player>
   timetop:
-    description: Gets a leaderboard of server playtime
-    usage: /timetop
+    description: View the server playtime leaderboard.
+    usage: /timetop [page]
   traveltop:
-    description: Gets a leaderboard of distance traveled
-    usage: /traveltop
+    description: View the distance traveled leaderboard.
+    usage: /traveltop [page]
   language:
-    description: Allows users to set their language
-    usage: /language [language code]
+    description: Get/set your language of choice.
+    usage: /language [language]

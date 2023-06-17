@@ -21,6 +21,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.crews.Crew;
 
@@ -145,7 +146,21 @@ public class Util {
                 "yaw", loc.getYaw());
     }
 
-    public static <T> void sendListDisplay(Player player, String title, int page, List<T> list, Function<T, Component> formatter) {
+    public static final int TICKS_PER_SECOND = 20;
+    public static final int SECONDS_PER_MINUTE = 60;
+    public static final int MINUTES_PER_HOUR = 60;
 
+    public record TimeAmount(int ticks) implements Comparable<TimeAmount> {
+        @Override
+        public int compareTo(@NotNull Util.TimeAmount other) {
+            return Integer.compare(ticks, other.ticks);
+        }
+
+        public String toHoursMinutes() {
+            int minutes = ticks / (TICKS_PER_SECOND * SECONDS_PER_MINUTE);
+            int hours = minutes / MINUTES_PER_HOUR;
+            minutes %= MINUTES_PER_HOUR;
+            return "%dh %dm".formatted(hours, minutes);
+        }
     }
 }

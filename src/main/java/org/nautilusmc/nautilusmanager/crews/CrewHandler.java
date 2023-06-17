@@ -198,17 +198,18 @@ public class CrewHandler implements Listener {
         return null;
     }
 
-    //Updates player perms if crew was deleted or if they were kicked/made captain
+    // Updates player perms if crew was deleted or if they were kicked/made captain
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (getCrew(player) == null && (isCrewMember(player) || isCaptain(player))) {
+        Crew crew = getCrew(player);
+
+        if (crew == null && (isCrewMember(player) || isCaptain(player))) {
             Permission.removeGroup(player, "captain");
             Permission.removeGroup(player, "crewmember");
             player.sendMessage(Component.text("You are no longer a part of your crew.", Command.INFO_COLOR));
-            return;
         }
-        if (getCrew(player).getCaptain().equals(player) && !isCaptain(player)) {
+        else if (crew != null && crew.getCaptain().equals(player) && !isCaptain(player)) {
             if (Permission.removeGroup(player, "crewmember"))  {
                 player.sendMessage(Component.text("You were promoted to captain of your crew.", Command.INFO_COLOR));
             }

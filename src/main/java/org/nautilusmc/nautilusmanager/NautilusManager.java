@@ -90,8 +90,8 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("toggleinvisible").setExecutor(new ToggleInvisibleCommand());
         this.getCommand("mute").setExecutor(new MuteCommand());
         this.getCommand("mutelist").setExecutor(new MuteListCommand());
-        this.getCommand("timetop").setExecutor(new TimetopCommand());
-        this.getCommand("traveltop").setExecutor(new TraveltopCommand());
+        this.getCommand("timetop").setExecutor(new TimeTopCommand());
+        this.getCommand("traveltop").setExecutor(new TravelTopCommand());
         this.getCommand("language").setExecutor(new LanguageCommand());
 
         this.getCommand("ban").setExecutor(new BanCommand());

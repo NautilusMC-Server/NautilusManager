@@ -1,8 +1,6 @@
 package org.nautilusmc.nautilusmanager.discord;
 
 import com.deepl.api.DeepLException;
-import io.papermc.paper.adventure.PaperAdventure;
-import io.papermc.paper.event.player.AsyncChatEvent;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -380,7 +378,7 @@ public class DiscordBot implements Listener {
 
             // TODO: maybe have a way for ppl to block discord users too but for now just send to all players
             MessageStyler.sendMessageAsUser(displayName, hasPermission, bukkitMessage, Bukkit.getOnlinePlayers());
-            e.getMessage().delete().queue(ignore->sendMinecraftMsgInDiscord(displayName, bukkitMessage));
+            e.getMessage().delete().queue(ignored -> sendMinecraftMsgInDiscord(displayName, bukkitMessage));
         }
     }
 
