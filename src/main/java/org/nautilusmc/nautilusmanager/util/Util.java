@@ -22,14 +22,14 @@ import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
+import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
-import org.nautilusmc.nautilusmanager.crews.Crew;
 
 import java.util.*;
-import java.util.function.Function;
 
 public class Util {
-    public static String getTextContent(Component component) {
+    public static @NotNull String getTextContent(@NotNull Component component) {
+        Objects.requireNonNull(component, "Util.getTextContent() encountered a null component!");
         StringBuilder out = new StringBuilder();
 
         if (component instanceof TextComponent text) {
@@ -47,9 +47,8 @@ public class Util {
     }
 
     public static Player getOnlinePlayer(String nickname) {
-        OfflinePlayer p = getOfflinePlayerIfCachedByNick(nickname);
-
-        return p != null && p.isOnline() ? p.getPlayer() : null;
+        OfflinePlayer player = getOfflinePlayerIfCachedByNick(nickname);
+        return player == null ? null : player.getPlayer();
     }
 
     public static String getName(OfflinePlayer player) {
@@ -122,14 +121,13 @@ public class Util {
     public static OfflinePlayer getOfflinePlayerIfCached(String name) {
         if (name == null) return null;
         return Arrays.stream(Bukkit.getOfflinePlayers())
-                .filter(p -> name.equalsIgnoreCase(p.getName())).findFirst().orElse(null);
+                .filter(p -> name.equalsIgnoreCase(p.getName()))
+                .findFirst().orElse(null);
     }
 
     public static OfflinePlayer getOfflinePlayerIfCachedByNick(String name) {
-        OfflinePlayer p = Nickname.getPlayerFromNickname(name);
-        if (p == null) p = getOfflinePlayerIfCached(name);
-
-        return p;
+        OfflinePlayer player = Nickname.getPlayerFromNickname(name);
+        return player == null ? getOfflinePlayerIfCached(name) : player;
     }
 
     public static Component toggleDecoration(Component component, TextDecoration decoration) {
@@ -143,7 +141,8 @@ public class Util {
                 "y", loc.getY(),
                 "z", loc.getZ(),
                 "pitch", loc.getPitch(),
-                "yaw", loc.getYaw());
+                "yaw", loc.getYaw()
+        );
     }
 
     public static final int TICKS_PER_SECOND = 20;

@@ -90,7 +90,7 @@ public class CosmeticsCommand extends Command {
         }
 
 
-        return Component.text(out.toString()).color(TextColor.color(186, 186, 186));
+        return Component.text(out.toString(), INFO_COLOR);
     }
 
     private void setCosmetic(CommandSender sender, String[] strings) {
@@ -105,7 +105,10 @@ public class CosmeticsCommand extends Command {
 
         Optional<FancyText.ColorType> colorType = Optional.empty();
         if (playerIndex != -1 && strings.length > 2 && strings[1].equalsIgnoreCase("color")) {
-            if ((colorType = Arrays.stream(FancyText.ColorType.values()).filter(t->t.name().equalsIgnoreCase(strings[2])).findFirst()).isEmpty()) {
+            if ((colorType = Arrays.stream(FancyText.ColorType.values())
+                    .filter(t -> t.name().equalsIgnoreCase(strings[2]))
+                    .findFirst())
+                    .isEmpty()) {
                 sender.sendMessage(getUsageMessage(strings));
                 return;
             }
@@ -114,19 +117,19 @@ public class CosmeticsCommand extends Command {
 
         if (playerIndex != -1 && strings.length >= playerIndex) {
             if (!sender.hasPermission(Permission.MODIFY_OTHER_PLAYERS.toString())) {
-                sender.sendMessage(Command.NO_PERMISSION_ERROR);
+                sender.sendMessage(NO_PERMISSION_ERROR);
                 return;
             }
 
-            if ((player = Bukkit.getPlayerExact(strings[playerIndex - 1])) == null) {
-                sender.sendMessage(Command.INVALID_PLAYER_ERROR);
+            if ((player = Bukkit.getPlayer(strings[playerIndex - 1])) == null) {
+                sender.sendMessage(INVALID_PLAYER_ERROR);
                 return;
             }
         }
 
         if (player == null) {
             if (!(sender instanceof Player)) {
-                sender.sendMessage(Command.NOT_PLAYER_ERROR);
+                sender.sendMessage(NOT_PLAYER_ERROR);
                 return;
             }
             player = (Player) sender;
@@ -154,7 +157,7 @@ public class CosmeticsCommand extends Command {
                 return;
             }
 
-            NameColor.setNameColor(player, colorType.get(), true, Arrays.stream(colors).map(c->TextColor.color(c.getValue())).toArray(TextColor[]::new));
+            NameColor.setNameColor(player, colorType.get(), true, Arrays.stream(colors).map(c -> TextColor.color(c.getValue())).toArray(TextColor[]::new));
 
             return;
         } else if (strings[1].equalsIgnoreCase("nickname")) {
@@ -196,7 +199,7 @@ public class CosmeticsCommand extends Command {
                     return;
                 }
 
-                if ((player = Bukkit.getPlayerExact(strings[2])) == null) {
+                if ((player = Bukkit.getPlayer(strings[2])) == null) {
                     sender.sendMessage(Command.INVALID_PLAYER_ERROR);
                     return;
                 }
@@ -235,12 +238,14 @@ public class CosmeticsCommand extends Command {
                 out.addAll(SETTINGS_ARG_COUNTS.keySet());
             }
         } else if (args.length == 3) {
-            if (args[0].equalsIgnoreCase("set")) {
-                if (args[1].equalsIgnoreCase("color")) {
-                    for (FancyText.ColorType type : FancyText.ColorType.values()) {
-                        if (type.hasAccess(sender) == null) out.add(type.name().toLowerCase());
-                    }
+            if (args[0].equalsIgnoreCase("set") && args[1].equalsIgnoreCase("color")) {
+                for (FancyText.ColorType type : FancyText.ColorType.values()) {
+                    if (type.hasAccess(sender) == null) out.add(type.name().toLowerCase());
                 }
+                out.addAll(Arrays.stream(FancyText.ColorType.values())
+                        .filter(type -> type.hasAccess(sender) == null)
+                        .map(type -> type.name().toLowerCase())
+                        .toList());
             }
         }
 
@@ -248,17 +253,23 @@ public class CosmeticsCommand extends Command {
 
         Optional<FancyText.ColorType> type;
         if (idx >= 0 && args.length > 2 && args[1].equalsIgnoreCase("color") &&
-                (type = Arrays.stream(FancyText.ColorType.values()).filter(t -> t.name().equalsIgnoreCase(args[2])).findFirst()).isPresent()) {
+                (type = Arrays.stream(FancyText.ColorType.values())
+                        .filter(t -> t.name().equalsIgnoreCase(args[2]))
+                        .findFirst())
+                        .isPresent()) {
             idx += type.get().numColors - 1;
             if (args.length - 3 <= type.get().numColors) {
-                out.addAll(Arrays.stream(ChatFormatting.values()).filter(ChatFormatting::isColor).map(ChatFormatting::getName).toList());
-                out.add("#FFFFFF");
+                out.addAll(Arrays.stream(ChatFormatting.values())
+                        .filter(ChatFormatting::isColor)
+                        .map(ChatFormatting::getName)
+                        .toList());
+                out.add("#ffffff");
             }
         }
 
         if (idx >= 0 && (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("clear")) && args.length == idx &&
                 sender.hasPermission(Permission.MODIFY_OTHER_PLAYERS.toString())) {
-            out.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
+            out.addAll(getOnlineNames());
         }
 
         return out;

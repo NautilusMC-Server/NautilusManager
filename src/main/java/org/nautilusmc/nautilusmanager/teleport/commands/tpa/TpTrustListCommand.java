@@ -16,7 +16,7 @@ import java.util.UUID;
 
 public class TpTrustListCommand extends Command {
     private static final ListDisplay<UUID> TRUST_LIST_DISPLAY = new ListDisplay<UUID>("Trusted Players")
-            .setFormatter(uuid -> Component.text(" - ")
+            .setFormatter(uuid -> Component.empty()
                     .append(Component.text(Util.getName(Bukkit.getOfflinePlayer(uuid)), INFO_ACCENT_COLOR)))
             .setEmptyMessage(Component.text("You don't trust anyone! " + Emoji.FROWN));
 

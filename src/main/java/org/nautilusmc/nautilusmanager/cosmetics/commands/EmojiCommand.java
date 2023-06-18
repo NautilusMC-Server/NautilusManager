@@ -13,7 +13,7 @@ import java.util.List;
 
 public class EmojiCommand extends Command {
     private static final ListDisplay<Emoji> EMOJI_LIST_DISPLAY = new ListDisplay<Emoji>("All Emojis", 12)
-            .setFormatter(emoji -> Component.text(" - ")
+            .setFormatter(emoji -> Component.empty()
                     .append(Component.text(emoji.toString(), INFO_ACCENT_COLOR))
                     .append(Component.text(" | :" + emoji.name().toLowerCase() + ":")))
             .setList(List.of(Emoji.values()));

@@ -24,7 +24,7 @@ public class NicknameCommand extends Command {
             .setFormatter((player) -> {
                 String username = Objects.requireNonNullElse(player.getName(), "(unknown player)");
                 String nickname = Objects.requireNonNullElse(Nickname.getNickname(player), username);
-                return Component.text(" - ")
+                return Component.empty()
                         .append(Component.text(username))
                         .append(Component.text(" " + Emoji.RIGHT + " "))
                         .append(player instanceof Player onlinePlayer ? onlinePlayer.displayName() : Component.text(nickname));

@@ -15,7 +15,7 @@ import java.util.UUID;
 
 public class MuteListCommand extends Command {
     private static final ListDisplay<UUID> MUTED_LIST_DISPLAY = new ListDisplay<UUID>("Muted Players")
-            .setFormatter(uuid -> Component.text(" - ")
+            .setFormatter(uuid -> Component.empty()
                     .append(Component.text(Util.getName(Bukkit.getOfflinePlayer(uuid)), INFO_ACCENT_COLOR)))
             .setEmptyMessage(Component.text("You do not have any players muted."));
 

@@ -33,7 +33,6 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class CosmeticsMenu {
-
     private static GuiPage getSelectPage(Consumer<InventoryClickEvent> action) {
         BasicGuiPage page = new BasicGuiPage().setSize(5)
                 .setName("Select Color")
@@ -81,7 +80,7 @@ public class CosmeticsMenu {
     }
 
     private static GuiPage selectColorsMenu(FancyText.ColorType type, NameColor current, int numColors, Consumer<TextColor[]> callback) {
-        TextColor colors[] = new TextColor[numColors];
+        TextColor[] colors = new TextColor[numColors];
         Arrays.fill(colors, TextColor.color(255, 255, 255));
 
         BasicGuiPage page = new BasicGuiPage()
@@ -202,7 +201,7 @@ public class CosmeticsMenu {
         return page;
     }
 
-    public static void openMenu(CommandSender sender, String[] strings) {
+    public static void openMenu(CommandSender sender, String[] args) {
         if (!(sender instanceof Player)) {
             sender.sendMessage(Command.NOT_PLAYER_ERROR);
             return;

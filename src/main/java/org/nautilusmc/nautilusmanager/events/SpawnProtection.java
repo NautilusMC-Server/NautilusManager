@@ -203,7 +203,7 @@ public class SpawnProtection implements Listener {
             return;
         }
 
-        e.blockList().removeIf(b -> isProtected(b.getLocation()) && (e.getEntity() instanceof Creeper || !b.getType().equals(Material.TNT)));
+        e.blockList().removeIf(block -> isProtected(block.getLocation()) && (e.getEntity() instanceof Creeper || !block.getType().equals(Material.TNT)));
     }
 
     @EventHandler
@@ -227,7 +227,7 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onBlockExplode(BlockExplodeEvent e) {
-        e.blockList().removeIf(b -> isProtected(e.getBlock().getLocation()));
+        e.blockList().removeIf(block -> isProtected(block.getLocation()));
     }
 
     @EventHandler

@@ -27,11 +27,11 @@ public class Crew {
     private UUID uuid;
     private Team team;
     private OfflinePlayer captain;
-    private ArrayList<OfflinePlayer> members;
+    private List<OfflinePlayer> members;
     private String name;
     private boolean open;
     //private boolean pvp;
-    private ArrayList<War> wars;
+    private List<War> wars;
     private String prefix;
 
     public Crew(OfflinePlayer captain, String name) {
@@ -112,11 +112,11 @@ public class Crew {
         return members.stream().filter(member -> !(excludeCaptain && captain.equals(member))).toList();
     }
 
-    public ArrayList<War> getWars() {
+    public List<War> getWars() {
         return wars;
     }
 
-    public void setWars(ArrayList<War> wars) {
+    public void setWars(List<War> wars) {
         this.wars = wars;
     }
 
@@ -128,7 +128,7 @@ public class Crew {
         return wars.contains(new War(this, other));
     }
 
-    public void setMembers(ArrayList<OfflinePlayer> members) {
+    public void setMembers(List<OfflinePlayer> members) {
         this.members = members;
         members.forEach(this::addMemberToTeam);
     }
@@ -195,21 +195,17 @@ public class Crew {
     }
 
     public void removeWar(War war) {
-        boolean ended = wars.remove(war);
+        wars.remove(war);
     }
 
     public War getWar(Crew other) {
-        War out = null;
         for (War war : wars) {
-            if (war.equals(new War(this, other))) {
-                out = war;
-
+            if (war.getAttacker().equals(other) || war.getDefender().equals(other)) {
+                return war;
             }
         }
-        if (out == null) {
-            Bukkit.getLogger().log(Level.WARNING, "No war found with between " + name + " and " + other.getName());
-        }
-        return out;
+        Bukkit.getLogger().log(Level.WARNING, "No war found between " + name + " and " + other.getName());
+        return null;
     }
 
     public Boolean containsPlayer(OfflinePlayer player) {
@@ -286,12 +282,8 @@ public class Crew {
         }
     }
 
-    public ArrayList<String> warsAsStrings() {
-        ArrayList<String> out = new ArrayList<>(wars.size());
-        for (War war : wars) {
-            out.add(war.getAttacker().equals(this) ? war.getDefender().getName() : war.getAttacker().getName());
-        }
-        return out;
+    public List<String> warsAsStrings() {
+        return wars.stream().map(war -> war.getAttacker().equals(this) ? war.getDefender().getName() : war.getAttacker().getName()).toList();
     }
 
     private String warsToString() {

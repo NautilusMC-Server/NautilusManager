@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class HomesCommand extends Command {
     public static final ListDisplay<Map.Entry<String, Location>> HOME_LIST_DISPLAY = new ListDisplay<Map.Entry<String, Location>>("Your Homes", 6)
-            .setFormatter((home) -> Component.text(" - ")
+            .setFormatter(home -> Component.empty()
                     .append(Component.text(home.getKey()).color(INFO_ACCENT_COLOR))
                     .append(Component.text(" (%d, %d, %d)".formatted(home.getValue().getBlockX(), home.getValue().getBlockY(), home.getValue().getBlockZ()))))
             .setEmptyMessage(Component.text("No homes set. Use ")

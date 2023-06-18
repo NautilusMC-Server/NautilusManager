@@ -20,13 +20,15 @@ public class FormattingCommand extends Command {
     private static final String EXAMPLE_STRING = "NautilusMC";
 
     private static final ListDisplay<ChatFormatting> CODES_LIST_DISPLAY = new ListDisplay<ChatFormatting>("Formatting Codes", 16)
-            .setFormatter(formatting -> Component.text(" - ")
+            .setPrefix(ListDisplay.Prefix.HYPHEN)
+            .setFormatter(formatting -> Component.empty()
                     .append(Component.text("`" + formatting.getChar(), INFO_ACCENT_COLOR))
                     .append(Component.text(" " + Emoji.RIGHT + " "))
                     .append(Util.nmsFormat(Component.text(EXAMPLE_STRING), formatting)))
             .setList(List.of(ChatFormatting.values()));
     private static final ListDisplay<ChatFormatting> NAMES_LIST_DISPLAY = new ListDisplay<ChatFormatting>("Formatting Names", 16)
-            .setFormatter(formatting -> Component.text(" - ")
+            .setPrefix(ListDisplay.Prefix.HYPHEN)
+            .setFormatter(formatting -> Component.empty()
                     .append(Component.text("``" + formatting.getName().toLowerCase(), INFO_ACCENT_COLOR))
                     .append(Component.text(" " + Emoji.RIGHT + " "))
                     .append(Util.nmsFormat(Component.text(EXAMPLE_STRING), formatting)))

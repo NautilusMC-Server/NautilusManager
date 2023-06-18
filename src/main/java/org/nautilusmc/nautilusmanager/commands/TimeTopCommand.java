@@ -14,6 +14,7 @@ import java.util.*;
 public class TimeTopCommand extends Command {
     private static final ListDisplay<Map.Entry<OfflinePlayer, Util.TimeAmount>> TIME_PLAYED_LIST_DISPLAY =
             new ListDisplay<Map.Entry<OfflinePlayer, Util.TimeAmount>>("Time Played")
+                    .setPrefix(ListDisplay.Prefix.NUMBER_DOT)
                     .setFormatter(entry -> Component.empty()
                             .append(Component.text(Util.getName(entry.getKey()), INFO_ACCENT_COLOR))
                             .append(Component.text(" - "))

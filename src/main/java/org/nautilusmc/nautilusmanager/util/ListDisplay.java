@@ -9,6 +9,27 @@ import java.util.Objects;
 import java.util.function.Function;
 
 public class ListDisplay<T> {
+    public enum Prefix {
+        NONE(""),
+        HYPHEN(" - "),
+        NUMBER_DOT("%d. "::formatted),
+        NUMBER_COLON("%d: "::formatted);
+
+        private final Function<Integer, String> generator;
+
+        Prefix(String content) {
+            this.generator = number -> content;
+        }
+
+        Prefix(Function<Integer, String> generator) {
+            this.generator = generator;
+        }
+
+        public String generate(int index) {
+            return generator.apply(index + 1);
+        }
+    }
+
     public static final Component INVALID_PAGE_NUMBER_ERROR = Component.text("Invalid page number!", Command.ERROR_COLOR);
 
     public static final int DEFAULT_PAGE_SIZE = 10;
@@ -17,6 +38,7 @@ public class ListDisplay<T> {
     private String title;
     private int pageSize;
     private Function<T, Component> formatter;
+    private Prefix prefix;
     private Component emptyMessage;
     private List<T> list;
 
@@ -28,6 +50,7 @@ public class ListDisplay<T> {
         this.title = title;
         this.pageSize = pageSize;
         this.formatter = null;
+        this.prefix = null;
         this.emptyMessage = null;
         this.list = null;
     }
@@ -56,6 +79,15 @@ public class ListDisplay<T> {
 
     public ListDisplay<T> setFormatter(Function<T, Component> formatter) {
         this.formatter = formatter;
+        return this;
+    }
+
+    public Prefix getPrefix() {
+        return prefix;
+    }
+
+    public ListDisplay<T> setPrefix(Prefix prefix) {
+        this.prefix = prefix;
         return this;
     }
 
@@ -99,18 +131,17 @@ public class ListDisplay<T> {
 
         Component content = Component.text("----- ")
                 .append(Component.text(title, Command.INFO_ACCENT_COLOR, TextDecoration.BOLD))
-                .append(Component.text(" (page " + page + " of " + pageCount + ") -----"))
-                .color(Command.INFO_COLOR);
+                .append(Component.text(" (page " + page + " of " + pageCount + ") -----"));
 
         for (int row = 0; row < pageSize; row++) {
             int index = (page - 1) * pageSize + row;
             if (index >= list.size()) break;
 
             content = content.appendNewline()
-                    .append(formatter == null ? Component.text(list.get(index).toString()) : formatter.apply(list.get(index)))
-                    .colorIfAbsent(Command.INFO_COLOR);
+                    .append(Component.text(Objects.requireNonNullElse(prefix, Prefix.HYPHEN).generate(index)))
+                    .append(formatter == null ? Component.text(list.get(index).toString()) : formatter.apply(list.get(index)));
         }
 
-        return content;
+        return content.colorIfAbsent(Command.INFO_COLOR);
     }
 }

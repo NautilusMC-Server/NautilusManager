@@ -205,7 +205,12 @@ public enum Emoji {
                 break;
             }
 
-            Emoji emoji = find(text.substring(start + 1, end).toUpperCase());
+            Emoji emoji = null;
+            if (start >= 1 && text.charAt(start - 1) == '\\') {
+                output.deleteCharAt(output.length() - 1);
+            } else {
+                emoji = find(text.substring(start + 1, end).toUpperCase());
+            }
             if (emoji != null) {
                 output.append(emoji);
                 start = text.indexOf(':', end + 1);

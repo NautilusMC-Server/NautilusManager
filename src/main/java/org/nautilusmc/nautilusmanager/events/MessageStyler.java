@@ -9,6 +9,7 @@ import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.*;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.minecraft.ChatFormatting;
@@ -101,8 +102,10 @@ public class MessageStyler implements Listener {
         }
 
         Component deathMessage = Component.empty()
-                .append(Component.text(Emoji.SKULL.toString())
-                        .append(Component.text(" Death").decorate(TextDecoration.BOLD))
+                .append(getTimeStamp())
+                .appendSpace()
+                .append(Component.text(Emoji.SKULL + " ")
+                        .append(Component.text("Death").decorate(TextDecoration.BOLD))
                         .color(TextColor.color(46, 230, 255)))
                 .append(Component.text(" | ")
                         .color(TextColor.color(87, 87, 87)))
@@ -136,12 +139,21 @@ public class MessageStyler implements Listener {
         e.deathMessage(null);
     }
 
-    // e.message() is null sooo idk what to do
-//    @EventHandler
-//    public void onAdvancement(PlayerAdvancementDoneEvent e) {
-//        e.message(styleMessage((TranslatableComponent) e.message()));
-//        runningMessages.add(e.message());
-//    }
+    @EventHandler
+    public void onAdvancement(PlayerAdvancementDoneEvent e) {
+        if (e.message() == null) return;
+
+        e.message(Component.empty()
+                .append(getTimeStamp())
+                .appendSpace()
+                .append(Component.text(Emoji.CHECK + " ")
+                        .append(Component.text("Advancement")/*.decorate(TextDecoration.BOLD)*/)
+                        .color(NamedTextColor.GREEN))
+                .append(Component.text(" | ")
+                        .color(TextColor.color(87, 87, 87)))
+                .append(styleMessage((TranslatableComponent) e.message())));
+        runningMessages.add(e.message());
+    }
 
     @EventHandler
     public void onRespawn(PlayerRespawnEvent e) {
@@ -164,9 +176,7 @@ public class MessageStyler implements Listener {
 
     public static Component getBanMessage(BanEntry entry) {
         return Component.empty()
-                .append(Component.text("You are banned from NautilusMC. If this is a mistake, please contact a staff member on Discord.")
-                        .color(Command.ERROR_COLOR)
-                        .decorate(TextDecoration.BOLD))
+                .append(Component.text("You are banned from NautilusMC. If this is a mistake, please contact a staff member on Discord.", Command.ERROR_COLOR, TextDecoration.BOLD))
                 .append(Component.newline())
                 .append(Component.newline())
                 .append(Component.text("Reason: ")
@@ -264,7 +274,7 @@ public class MessageStyler implements Listener {
 
     public static void sendMessageAsUser(Component senderName, boolean applyFormatting, Component message, Collection<? extends Player> recipients, String language) {
         // language : translated message
-        HashMap<String, Component> translations = new HashMap<>();
+        Map<String, Component> translations = new HashMap<>();
 
         if (language != null && !language.equalsIgnoreCase("en-US")) {
             translations.put("en-US", compileUserMessage(senderName, translate(Util.getTextContent(message), "en-US"), applyFormatting));
@@ -274,14 +284,15 @@ public class MessageStyler implements Listener {
 
         for (Player recipient : recipients) {
             String recipientLanguage = languages.get(recipient);
-            if (recipientLanguage.equalsIgnoreCase("en")) continue; // already translated or in English
-            if (translations.containsKey(recipientLanguage)) continue; // already translated
+            if (recipientLanguage.equalsIgnoreCase("en-US") || translations.containsKey(recipientLanguage)) continue;
             // FIXME: i am certain this won't work with formatting codes
-            translations.put(recipientLanguage, compileUserMessage(senderName, translate(Util.getTextContent(message), recipientLanguage), applyFormatting));
+            translations.put(recipientLanguage, compileUserMessage(senderName, translate(Emoji.parseText(Util.getTextContent(message)), recipientLanguage), applyFormatting));
         }
 
-        Bukkit.getLogger().info(Util.getTextContent(translations.get("en")));
-        recipients.forEach(recipient -> recipient.sendMessage(translations.get(languages.get(recipient))));
+        Bukkit.getServer().getConsoleSender().sendMessage(translations.get("en-US"));
+        for (Player recipient : recipients) {
+            recipient.sendMessage(translations.get(languages.get(recipient)));
+        }
         runningMessages.add(translations.get("en-US"));
     }
 
@@ -312,7 +323,8 @@ public class MessageStyler implements Listener {
 
     public static Component styleURL(Component component, String url) {
         return component.clickEvent(ClickEvent.openUrl(url))
-                .hoverEvent(HoverEvent.showText(Component.text("Go to " + url)))
+                .hoverEvent(HoverEvent.showText(Component.text("Go to ")
+                        .append(Component.text(url, NamedTextColor.YELLOW, TextDecoration.UNDERLINED))))
                 .color(TextColor.color(57, 195, 255))
                 .decorate(TextDecoration.UNDERLINED);
     }

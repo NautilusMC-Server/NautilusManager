@@ -91,20 +91,21 @@ public class CrewCommand extends Command {
 
         if (args.length == 1) {
             out.addAll(Arrays.asList(DEFAULT_COMMANDS));
-            if (CrewHandler.isCrewMember(player)) {
+            if (CrewHandler.isCaptain(player)) {
+                out.addAll(Arrays.asList(CREW_MEMBER_COMMANDS));
+                out.addAll(Arrays.asList(CAPTAIN_COMMANDS));
+            } else if (CrewHandler.isCrewMember(player)) {
                 out.addAll(Arrays.asList(CREW_MEMBER_COMMANDS));
             } else {
                 out.addAll(Arrays.asList(NO_CREW_COMMANDS));
             }
-            if (CrewHandler.isCaptain(player)) {
-                out.addAll(Arrays.asList(CAPTAIN_COMMANDS));
-            }
         } else if (args.length == 2 && !CrewHandler.getCrews().isEmpty()) {
+            Crew crew = CrewHandler.getCrew(player);
             switch (args[0]) {
                 case "join", "info" -> out.addAll(CrewHandler.getCrews().stream().map(Crew::getName).toList());
                 case "kick", "makecaptain" -> {
-                    if (CrewHandler.getCrew(player) != null) {
-                        out.addAll(CrewHandler.getCrew(player).getMembers().stream().map(Util::getName).toList());
+                    if (crew != null) {
+                        out.addAll(crew.getMembers().stream().map(Util::getName).toList());
                     }
                 }
                 case "invite" -> out.addAll(getOnlineNames());
@@ -115,13 +116,13 @@ public class CrewCommand extends Command {
                 }
                 case "declarewar" -> {
                     out.addAll(CrewHandler.getCrews().stream().map(Crew::getName).toList());
-                    if (CrewHandler.getCrew(player) != null) {
-                        out.remove(CrewHandler.getCrew(player).getName());
+                    if (crew != null) {
+                        out.remove(crew.getName());
                     }
                 }
                 case "endwar" -> {
-                    if (CrewHandler.getCrew(player) != null) {
-                        out.addAll(CrewHandler.getCrew(player).warsAsStrings());
+                    if (crew != null) {
+                        out.addAll(crew.warsAsStrings());
                     }
                 }
             }
@@ -290,8 +291,10 @@ public class CrewCommand extends Command {
         ConfirmationMessage.sendConfirmationMessage(player, Component.text("leave your crew").color(INFO_COLOR), new BukkitRunnable() {
             @Override
             public void run() {
-                player.sendMessage(Component.text("You left ").color(INFO_COLOR)
-                        .append(Component.text("\"" + crew.getName() + "\"").color(INFO_ACCENT_COLOR)));
+                player.sendMessage(Component.text("You left ")
+                        .append(Component.text(crew.getName(), INFO_ACCENT_COLOR))
+                        .append(Component.text("."))
+                        .color(INFO_COLOR));
                 if (crew.getCaptain().equals(player)) {
                     if (crew.getMembers().size() == 1) {
                         // they were the last member of the crew, so clean up after them
@@ -443,7 +446,7 @@ public class CrewCommand extends Command {
         }
 
         crew.setOpen(true);
-        player.sendMessage(Component.text("Players will now need an invitation to join your crew.", INFO_COLOR));
+        player.sendMessage(Component.text("Players can now join your crew without an invitation.", INFO_COLOR));
 
         return true;
     }
@@ -461,7 +464,7 @@ public class CrewCommand extends Command {
         }
 
         crew.setOpen(false);
-        player.sendMessage(Component.text("Players can now join your crew without an invitation.", INFO_COLOR));
+        player.sendMessage(Component.text("Players will now need an invitation to join your crew.", INFO_COLOR));
 
         return true;
     }
@@ -671,7 +674,7 @@ public static boolean endWar(Player player, String[] args) {
     }
 
     public static Component getHelpMessage() {
-        ArrayList<String> subcommands = new ArrayList<>();
+        List<String> subcommands = new ArrayList<>();
         subcommands.addAll(Arrays.asList(DEFAULT_COMMANDS));
         subcommands.addAll(Arrays.asList(NO_CREW_COMMANDS));
         subcommands.addAll(Arrays.asList(CREW_MEMBER_COMMANDS));

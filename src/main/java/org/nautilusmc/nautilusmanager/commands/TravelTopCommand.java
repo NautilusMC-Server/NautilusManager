@@ -31,6 +31,7 @@ public class TravelTopCommand extends Command {
 
     private static final ListDisplay<Map.Entry<OfflinePlayer, Double>> DISTANCE_TRAVELED_LIST_DISPLAY =
             new ListDisplay<Map.Entry<OfflinePlayer, Double>>("Distance Traveled")
+                    .setPrefix(ListDisplay.Prefix.NUMBER_DOT)
                     .setFormatter(entry -> Component.empty()
                             .append(Component.text(Util.getName(entry.getKey()), INFO_ACCENT_COLOR))
                             .append(Component.text(" - "))
