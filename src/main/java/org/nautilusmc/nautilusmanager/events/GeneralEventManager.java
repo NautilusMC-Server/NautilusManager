@@ -62,9 +62,12 @@ public class GeneralEventManager implements Listener {
 
     @EventHandler
     public void onPlayerMessage(AsyncChatEvent e) {
+        int numPings = 0;
         for(Player p : Bukkit.getOnlinePlayers()) {
             String message = Util.getTextContent(e.message()).toLowerCase();
             if(message.contains(Util.getTextContent(p.displayName()).toLowerCase()) || message.contains(p.getName().toLowerCase())) {
+                numPings++;
+                if(numPings > 3) return;
                 p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 2);
                 Bukkit.getScheduler().scheduleSyncDelayedTask(NautilusManager.INSTANCE, () -> {
                     p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 4F);
