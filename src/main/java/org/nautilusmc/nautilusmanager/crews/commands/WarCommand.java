@@ -1,34 +1,35 @@
 package org.nautilusmc.nautilusmanager.crews.commands;
 
 import net.kyori.adventure.text.Component;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
-import org.nautilusmc.nautilusmanager.crews.Invite;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.crews.WarDeclaration;
+import org.nautilusmc.nautilusmanager.util.Permission;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class WarCommand extends NautilusCommand {
+public class WarCommand extends Command {
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player)) {
-            commandSender.sendMessage(Component.text("Only players can use this command").color(ERROR_COLOR));
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(NOT_PLAYER_ERROR);
             return true;
         }
-        Player player = (Player) commandSender;
-        if (!(player.hasPermission(NautilusCommand.DECLARE_WAR_PERM))) {
-            error(player, CrewCommand.CAPTAIN_PERM_MESSAGE);
-            return  true;
+
+        if (!player.hasPermission(Permission.DECLARE_WAR.toString())) {
+            player.sendMessage(CrewCommand.NOT_CAPTAIN_ERROR);
+            return true;
         }
-        if (strings.length == 0) {
+
+        if (args.length == 0) {
             return false;
         }
-        switch (strings[0]) {
+
+        switch (args[0]) {
             case "accept" -> {
                 WarDeclaration.accept(player);
                 return true;
@@ -44,10 +45,16 @@ public class WarCommand extends NautilusCommand {
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        ArrayList<String> tabCompletions = new ArrayList<>();
-        tabCompletions.add("accept");
-        tabCompletions.add("decline");
-        return tabCompletions;
+    public @Nullable List<String> suggestionList(@NotNull CommandSender sender, @NotNull String[] args) {
+        ArrayList<String> out = new ArrayList<>();
+
+        if (!(sender instanceof Player player) || !player.hasPermission(Permission.DECLARE_WAR.toString())) return out;
+
+        if (args.length == 1) {
+            out.add("accept");
+            out.add("decline");
+        }
+
+        return out;
     }
 }

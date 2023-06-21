@@ -2,39 +2,30 @@ package org.nautilusmc.nautilusmanager.teleport.commands;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.events.TeleportHandler;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class BackCommand extends NautilusCommand {
+public class BackCommand extends Command {
+    public static final Component NO_PREV_LOCATION_ERROR = Component.text("Nowhere to return to!").color(ERROR_COLOR);
 
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Component.text("Only players can use this command!").color(NautilusCommand.ERROR_COLOR));
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Command.NOT_PLAYER_ERROR);
             return true;
         }
 
-        Location lastLoc = TeleportHandler.getLastTeleportLocation(player);
-        if (lastLoc == null) {
-            commandSender.sendMessage(Component.text("Nowhere to return to!").color(NautilusCommand.ERROR_COLOR));
+        Location lastLocation = TeleportHandler.getLastTeleportLocation(player);
+        if (lastLocation == null) {
+            sender.sendMessage(NO_PREV_LOCATION_ERROR);
             return true;
         }
 
-        TeleportHandler.teleportAfterDelay(player, lastLoc, 100);
+        TeleportHandler.teleportAfterDelay(player, lastLocation);
 
         return true;
-    }
-
-    @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        return new ArrayList<>();
     }
 }

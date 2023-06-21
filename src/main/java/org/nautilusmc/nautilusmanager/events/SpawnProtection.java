@@ -19,18 +19,33 @@ import org.bukkit.event.raid.RaidTriggerEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.util.BoundingBox;
 import org.nautilusmc.nautilusmanager.NautilusManager;
+import org.nautilusmc.nautilusmanager.util.Permission;
 
 public class SpawnProtection implements Listener {
+    public static final String PROTECTED_AREA_ALERT = "You can't do that here";
+    public static final long ALERT_FLASH_TICKS = 7;
+    public static final TextColor ALERT_FLASH_COLOR = TextColor.color(255, 149, 146);
+    public static final TextColor ALERT_COLOR = NamedTextColor.RED;
 
-    private void alert(Player p) {
-        p.sendActionBar(Component.text("You can't do that here").color(TextColor.color(255, 149, 146)));
-        Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> {
-            p.sendActionBar(Component.text("You can't do that here").color(NamedTextColor.RED));
-        }, 7);
+    public SpawnProtection() {
+        Location loc1 = NautilusManager.INSTANCE.getConfig().getLocation("spawnProtection.loc1");
+        Location loc2 = NautilusManager.INSTANCE.getConfig().getLocation("spawnProtection.loc2");
+
+        if (loc1 == null || loc2 == null || loc1.equals(loc2)) {
+            NautilusManager.INSTANCE.getLogger().warning("Spawn protection disabled. To enable, provide values for loc1 and loc2.");
+        } else if (!loc1.getWorld().equals(loc2.getWorld())) {
+            NautilusManager.INSTANCE.getLogger().warning("Spawn protection is configured improperly! loc1 and loc2 are not in the same world (loc2's world will be ignored).");
+        }
     }
 
-    private boolean isProtected(Location loc) {
-        if(!loc.getWorld().getName().equalsIgnoreCase("world")) return false;
+    private void sendAlert(Player player) {
+        player.sendActionBar(Component.text(PROTECTED_AREA_ALERT).color(ALERT_FLASH_COLOR));
+        Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> {
+            player.sendActionBar(Component.text(PROTECTED_AREA_ALERT).color(ALERT_COLOR));
+        }, ALERT_FLASH_TICKS);
+    }
+
+    public boolean isProtected(Location location) {
         Location loc1 = NautilusManager.INSTANCE.getConfig().getLocation("spawnProtection.loc1");
         Location loc2 = NautilusManager.INSTANCE.getConfig().getLocation("spawnProtection.loc2");
 
@@ -38,15 +53,31 @@ public class SpawnProtection implements Listener {
             return false;
         }
 
-        return new BoundingBox(loc1.getX(), loc1.getWorld().getMinHeight(), loc1.getZ(), loc2.getX(), loc2.getWorld().getMaxHeight(), loc2.getZ()).contains(loc.toVector());
+        // sufficient to check if location is in the same world as loc1
+        // if loc2 is not in the same world as loc1, server administration is to blame...
+        return location.getWorld().equals(loc1.getWorld()) && new BoundingBox(
+                loc1.getX(), loc1.getWorld().getMinHeight(), loc1.getZ(),
+                loc2.getX(), loc2.getWorld().getMaxHeight(), loc2.getZ()
+        ).contains(location.toVector());
     }
 
-    private boolean isAllowed(Player player) {
-        return player.hasPermission("nautilusmanager.edit_spawn");
+    public boolean allowsInteraction(Block block) {
+        Material type = block.getType();
+        return type == Material.CHEST
+                || type == Material.BARREL
+                || type == Material.ENDER_CHEST
+                || Tag.PRESSURE_PLATES.isTagged(type)
+                || Tag.WOODEN_DOORS.isTagged(type)
+                || Tag.BUTTONS.isTagged(type)
+                || Tag.FENCE_GATES.isTagged(type);
+    }
+
+    public boolean canEditSpawn(Player player) {
+        return player.hasPermission(Permission.EDIT_SPAWN.toString());
     }
 
     @EventHandler
-    public void onSpawnEvent(EntitySpawnEvent e) {
+    public void onEntitySpawn(EntitySpawnEvent e) {
         if (e.getEntity() instanceof LivingEntity && isProtected(e.getLocation())) {
             e.setCancelled(true);
         }
@@ -54,73 +85,69 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
-        if(isProtected(e.getBlock().getLocation()) && !isAllowed(e.getPlayer())) {
-            alert(e.getPlayer());
+        if (isProtected(e.getBlock().getLocation()) && !canEditSpawn(e.getPlayer())) {
+            sendAlert(e.getPlayer());
             e.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent e) {
-        if(isProtected(e.getBlock().getLocation()) && !isAllowed(e.getPlayer())) {
-            alert(e.getPlayer());
+        if (isProtected(e.getBlock().getLocation()) && !canEditSpawn(e.getPlayer())) {
+            sendAlert(e.getPlayer());
             e.setCancelled(true);
         }
     }
 
     @EventHandler
-    public void onPlayerBucket(PlayerBucketFillEvent e) {
-        if(isProtected(e.getBlock().getLocation()) && !isAllowed(e.getPlayer())) {
-            alert(e.getPlayer());
+    public void onPlayerBucketFill(PlayerBucketFillEvent e) {
+        if (isProtected(e.getBlock().getLocation()) && !canEditSpawn(e.getPlayer())) {
+            sendAlert(e.getPlayer());
             e.setCancelled(true);
         }
     }
 
     @EventHandler
-    public void onPlayerBucket(PlayerBucketEmptyEvent e) {
-        if(isProtected(e.getBlock().getLocation()) && !isAllowed(e.getPlayer())) {
-            alert(e.getPlayer());
+    public void onPlayerBucketEmpty(PlayerBucketEmptyEvent e) {
+        if (isProtected(e.getBlock().getLocation()) && !canEditSpawn(e.getPlayer())) {
+            sendAlert(e.getPlayer());
             e.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent e) {
-        if(!e.hasBlock() || (e.getPlayer().isSneaking() && e.hasItem())) return;
+        if (!e.hasBlock() || (e.getPlayer().isSneaking() && e.hasItem())) return;
         if (e.hasItem() && e.getItem().getType().isEdible()) return;
 
         Block block = e.getClickedBlock();
-        if(isProtected(block.getLocation()) && !isAllowed(e.getPlayer())) {
-            Material type = block.getType();
-
-            if (type != Material.CHEST && type != Material.BARREL && type != Material.ENDER_CHEST && !Tag.PRESSURE_PLATES.isTagged(type) && !Tag.WOODEN_DOORS.isTagged(type) && !Tag.BUTTONS.isTagged(type) && !Tag.FENCE_GATES.isTagged(type)) {
-                alert(e.getPlayer());
-                e.setCancelled(true);
-            }
+        if (isProtected(block.getLocation()) && !canEditSpawn(e.getPlayer()) && !allowsInteraction(block)) {
+            sendAlert(e.getPlayer());
+            e.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onPlayerInteractEntity(PlayerInteractEntityEvent e) {
-        if(isProtected(e.getRightClicked().getLocation()) && !isAllowed(e.getPlayer())) {
-            alert(e.getPlayer());
+        if (isProtected(e.getRightClicked().getLocation()) && !canEditSpawn(e.getPlayer())) {
+            sendAlert(e.getPlayer());
             e.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent e) {
-        if(isProtected(e.getRightClicked().getLocation()) && !isAllowed(e.getPlayer())) {
-            alert(e.getPlayer());
+        if (isProtected(e.getRightClicked().getLocation()) && !canEditSpawn(e.getPlayer())) {
+            sendAlert(e.getPlayer());
             e.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onCropTrample(PlayerInteractEvent e) {
-        if(e.getAction().equals(Action.PHYSICAL) && e.getInteractionPoint() != null && e.getInteractionPoint().getBlock().getType().equals(Material.FARMLAND)) {
-            if(isProtected(e.getInteractionPoint()) && !isAllowed(e.getPlayer())) {
-                alert(e.getPlayer());
+        if (e.getAction().equals(Action.PHYSICAL) && e.getInteractionPoint() != null && e.getInteractionPoint().getBlock().getType().equals(Material.FARMLAND)) {
+            if (isProtected(e.getInteractionPoint()) && !canEditSpawn(e.getPlayer())) {
+                sendAlert(e.getPlayer());
                 e.setCancelled(true);
             }
         }
@@ -133,38 +160,37 @@ public class SpawnProtection implements Listener {
             return;
         }
 
-        if(isProtected(e.getEntity().getLocation()) && !isAllowed(player)) {
-            alert(player);
+        if (isProtected(e.getEntity().getLocation()) && !canEditSpawn(player)) {
+            sendAlert(player);
             e.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onVehicleDamage(VehicleDamageEvent e) {
-
-        if(isProtected(e.getVehicle().getLocation())) {
+        if (isProtected(e.getVehicle().getLocation())) {
             if (!(e.getAttacker() instanceof Player player)) {
                 e.setCancelled(true);
                 return;
             }
 
-            if (!isAllowed(player)) {
-                alert(player);
+            if (!canEditSpawn(player)) {
+                sendAlert(player);
                 e.setCancelled(true);
             }
         }
     }
 
     @EventHandler
-    public void onPlayerAttackEvent(EntityDamageByEntityEvent e) {
-        if(isProtected(e.getEntity().getLocation())) {
+    public void onDamage(EntityDamageByEntityEvent e) {
+        if (isProtected(e.getEntity().getLocation())) {
             if (!(e.getDamager() instanceof Player player)) {
                 e.setCancelled(true);
                 return;
             }
 
-            if (!isAllowed(player)) {
-                alert(player);
+            if (!canEditSpawn(player)) {
+                sendAlert(player);
                 e.setCancelled(true);
             }
         }
@@ -172,43 +198,43 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onEntityExplode(EntityExplodeEvent e) {
-        if(e.getEntity() instanceof Creeper) {
+        if (e.getEntity() instanceof Creeper) {
             e.blockList().clear();
             return;
         }
 
-        e.blockList().removeIf(b -> isProtected(b.getLocation()) && (e.getEntity() instanceof Creeper || !b.getType().equals(Material.TNT)));
+        e.blockList().removeIf(block -> isProtected(block.getLocation()) && (e.getEntity() instanceof Creeper || !block.getType().equals(Material.TNT)));
     }
 
     @EventHandler
     public void onChangeBlock(EntityChangeBlockEvent e) {
-        if(e.getEntity() instanceof Enderman) {
+        if (e.getEntity() instanceof Enderman) {
             e.setCancelled(true);
         }
 
-        if(!isProtected(e.getBlock().getLocation())) return;
-        if(!(e.getEntity() instanceof Player) && e.getBlock().getType().equals(Material.FARMLAND)) {
-            e.setCancelled(true);
-        }
-    }
-
-    @EventHandler
-    public void onChangeBlock(EntityBreakDoorEvent e) {
-        if(e.getEntity() instanceof Monster) {
+        if (!isProtected(e.getBlock().getLocation())) return;
+        if (!(e.getEntity() instanceof Player) && e.getBlock().getType().equals(Material.FARMLAND)) {
             e.setCancelled(true);
         }
     }
 
     @EventHandler
-    public void onExplosion(BlockExplodeEvent e) {
-        e.blockList().removeIf(b -> isProtected(e.getBlock().getLocation()));
+    public void onBreakDoor(EntityBreakDoorEvent e) {
+        if (e.getEntity() instanceof Monster) {
+            e.setCancelled(true);
+        }
     }
 
     @EventHandler
-    public void onHungerEvent(FoodLevelChangeEvent e) {
-        if(!(e.getEntity() instanceof Player)) return;
+    public void onBlockExplode(BlockExplodeEvent e) {
+        e.blockList().removeIf(block -> isProtected(block.getLocation()));
+    }
 
-        if(e.getFoodLevel() < e.getEntity().getFoodLevel() && isProtected(e.getEntity().getLocation())) {
+    @EventHandler
+    public void onHungerChange(FoodLevelChangeEvent e) {
+        if (!(e.getEntity() instanceof Player)) return;
+
+        if (e.getFoodLevel() < e.getEntity().getFoodLevel() && isProtected(e.getEntity().getLocation())) {
             e.setCancelled(true);
         }
     }
@@ -222,7 +248,7 @@ public class SpawnProtection implements Listener {
 
     @EventHandler
     public void onPistonExtend(BlockPistonExtendEvent e) {
-        // allow pistons if they're inside; just not outside going in
+        // allow pistons if they're inside; just not outside pushing in
         if (isProtected(e.getBlock().getLocation())) return;
 
         for (Block block : e.getBlocks()) {
@@ -234,7 +260,7 @@ public class SpawnProtection implements Listener {
     }
 
     @EventHandler
-    public void onPistonExtend(BlockPistonRetractEvent e) {
+    public void onPistonRetract(BlockPistonRetractEvent e) {
         // allow pistons if they're inside; just not outside pulling out
         if (isProtected(e.getBlock().getLocation())) return;
 
@@ -247,7 +273,7 @@ public class SpawnProtection implements Listener {
     }
 
     @EventHandler
-    public void onRaid(RaidTriggerEvent e) {
+    public void onRaidTrigger(RaidTriggerEvent e) {
         if (isProtected(e.getRaid().getLocation())) {
             e.setCancelled(true);
         }

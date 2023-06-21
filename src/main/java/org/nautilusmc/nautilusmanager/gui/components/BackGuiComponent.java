@@ -10,7 +10,6 @@ public class BackGuiComponent extends ItemGuiComponent {
             if (page.getParent() != null) {
                 page.getParent().open();
             } else {
-                InventoryClickEvent.getHandlerList().unregister(page.getGui());
                 e.getWhoClicked().closeInventory();
             }
         }

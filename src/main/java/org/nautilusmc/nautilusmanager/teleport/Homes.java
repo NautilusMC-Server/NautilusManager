@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.sql.SQLHandler;
 import org.nautilusmc.nautilusmanager.util.CaseInsensitiveString;
+import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,17 +16,16 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class Homes {
+    public static final int MAX_NAME_LENGTH = 16;
 
-    public static final int MAX_NAME_LEN = 16;
+    private static final Map<UUID, Map<CaseInsensitiveString, Location>> PLAYER_HOMES = new HashMap<>();
+    private static final Map<UUID, Integer> PLAYER_HOME_CAPACITIES = new HashMap<>();
 
-    private static final Map<UUID, Map<CaseInsensitiveString, Location>> playerHomes = new HashMap<>();
-    private static final Map<UUID, Integer> playerHomeAmts = new HashMap<>();
-
-    public static SQLHandler HOME_LOC_SQL;
-    public static SQLHandler HOME_AMT_SQL;
+    public static SQLHandler HOME_LOCATION_DB;
+    public static SQLHandler HOME_CAPACITY_DB;
 
     public static void init() {
-        HOME_LOC_SQL = new SQLHandler("homes", "uuid_name") {
+        HOME_LOCATION_DB = new SQLHandler("homes", "uuid_name") {
             @Override
             public void updateSQL(ResultSet results) throws SQLException {
                 while (results.next()) {
@@ -40,18 +40,18 @@ public class Homes {
                             results.getFloat("pitch")
                     );
 
-                    if (!playerHomes.containsKey(uuid)) playerHomes.put(uuid, new HashMap<>());
+                    if (!PLAYER_HOMES.containsKey(uuid)) PLAYER_HOMES.put(uuid, new HashMap<>());
 
-                    playerHomes.get(uuid).put(new CaseInsensitiveString(uuidName[1]), loc);
+                    PLAYER_HOMES.get(uuid).put(new CaseInsensitiveString(uuidName[1]), loc);
                 }
             }
         };
 
-        HOME_AMT_SQL = new SQLHandler("home_amounts", "uuid") {
+        HOME_CAPACITY_DB = new SQLHandler("home_amounts", "uuid") {
             @Override
             public void updateSQL(ResultSet results) throws SQLException {
                 while (results.next()) {
-                    playerHomeAmts.put(UUID.fromString(results.getString("uuid")), results.getInt("amount"));
+                    PLAYER_HOME_CAPACITIES.put(UUID.fromString(results.getString("uuid")), results.getInt("amount"));
                 }
             }
         };
@@ -59,45 +59,41 @@ public class Homes {
 
     public static Location getHome(Player player, String name) {
         UUID uuid = player.getUniqueId();
-        return !playerHomes.containsKey(uuid) ? null : playerHomes.get(uuid).get(new CaseInsensitiveString(name));
+        return !PLAYER_HOMES.containsKey(uuid) ? null : PLAYER_HOMES.get(uuid).get(new CaseInsensitiveString(name));
     }
 
     public static Map<String, Location> getHomes(Player player) {
-        return playerHomes.containsKey(player.getUniqueId()) ? playerHomes.get(player.getUniqueId()).entrySet().stream().map(e->Map.entry(e.getKey().string, e.getValue())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)) : null;
+        if (PLAYER_HOMES.containsKey(player.getUniqueId())) {
+            return PLAYER_HOMES.get(player.getUniqueId()).entrySet().stream()
+                    .map(e -> Map.entry(e.getKey().string, e.getValue()))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        } else {
+            return null;
+        }
     }
 
     public static void setHome(Player player, String name, Location loc) {
         UUID uuid = player.getUniqueId();
-        if (!playerHomes.containsKey(player.getUniqueId())) {
-            playerHomes.put(uuid, new HashMap<>());
+        if (!PLAYER_HOMES.containsKey(uuid)) {
+            PLAYER_HOMES.put(uuid, new HashMap<>());
         }
 
         String key = uuid + "/" + name;
         if (loc == null) {
-            playerHomes.get(uuid).remove(new CaseInsensitiveString(name));
-            HOME_LOC_SQL.deleteSQL(key);
+            PLAYER_HOMES.get(uuid).remove(new CaseInsensitiveString(name));
+            HOME_LOCATION_DB.deleteSQL(key);
         } else {
-            playerHomes.get(uuid).put(new CaseInsensitiveString(name), loc);
-            HOME_LOC_SQL.setSQL(key, locationToMap(loc));
+            PLAYER_HOMES.get(uuid).put(new CaseInsensitiveString(name), loc);
+            HOME_LOCATION_DB.setSQL(key, Util.locationAsMap(loc));
         }
     }
 
     public static void setMaxHomes(Player player, int homes) {
-        playerHomeAmts.put(player.getUniqueId(), homes);
-        HOME_AMT_SQL.setSQL(player.getUniqueId().toString(), Map.of("amount", homes));
+        PLAYER_HOME_CAPACITIES.put(player.getUniqueId(), homes);
+        HOME_CAPACITY_DB.setSQL(player.getUniqueId().toString(), Map.of("amount", homes));
     }
 
     public static int getMaxHomes(Player player) {
-        return playerHomeAmts.getOrDefault(player.getUniqueId(), NautilusManager.INSTANCE.getConfig().getInt("homes.startingAmount"));
-    }
-
-    private static Map<String, Object> locationToMap(Location loc) {
-        return Map.of(
-                "world", loc.getWorld().getUID().toString(),
-                "x", loc.getX(),
-                "y", loc.getY(),
-                "z", loc.getZ(),
-                "pitch", loc.getPitch(),
-                "yaw", loc.getYaw());
+        return PLAYER_HOME_CAPACITIES.getOrDefault(player.getUniqueId(), NautilusManager.INSTANCE.getConfig().getInt("homes.startingAmount"));
     }
 }

@@ -1,56 +1,64 @@
 package org.nautilusmc.nautilusmanager.teleport.commands.homes;
 
 import net.kyori.adventure.text.Component;
-import org.bukkit.command.Command;
+import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.teleport.Homes;
+import org.nautilusmc.nautilusmanager.util.Permission;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-public class DelHomeCommand extends NautilusCommand {
+public class DelHomeCommand extends Command {
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Component.text("Only players can use this command!").color(NautilusCommand.ERROR_COLOR));
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(NOT_PLAYER_ERROR);
             return true;
         }
 
-        if (!player.hasPermission(HOMES_PERM)) {
-            player.sendMessage(Component.text("Not enough permissions!").color(NautilusCommand.ERROR_COLOR));
+        if (!player.hasPermission(Permission.USE_HOMES.toString())) {
+            player.sendMessage(NO_PERMISSION_ERROR);
             return true;
         }
 
-        if (strings.length < 1) return false;
+        if (args.length < 1) return false;
 
-        if (Homes.getHome(player, strings[0]) == null) {
-            player.sendMessage(Component.text("Home not found").color(NautilusCommand.ERROR_COLOR));
+        if (Homes.getHome(player, args[0]) == null) {
+            player.sendMessage(Component.text("Home \"")
+                    .append(Component.text(args[0]).color(ERROR_ACCENT_COLOR))
+                    .append(Component.text("\" does not exist!"))
+                    .color(ERROR_COLOR));
             return true;
         }
 
-        player.sendMessage(Component.text("Removed home ")
-                .append(Component.text(strings[0])
-                        .color(NautilusCommand.ACCENT_COLOR))
-                .color(NautilusCommand.MAIN_COLOR));
-        Homes.setHome(player, strings[0], null);
+        Homes.setHome(player, args[0], null);
+        player.sendMessage(Component.text("Home \"")
+                .append(Component.text(args[0]).color(INFO_ACCENT_COLOR))
+                .append(Component.text("\" has been deleted."))
+                .color(INFO_COLOR));
 
         return true;
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public @Nullable List<String> suggestionList(@NotNull CommandSender sender, @NotNull String[] args) {
         List<String> out = new ArrayList<>();
 
-        if (!(commandSender instanceof Player player)) return out;
+        if (!(sender instanceof Player player)) return out;
 
-        if (strings.length == 1) {
-            if (Homes.getHomes(player) != null) out.addAll(Homes.getHomes(player).keySet());
+        if (args.length == 1) {
+            Map<String, Location> homes = Homes.getHomes(player);
+            if (homes != null) {
+                out.addAll(homes.keySet());
+            }
         }
 
-        return out.stream().filter(str->str.toLowerCase().startsWith(strings[strings.length-1].toLowerCase())).toList();
+        return out;
     }
 }

@@ -16,18 +16,21 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
-import org.nautilusmc.nautilusmanager.crews.Crew;
 
 import java.util.*;
 
 public class Util {
-
-    public static String getTextContent(Component component) {
+    public static @NotNull String getTextContent(@NotNull Component component) {
+        Objects.requireNonNull(component, "Util.getTextContent() encountered a null component!");
         StringBuilder out = new StringBuilder();
 
         if (component instanceof TextComponent text) {
@@ -45,9 +48,8 @@ public class Util {
     }
 
     public static Player getOnlinePlayer(String nickname) {
-        OfflinePlayer p = getOfflinePlayerIfCachedByNick(nickname);
-
-        return p != null && p.isOnline() ? p.getPlayer() : null;
+        OfflinePlayer player = getOfflinePlayerIfCachedByNick(nickname);
+        return player == null ? null : player.getPlayer();
     }
 
     public static String getName(OfflinePlayer player) {
@@ -58,7 +60,7 @@ public class Util {
     public static Component clickableCommand(String command, boolean run) {
         return Component.text(command)
                 .clickEvent(run ? ClickEvent.runCommand(command) : ClickEvent.suggestCommand(command))
-                .hoverEvent(HoverEvent.showText(Component.text("Run "+command)));
+                .hoverEvent(HoverEvent.showText(Component.text("Run " + command)));
     }
 
     public static Component nmsFormat(Component component, ChatFormatting formatting) {
@@ -118,18 +120,66 @@ public class Util {
     }
 
     public static OfflinePlayer getOfflinePlayerIfCached(String name) {
+        if (name == null) return null;
         return Arrays.stream(Bukkit.getOfflinePlayers())
-                .filter(p -> name.equalsIgnoreCase(p.getName())).findFirst().orElse(null);
+                .filter(p -> name.equalsIgnoreCase(p.getName()))
+                .findFirst().orElse(null);
     }
 
     public static OfflinePlayer getOfflinePlayerIfCachedByNick(String name) {
-        OfflinePlayer p = Nickname.getPlayerFromNickname(name);
-        if (p == null) p = getOfflinePlayerIfCached(name);
-
-        return p;
+        OfflinePlayer player = Nickname.getPlayerFromNickname(name);
+        return player == null ? getOfflinePlayerIfCached(name) : player;
     }
 
     public static Component toggleDecoration(Component component, TextDecoration decoration) {
         return component.decoration(decoration, !component.hasDecoration(decoration));
+    }
+
+    public static Map<String, Object> locationAsMap(Location loc) {
+        return Map.of(
+                "world", loc.getWorld().getUID().toString(),
+                "x", loc.getX(),
+                "y", loc.getY(),
+                "z", loc.getZ(),
+                "pitch", loc.getPitch(),
+                "yaw", loc.getYaw()
+        );
+    }
+
+    public static ItemStack addActionLore(ItemStack item, Component actionText) {
+        if (item == null) return null;
+
+        ItemMeta meta = item.getItemMeta();
+        List<Component> lore = meta.lore();
+
+        if (lore == null) {
+            lore = new ArrayList<>();
+        } else if (!lore.isEmpty()) {
+            lore.add(0, Component.empty());
+        }
+        lore.add(0, actionText.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+
+        meta.lore(lore);
+        item.setItemMeta(meta);
+
+        return item;
+    }
+
+    public static final int TICKS_PER_SECOND = 20;
+    public static final int SECONDS_PER_MINUTE = 60;
+    public static final int MINUTES_PER_HOUR = 60;
+
+    public record TimeAmount(int ticks) implements Comparable<TimeAmount> {
+        @Override
+        public int compareTo(@NotNull Util.TimeAmount other) {
+            return Integer.compare(ticks, other.ticks);
+        }
+
+        public String toHoursMinutes() {
+            int minutes = ticks / (TICKS_PER_SECOND * SECONDS_PER_MINUTE);
+            int hours = minutes / MINUTES_PER_HOUR;
+            minutes %= MINUTES_PER_HOUR;
+            return "%dh %dm".formatted(hours, minutes);
+        }
     }
 }

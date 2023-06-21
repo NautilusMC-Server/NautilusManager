@@ -9,55 +9,79 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.Team;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.events.AfkManager;
+import org.nautilusmc.nautilusmanager.events.AFKManager;
+import org.nautilusmc.nautilusmanager.util.Emoji;
 
 public class TabListManager {
+    public static final TextColor NORMAL_HEALTH_COLOR = NamedTextColor.RED;
+    public static final TextColor NORMAL_HEART_COLOR = NamedTextColor.DARK_RED;
+    public static final TextColor GOLDEN_HEALTH_COLOR = NamedTextColor.YELLOW;
+    public static final TextColor GOLDEN_HEART_COLOR = NamedTextColor.GOLD;
+    public static final TextColor POISON_HEALTH_COLOR = TextColor.color(187, 183, 66);
+    public static final TextColor POISON_HEART_COLOR = TextColor.color(139, 135, 18);
+    public static final TextColor WITHER_HEALTH_COLOR = NamedTextColor.DARK_GRAY;
+    public static final TextColor WITHER_HEART_COLOR = NamedTextColor.BLACK;
+    public static final TextColor FROZEN_HEALTH_COLOR = NamedTextColor.AQUA;
+    public static final TextColor FROZEN_HEART_COLOR = NamedTextColor.DARK_AQUA;
+    public static final TextColor INVIS_HEALTH_COLOR = NORMAL_HEALTH_COLOR; // TextColor.color(180, 180, 180);
+    public static final TextColor INVIS_HEART_COLOR = NORMAL_HEART_COLOR; // TextColor.color(210, 210, 210);
+
+    public static final int UPDATE_INTERVAL_TICKS = 20;
 
     public static void init() {
         Bukkit.getScheduler().runTaskTimer(NautilusManager.INSTANCE, () -> {
-            for(Player p : Bukkit.getOnlinePlayers()) {
-                Team team = p.getScoreboard().getEntityTeam(p);
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                Component tabEntry = Component.empty();
 
-                Component prefix = team == null ? Component.empty() : team.prefix().append(Component.space());
-                Component afk = Component.empty();
-                Component name = p.displayName();
-                Component realName = Component.empty();
-                Component health = Component.empty();
-
-                if (AfkManager.isAfk(p)) {
-                    afk = Component.text("AFK ").color(NamedTextColor.GRAY);
+                Team team = player.getScoreboard().getEntityTeam(player);
+                if (team != null) {
+                    tabEntry = tabEntry.append(team.prefix()).appendSpace();
                 }
 
-                if (Nickname.getNickname(p) != null) {
-                    realName = Component.text(" ("+p.getName()+")").color(NamedTextColor.GRAY);;
+                if (AFKManager.isAFK(player)) {
+                    tabEntry = tabEntry.append(Component.text("AFK ", NamedTextColor.GRAY));
                 }
 
-                if (p.getGameMode() != GameMode.CREATIVE && p.getGameMode() != GameMode.SPECTATOR) {
-                    if (p.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
-                        health = Component.text("20").color(NamedTextColor.RED)
-                                .append(Component.text("♥").color(NamedTextColor.DARK_RED));
+                tabEntry = tabEntry.append(player.displayName());
+
+                if (Nickname.getNickname(player) != null) {
+                    tabEntry = tabEntry.appendSpace().append(Component.text("(" + player.getName() + ")", NamedTextColor.GRAY));
+                }
+
+                if (player.getGameMode() != GameMode.CREATIVE && player.getGameMode() != GameMode.SPECTATOR) {
+                    tabEntry = tabEntry.appendSpace();
+
+                    if (player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+                        // don't show the real health if they are invisible to preserve anonymity
+                        tabEntry = tabEntry.append(Component.text("20", INVIS_HEALTH_COLOR)
+                                .append(Component.text(Emoji.HEART.toString(), INVIS_HEART_COLOR)));
                     } else {
-                        TextColor color1 = NamedTextColor.RED;
-                        TextColor color2 = NamedTextColor.DARK_RED;
+                        TextColor healthColor = NORMAL_HEALTH_COLOR;
+                        TextColor heartColor = NORMAL_HEART_COLOR;
 
-                        if (p.hasPotionEffect(PotionEffectType.POISON)) {
-                            color1 = TextColor.color(187, 183, 66);
-                            color2 = TextColor.color(139, 135, 18);
-                        } else if (p.hasPotionEffect(PotionEffectType.WITHER)) {
-                            color1 = NamedTextColor.DARK_GRAY;
-                            color2 = NamedTextColor.BLACK;
-                        }  else if (p.isFrozen()) {
-                            color1 = NamedTextColor.AQUA;
-                            color2 = NamedTextColor.DARK_AQUA;
+                        if (player.hasPotionEffect(PotionEffectType.ABSORPTION)) {
+                            healthColor = GOLDEN_HEALTH_COLOR;
+                            heartColor = GOLDEN_HEART_COLOR;
+                        } else if (player.hasPotionEffect(PotionEffectType.POISON)) {
+                            healthColor = POISON_HEALTH_COLOR;
+                            heartColor = POISON_HEART_COLOR;
+                        } else if (player.hasPotionEffect(PotionEffectType.WITHER)) {
+                            healthColor = WITHER_HEALTH_COLOR;
+                            heartColor = WITHER_HEART_COLOR;
+                        } else if (player.isFrozen()) {
+                            healthColor = FROZEN_HEALTH_COLOR;
+                            heartColor = FROZEN_HEART_COLOR;
                         }
 
-                        health = Component.text(" "+ Math.round(p.getHealth())).color(color1)
-                                .append(Component.text("♥").color(color2));
+                        // take the ceiling of the health instead of rounding to more accurately reflect the health bar
+                        // (but still use Math.round() to convert to integer... otherwise decimal shows up sometimes)
+                        tabEntry = tabEntry.append(Component.text(Math.round(Math.ceil(player.getHealth())), healthColor)
+                                .append(Component.text(Emoji.HEART.toString(), heartColor)));
                     }
                 }
 
-                p.playerListName(Component.empty().append(prefix).append(afk).append(name).append(realName).append(health));
+                player.playerListName(tabEntry);
             }
-        }, 0, 20);
+        }, 0, UPDATE_INTERVAL_TICKS);
     }
 }

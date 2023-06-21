@@ -12,33 +12,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BasicGuiPage extends GuiPage {
-
     private int rows;
     private String name;
     private GuiComponent[][] components;
     private final List<GuiPage> children = new ArrayList<>();
 
     public BasicGuiPage addChild(GuiPage child) {
-        children.add(child.setParent(this).setGui(gui));
+        children.add(child.setParent(this).setGui(this.getGui()));
         return this;
     }
 
     @Override
     public GuiPage setGui(Gui gui) {
-        for (GuiPage child : children) child.setGui(gui);
+        for (GuiPage child : children) {
+            child.setGui(gui);
+        }
         return super.setGui(gui);
     }
 
-    public GuiPage getChild(int idx) {
-        return children.get(idx);
+    public GuiPage getChild(int index) {
+        return children.get(index);
     }
 
     public BasicGuiPage setSize(int rows) {
         this.rows = rows;
-
-        components = new GuiComponent[rows][];
-        for (int i = 0; i < rows; i++) components[i] = new GuiComponent[9];
-
+        components = new GuiComponent[rows][9];
         return this;
     }
 
@@ -61,7 +59,7 @@ public class BasicGuiPage extends GuiPage {
                 GuiComponent component = components[r][c];
                 if (component == null) component = new FillerGuiComponent();
 
-                inv.setItem(r*9+c, component.render());
+                inv.setItem(r * 9 + c, component.render());
             }
         }
 
@@ -70,7 +68,7 @@ public class BasicGuiPage extends GuiPage {
 
     @Override
     public void handleClick(InventoryClickEvent e) {
-        GuiComponent component = components[e.getSlot()/9][e.getSlot()%9];
+        GuiComponent component = components[e.getSlot() / 9][e.getSlot() % 9];
 
         if (component != null) component.handleClick(e);
     }

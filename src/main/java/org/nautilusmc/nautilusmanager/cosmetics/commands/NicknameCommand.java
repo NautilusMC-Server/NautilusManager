@@ -1,134 +1,124 @@
 package org.nautilusmc.nautilusmanager.cosmetics.commands;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
+import org.nautilusmc.nautilusmanager.util.Emoji;
+import org.nautilusmc.nautilusmanager.util.ListDisplay;
+import org.nautilusmc.nautilusmanager.util.Permission;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.Objects;
 
-public class NicknameCommand extends NautilusCommand {
-
-    private static final int PAGE_SIZE = 5;
-    private static final TextColor COLOR = TextColor.color(255, 185, 21);
+public class NicknameCommand extends Command {
+    private static final ListDisplay<OfflinePlayer> NICKNAME_LIST_DISPLAY = new ListDisplay<OfflinePlayer>("Nicknames")
+            .setFormatter((player) -> {
+                String username = Objects.requireNonNullElse(player.getName(), "(unknown player)");
+                String nickname = Objects.requireNonNullElse(Nickname.getNickname(player), username);
+                return Component.empty()
+                        .append(Component.text(username))
+                        .append(Component.text(" " + Emoji.RIGHT + " "))
+                        .append(player instanceof Player onlinePlayer ? onlinePlayer.displayName() : Component.text(nickname));
+            });
 
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (strings.length < 1) return false;
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (args.length < 1) return false;
 
-        Consumer<OfflinePlayer> sendNickname = p -> {
-            String nick = Nickname.getNickname(p);
-            commandSender.sendMessage(Component.text(p.getName()).append(Component.text(" → ").color(COLOR)).append(p instanceof Player pl ? pl.displayName() : Component.text(nick != null ? nick : p.getName())));
-        };
-
-        switch (strings[0]) {
-            case "list": {
-                if (!commandSender.hasPermission(NautilusCommand.NICKNAME_LIST_PERM)) {
-                    commandSender.sendMessage(Component.text("You do not have permission to use this command").color(NautilusCommand.ERROR_COLOR));
+        switch (args[0]) {
+            case "list" -> {
+                if (!sender.hasPermission(Permission.NICKNAME_LIST.toString())) {
+                    sender.sendMessage(NO_PERMISSION_ERROR);
                     return true;
                 }
 
-                int pageMax = (int) Math.ceil((double) Bukkit.getOnlinePlayers().size()/PAGE_SIZE);
-                int page = Math.min(strings.length > 1 ? Integer.parseInt(strings[1]) : 1, pageMax);
+                NICKNAME_LIST_DISPLAY.setList(Bukkit.getOnlinePlayers().stream()
+                        .sorted(Comparator.comparing(Player::getName))
+                        .map(player -> (OfflinePlayer) player) // the compiler is picky about this :(
+                        .toList());
+                sender.sendMessage(NICKNAME_LIST_DISPLAY.fetchPageContent(args.length < 2 ? null : args[1]));
 
-                commandSender.sendMessage(Component.text("----- Nicknames (Page "+page+"/"+pageMax+") -----").color(COLOR).decorate(TextDecoration.BOLD));
-
-                for (int i = 0; i < PAGE_SIZE; i++) {
-                    int idx = (page-1)*PAGE_SIZE+i;
-                    if (idx >= Bukkit.getOnlinePlayers().size()) break;
-
-                    Player p = Bukkit.getOnlinePlayers().stream().sorted(Comparator.comparing(Player::getName)).toList().get(idx);
-                    commandSender.sendMessage(Component.empty().append(Component.text(" - ").color(COLOR)).append(p.name()).append(Component.text(" → ").color(COLOR)).append(p.displayName()));
-                }
-
-                break;
             }
-            case "nickname": {
-                if (!commandSender.hasPermission(NautilusCommand.NICKNAME_LIST_PERM)) {
-                    commandSender.sendMessage(Component.text("You do not have permission to use this command").color(NautilusCommand.ERROR_COLOR));
+            case "nickname" -> {
+                if (!sender.hasPermission(Permission.NICKNAME_LIST.toString())) {
+                    sender.sendMessage(NO_PERMISSION_ERROR);
                     return true;
                 }
 
-                if (strings.length < 2) return false;
+                if (args.length < 2) return false;
 
-                OfflinePlayer p = Nickname.getPlayerFromNickname(strings[1]);
-                if (p == null || p.getName() == null) {
-                    commandSender.sendMessage(Component.text("Nickname not found").color(NautilusCommand.ERROR_COLOR));
+                OfflinePlayer player = Nickname.getPlayerFromNickname(args[1]);
+                if (player == null || player.getName() == null) {
+                    sender.sendMessage(INVALID_PLAYER_ERROR);
                     return true;
                 } else {
-                    sendNickname.accept(p);
+                    sender.sendMessage(NICKNAME_LIST_DISPLAY.getFormatter().apply(player).color(INFO_COLOR));
                 }
 
-                break;
             }
-            case "player": {
-                if (!commandSender.hasPermission(NautilusCommand.NICKNAME_LIST_PERM)) {
-                    commandSender.sendMessage(Component.text("You do not have permission to use this command").color(NautilusCommand.ERROR_COLOR));
+            case "player" -> {
+                if (!sender.hasPermission(Permission.NICKNAME_LIST.toString())) {
+                    sender.sendMessage(NO_PERMISSION_ERROR);
                     return true;
                 }
 
-                if (strings.length < 2) return false;
+                if (args.length < 2) return false;
 
-                OfflinePlayer p = Util.getOfflinePlayerIfCached(strings[1]);
-                if (p == null || p.getName() == null) {
-                    commandSender.sendMessage(Component.text("Player not found").color(NautilusCommand.ERROR_COLOR));
+                OfflinePlayer player = Util.getOfflinePlayerIfCached(args[1]);
+                if (player == null || player.getName() == null) {
+                    sender.sendMessage(INVALID_PLAYER_ERROR);
                     return true;
                 } else {
-                    sendNickname.accept(p);
+                    sender.sendMessage(NICKNAME_LIST_DISPLAY.getFormatter().apply(player).color(INFO_COLOR));
                 }
 
-                break;
             }
-            case "set":
-            case "clear": {
-                Bukkit.dispatchCommand(commandSender, "cosmetics %s nickname %s %s".formatted(strings[0], strings.length > 1 ? strings[1] : "", strings.length > 2 ? strings[2] : ""));
-
-                break;
+            case "set", "clear" -> {
+                Bukkit.dispatchCommand(sender, "cosmetics %s nickname %s %s".formatted(args[0], args.length > 1 ? args[1] : "", args.length > 2 ? args[2] : ""));
             }
-            default: return false;
+            default -> {
+                return false;
+            }
         }
 
         return true;
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public @Nullable List<String> suggestionList(@NotNull CommandSender sender, @NotNull String[] args) {
         List<String> out = new ArrayList<>();
 
-        if (strings.length == 1) {
-            if (commandSender.hasPermission(NautilusCommand.NICKNAME_LIST_PERM)) {
+        if (args.length == 1) {
+            if (sender.hasPermission(Permission.NICKNAME_LIST.toString())) {
                 out.add("list");
                 out.add("player");
                 out.add("nickname");
             }
             out.add("set");
             out.add("clear");
-        } else if (strings.length == 2) {
-            if (commandSender.hasPermission(NautilusCommand.NICKNAME_LIST_PERM)) {
-                if (strings[0].equalsIgnoreCase("player")) {
-                    out.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
-                } else if (strings[0].equalsIgnoreCase("nickname")) {
+        } else if (args.length == 2) {
+            if (sender.hasPermission(Permission.NICKNAME_LIST.toString())) {
+                if (args[0].equalsIgnoreCase("player")) {
+                    out.addAll(getOnlineUsernames());
+                } else if (args[0].equalsIgnoreCase("nickname")) {
                     out.addAll(Nickname.getNicknames());
                 }
             }
-        } else if (strings.length == 3) {
-            if (strings[0].equalsIgnoreCase("set") && commandSender.hasPermission(NautilusCommand.MODIFY_OTHER_PERM)) {
-                out.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
+        } else if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("set") && sender.hasPermission(Permission.MODIFY_OTHER_PLAYERS.toString())) {
+                out.addAll(getOnlineUsernames());
             }
         }
 
-        return out.stream().filter(str->str.toLowerCase().startsWith(strings[strings.length-1].toLowerCase())).toList();
+        return out;
     }
 }

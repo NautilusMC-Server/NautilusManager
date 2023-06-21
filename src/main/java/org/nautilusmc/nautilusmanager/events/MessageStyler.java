@@ -8,12 +8,12 @@ import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.*;
 import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.PacketSendListener;
-import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundPlayerCombatKillPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,7 +23,7 @@ import org.bukkit.BanEntry;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -34,15 +34,15 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.commands.SuicideCommand;
 import org.nautilusmc.nautilusmanager.cosmetics.MuteManager;
 import org.nautilusmc.nautilusmanager.discord.DiscordBot;
 import org.nautilusmc.nautilusmanager.gui.page.GuiPage;
 import org.nautilusmc.nautilusmanager.util.Emoji;
 import org.nautilusmc.nautilusmanager.util.FancyText;
+import org.nautilusmc.nautilusmanager.util.Permission;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.text.DateFormat;
@@ -81,37 +81,35 @@ public class MessageStyler implements Listener {
     }
 
     private static Component replace(Component component, String target, String replace) {
-        if (component instanceof TextComponent text) text.content(text.content().replace(target, replace));
-
-        List<Component> children = component.children();
-        for (int i = 0; i < children.size(); i++) {
-            children.set(i, replace(children.get(i), target, replace));
+        if (component instanceof TextComponent text) {
+            return text.content(text.content().replace(target, replace));
+        } else {
+            return component.children(component.children().stream().map(child -> replace(child, target, replace)).toList());
         }
-        component.children(children);
-
-        return component;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onDeath(PlayerDeathEvent e) {
         if (e.deathMessage() == null) return;
 
-        Component styledDeathMessage;
+        Component deathMessageContent;
         if (e.deathMessage() instanceof TranslatableComponent t && t.key().equals(SuicideCommand.SUICIDE_TRANSLATION_KEY)) {
-            styledDeathMessage = Component.empty()
+            deathMessageContent = Component.empty()
                     .append(e.getPlayer().displayName())
                     .append(Component.text(" took the easy way out"));
         } else {
-            styledDeathMessage = styleMessage((TranslatableComponent) e.deathMessage());
+            deathMessageContent = styleMessage((TranslatableComponent) e.deathMessage());
         }
 
         Component deathMessage = Component.empty()
-                .append(Component.text(Emoji.SKULL.getRaw())
-                        .append(Component.text(" Death").decorate(TextDecoration.BOLD))
+                .append(getTimeStamp())
+                .appendSpace()
+                .append(Component.text(Emoji.SKULL + " ")
+                        .append(Component.text("Death").decorate(TextDecoration.BOLD))
                         .color(TextColor.color(46, 230, 255)))
                 .append(Component.text(" | ")
                         .color(TextColor.color(87, 87, 87)))
-                .append(styledDeathMessage);
+                .append(deathMessageContent);
 
         ServerPlayer nms = ((CraftPlayer) e.getPlayer()).getHandle();
         net.minecraft.network.chat.Component nmsMessage = PaperAdventure.asVanilla(deathMessage);
@@ -128,12 +126,12 @@ public class MessageStyler implements Listener {
         }
 
         Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> {
-            nms.connection.send(new ClientboundPlayerCombatKillPacket(nms.getCombatTracker(), PaperAdventure.asVanilla(styledDeathMessage)), PacketSendListener.exceptionallySend(() -> {
+            nms.connection.send(new ClientboundPlayerCombatKillPacket(nms.getId(), PaperAdventure.asVanilla(deathMessageContent)), PacketSendListener.exceptionallySend(() -> {
                 // TODO: do something with this? currently just copying nms
                 String s = nmsMessage.getString(256);
                 MutableComponent hover = net.minecraft.network.chat.Component.translatable("death.attack.message_too_long", net.minecraft.network.chat.Component.literal(s).withStyle(ChatFormatting.YELLOW));
-                MutableComponent newComp = net.minecraft.network.chat.Component.translatable("death.attack.even_more_magic", PaperAdventure.asVanilla(e.getPlayer().displayName())).withStyle((chatmodifier) -> chatmodifier.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
-                return new ClientboundPlayerCombatKillPacket(nms.getCombatTracker(), newComp);
+                MutableComponent newComp = net.minecraft.network.chat.Component.translatable("death.attack.even_more_magic", PaperAdventure.asVanilla(e.getPlayer().displayName())).withStyle((chatmodifier) -> chatmodifier.withHoverEvent(new net.minecraft.network.chat.HoverEvent(net.minecraft.network.chat.HoverEvent.Action.SHOW_TEXT, hover)));
+                return new ClientboundPlayerCombatKillPacket(nms.getId(), newComp);
             }));
         }, 1);
 
@@ -141,16 +139,25 @@ public class MessageStyler implements Listener {
         e.deathMessage(null);
     }
 
-    // e.message() is null sooo idk what to do
-//    @EventHandler
-//    public void onAdvancement(PlayerAdvancementDoneEvent e) {
-//        e.message(styleMessage((TranslatableComponent) e.message()));
-//        runningMessages.add(e.message());
-//    }
+    @EventHandler
+    public void onAdvancement(PlayerAdvancementDoneEvent e) {
+        if (e.message() == null) return;
+
+        e.message(Component.empty()
+                .append(getTimeStamp())
+                .appendSpace()
+                .append(Component.text(Emoji.CHECK + " ")
+                        .append(Component.text("Advancement")/*.decorate(TextDecoration.BOLD)*/)
+                        .color(NamedTextColor.GREEN))
+                .append(Component.text(" | ")
+                        .color(TextColor.color(87, 87, 87)))
+                .append(styleMessage((TranslatableComponent) e.message())));
+        runningMessages.add(e.message());
+    }
 
     @EventHandler
     public void onRespawn(PlayerRespawnEvent e) {
-        e.getPlayer().sendMessage(Component.text("Your coordinates: (" + Math.round(e.getPlayer().getLocation().getX()) + ", " +
+        e.getPlayer().sendMessage(Component.text("Your death coordinates: (" + Math.round(e.getPlayer().getLocation().getX()) + ", " +
                 Math.round(e.getPlayer().getLocation().getZ()) + ")").color(TextColor.color(200, 200, 200)).decorate(TextDecoration.BOLD));
     }
 
@@ -169,22 +176,20 @@ public class MessageStyler implements Listener {
 
     public static Component getBanMessage(BanEntry entry) {
         return Component.empty()
-                .append(Component.text("You are banned from NautilusMC. If this is a mistake, please contact a staff member on Discord.")
-                        .color(TextColor.color(199, 9, 22))
-                        .decorate(TextDecoration.BOLD))
+                .append(Component.text("You are banned from NautilusMC. If this is a mistake, please contact a staff member on Discord.", Command.ERROR_COLOR, TextDecoration.BOLD))
                 .append(Component.newline())
                 .append(Component.newline())
                 .append(Component.text("Reason: ")
-                        .color(NautilusCommand.MAIN_COLOR))
+                        .color(Command.INFO_COLOR))
                 .append(Component.text(entry.getReason()))
                 .append(Component.newline())
                 .append(Component.text("Expires: ")
-                        .color(NautilusCommand.MAIN_COLOR))
+                        .color(Command.INFO_COLOR))
                 .append(Component.text(entry.getExpiration() == null ? "Never" : DATE_FORMAT.format(entry.getExpiration())))
-                .color(NautilusCommand.ERROR_COLOR);
+                .color(Command.ERROR_COLOR);
     }
 
-    @EventHandler(priority=EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onJoin(PlayerJoinEvent e) {
         if (e.joinMessage() == null) return;
 
@@ -199,7 +204,7 @@ public class MessageStyler implements Listener {
                         .append(Component.text(" | ").color(TextColor.color(87, 87, 87)))
                         .append(e.getPlayer().displayName()));
 
-        runningMessages.forEach(c->e.getPlayer().sendMessage(c));
+        runningMessages.forEach(message -> e.getPlayer().sendMessage(message));
         runningMessages.add(e.joinMessage());
 
         Component obfuscation = Component.text("x").decorate(TextDecoration.OBFUSCATED).color(TextColor.color(47, 250, 255));
@@ -237,7 +242,7 @@ public class MessageStyler implements Listener {
         String renameText = e.getInventory().getRenameText();
         ItemStack result = e.getResult();
 
-        if (e.getView().getPlayer().hasPermission(NautilusCommand.CHAT_FORMATTING_PERM) && renameText != null && !renameText.isEmpty() && result != null) {
+        if (e.getView().getPlayer().hasPermission(Permission.USE_CHAT_FORMATTING.toString()) && renameText != null && !renameText.isEmpty() && result != null) {
             ItemMeta meta = result.getItemMeta();
             meta.displayName(FancyText.parseChatFormatting(renameText));
             result.setItemMeta(meta);
@@ -251,53 +256,61 @@ public class MessageStyler implements Listener {
         sendMessageAsUser(e.getPlayer(), e.message());
     }
 
-    public static void sendMessageAsUser(Player player, Component message) {
-        DiscordBot.onMessage(player, message);
+    public static void sendMessageAsUser(Player sender, Component message) {
+        DiscordBot.onMessage(sender, message);
 
-        sendMessageAsUser(
-                player.displayName(),
-                player.hasPermission(NautilusCommand.CHAT_FORMATTING_PERM),
-                message,
-                Bukkit.getOnlinePlayers().stream().filter(p->!MuteManager.isMuted(p, player)).toList(),
-                player);
+        sendMessageAsUser(sender, message, Bukkit.getOnlinePlayers().stream()
+                        .filter(recipient -> !MuteManager.isMuted(recipient, sender))
+                        .toList());
     }
 
-    public static void sendMessageAsUser(Component displayName, boolean withChatFormatting, Component message, Collection<? extends Player> recipients, Player ... sender) {
-        HashMap<String, Component> translations = new HashMap<>(); //language code, translated message
+    public static void sendMessageAsUser(Player sender, Component message, Collection<? extends Player> recipients) {
+        sendMessageAsUser(sender.displayName(), sender.hasPermission(Permission.USE_CHAT_FORMATTING.toString()), message, recipients, languages.get(sender));
+    }
 
-        if(sender != null && !languages.get(sender[0]).equalsIgnoreCase("en-US")) { //if sender is not using English
-            translations.put("en-US", compileUserMessage(translate(Util.getTextContent(message), "en-US"), displayName, withChatFormatting));
+    public static void sendMessageAsUser(Component senderName, boolean applyFormatting, Component message, Collection<? extends Player> recipients) {
+        sendMessageAsUser(senderName, applyFormatting, message, recipients, null);
+    }
+
+    public static void sendMessageAsUser(Component senderName, boolean applyFormatting, Component message, Collection<? extends Player> recipients, String language) {
+        // language : translated message
+        Map<String, Component> translations = new HashMap<>();
+
+        if (language != null && !language.equalsIgnoreCase("en-US")) {
+            translations.put("en-US", compileUserMessage(senderName, translate(Util.getTextContent(message), "en-US"), applyFormatting));
+        } else {
+            translations.put("en-US", compileUserMessage(senderName, Util.getTextContent(message), applyFormatting));
         }
-        else translations.put("en-US", compileUserMessage(Util.getTextContent(message), displayName, withChatFormatting));
 
-        for(Player p : recipients) {
-            String code = languages.get(p);
-            if(code.equalsIgnoreCase("en")) return; //already translated or in English
-            if(translations.containsKey(code)) return; //already translated
-            translations.put(code, compileUserMessage(translate(Util.getTextContent(message), code), displayName, withChatFormatting));
+        for (Player recipient : recipients) {
+            String recipientLanguage = languages.get(recipient);
+            if (recipientLanguage.equalsIgnoreCase("en-US") || translations.containsKey(recipientLanguage)) continue;
+            // FIXME: i am certain this won't work with formatting codes
+            translations.put(recipientLanguage, compileUserMessage(senderName, translate(Emoji.parseText(Util.getTextContent(message)), recipientLanguage), applyFormatting));
         }
-        Bukkit.getLogger().info(Util.getTextContent(translations.get("en")));
 
-        recipients.forEach(r->r.sendMessage(translations.get(languages.get(r))));
+        Bukkit.getServer().getConsoleSender().sendMessage(translations.get("en-US"));
+        for (Player recipient : recipients) {
+            recipient.sendMessage(translations.get(languages.get(recipient)));
+        }
         runningMessages.add(translations.get("en-US"));
     }
 
-    public static Component compileUserMessage(String message, Component displayName, boolean withChatFormatting) {
-
+    public static Component compileUserMessage(Component displayName, String message, boolean applyFormatting) {
         return Component.empty()
                 .append(getTimeStamp())
-                .append(Component.text(" "))
+                .appendSpace()
                 .append(displayName)
-                .append(Component.text(" » ").color(TextColor.color(150, 150, 150)))
-                .append(formatUserMessage(withChatFormatting, Component.text(message)).color(NautilusManager.DEFAULT_CHAT_TEXT_COLOR))
+                .append(Component.text(" » ", TextColor.color(150, 150, 150)))
+                .append(formatUserMessage(Component.text(message), applyFormatting).colorIfAbsent(Command.DEFAULT_COLOR))
                 .clickEvent(ClickEvent.copyToClipboard(message));
     }
 
-    public static Component formatUserMessage(CommandSender player, Component message) {
-        return formatUserMessage(player.hasPermission(NautilusCommand.CHAT_FORMATTING_PERM), message);
+    public static Component formatUserMessage(CommandSender sender, Component message) {
+        return formatUserMessage(message, sender.hasPermission(Permission.USE_CHAT_FORMATTING.toString()));
     }
 
-    public static Component formatUserMessage(boolean withChatFormatting, Component message) {
+    public static Component formatUserMessage(Component message, boolean withChatFormatting) {
         // convert emojis
         message = Component.text(Emoji.parseText(Util.getTextContent(message)));
         // apply formatting tags
@@ -310,7 +323,8 @@ public class MessageStyler implements Listener {
 
     public static Component styleURL(Component component, String url) {
         return component.clickEvent(ClickEvent.openUrl(url))
-                .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Go to " + url)))
+                .hoverEvent(HoverEvent.showText(Component.text("Go to ")
+                        .append(Component.text(url, NamedTextColor.YELLOW, TextDecoration.UNDERLINED))))
                 .color(TextColor.color(57, 195, 255))
                 .decorate(TextDecoration.UNDERLINED);
     }
@@ -368,8 +382,12 @@ public class MessageStyler implements Listener {
         return component.children(children);
     }
 
-    public static void setLanguage(Player player, String code) {
-        languages.put(player, code);
+    public static String getLanguage(Player player) {
+        return languages.get(player);
+    }
+
+    public static void setLanguage(Player player, String key) {
+        languages.put(player, key);
     }
 
     public static String translate(String message, String to) {
@@ -385,10 +403,9 @@ public class MessageStyler implements Listener {
 
     public static Component getTimeStamp() {
         Calendar calendar = Util.getCalendar();
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int hour = Math.floorMod(calendar.get(Calendar.HOUR) - 1, 12) + 1;
         int minute = calendar.get(Calendar.MINUTE);
 
-        return Component.text("%2d:%02d".formatted(hour, minute))
-                .color(TextColor.color(34, 150, 155));
+        return Component.text("%2d:%02d".formatted(hour, minute)).color(TextColor.color(34, 150, 155));
     }
 }

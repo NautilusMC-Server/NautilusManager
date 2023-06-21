@@ -1,15 +1,13 @@
 package org.nautilusmc.nautilusmanager.events;
 
-import com.destroystokyo.paper.event.server.AsyncTabCompleteEvent;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.minecraft.world.entity.item.ItemEntity;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Bisected;
 import org.bukkit.block.data.type.Stairs;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftItem;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftItem;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Egg;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -20,13 +18,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.PrepareAnvilEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerCommandSendEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.event.server.ServerCommandEvent;
-import org.bukkit.event.server.TabCompleteEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -39,18 +32,16 @@ import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.util.Util;
 import org.spigotmc.event.entity.EntityDismountEvent;
 
-import java.util.Arrays;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 public class GeneralEventManager implements Listener {
-
-    @EventHandler
+    /*@EventHandler
     public void onAnvil(PrepareAnvilEvent e) {
         ItemStack firstItem = e.getInventory().getFirstItem();
         if (firstItem == null) return;
-        String currentName = firstItem.hasItemMeta() && firstItem.getItemMeta().displayName() != null ? Util.getTextContent(firstItem.getItemMeta().displayName()) : "";
+        Component displayName = firstItem.getItemMeta().displayName();
+        String currentName = firstItem.hasItemMeta() && displayName != null ? Util.getTextContent(displayName) : "";
 
         if (!currentName.equals(e.getInventory().getRenameText())) {
             int baseRepairCost = CraftItemStack.asNMSCopy(firstItem).getBaseRepairCost();
@@ -58,17 +49,21 @@ public class GeneralEventManager implements Listener {
 
             e.getInventory().setRepairCost(e.getInventory().getRepairCost()-1-baseRepairCost);
         }
+    }*/
+
+    public static void pingPlayer(Player player) {
+        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 2);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(NautilusManager.INSTANCE, () -> {
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 4);
+        }, 2);
     }
 
     @EventHandler
     public void onPlayerMessage(AsyncChatEvent e) {
-        for(Player p : Bukkit.getOnlinePlayers()) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
             String message = Util.getTextContent(e.message()).toLowerCase();
-            if(message.contains(Util.getTextContent(p.displayName()).toLowerCase()) || message.contains(p.getName().toLowerCase())) {
-                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 2);
-                Bukkit.getScheduler().scheduleSyncDelayedTask(NautilusManager.INSTANCE, () -> {
-                    p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 4F);
-                }, 2);
+            if (message.contains(Util.getTextContent(player.displayName()).toLowerCase()) || message.contains(player.getName().toLowerCase())) {
+                pingPlayer(player);
             }
         }
     }
@@ -78,9 +73,9 @@ public class GeneralEventManager implements Listener {
 
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
-        Inventory inv = e.getPlayer().getInventory();
-        for (int i = 0; i < inv.getSize(); i++) {
-            ItemStack item = inv.getItem(i);
+        Inventory inventory = e.getPlayer().getInventory();
+        for (int i = 0; i < inventory.getSize(); i++) {
+            ItemStack item = inventory.getItem(i);
             if (item == null) continue;
 
             ItemMeta meta = item.getItemMeta();
@@ -97,14 +92,14 @@ public class GeneralEventManager implements Listener {
         if (e.getEntity().getItemStack().getItemMeta().getPersistentDataContainer().has(new NamespacedKey(NautilusManager.INSTANCE, OWNER_KEY))) {
             ItemEntity nms = (ItemEntity) ((CraftItem) e.getEntity()).getHandle();
             // copied from ItemEntity#setItem
-            int defaultDespawnTime = nms.level.paperConfig().entities.spawning.altItemDespawnRate.enabled ? nms.level.paperConfig().entities.spawning.altItemDespawnRate.items.getOrDefault(nms.getItem().getItem(), nms.level.spigotConfig.itemDespawnRate) : nms.level.spigotConfig.itemDespawnRate;
+            int defaultDespawnTime = nms.level().paperConfig().entities.spawning.altItemDespawnRate.enabled ? nms.level().paperConfig().entities.spawning.altItemDespawnRate.items.getOrDefault(nms.getItem().getItem(), nms.level().spigotConfig.itemDespawnRate) : nms.level().spigotConfig.itemDespawnRate;
             int despawnTime = NautilusManager.INSTANCE.getConfig().getInt("death.itemDespawnSeconds") * 20;
             int age = defaultDespawnTime - despawnTime;
 
             if (age <= Short.MIN_VALUE) {
                 NautilusManager.INSTANCE.getLogger().warning("Despawn time for death items is too low (" + despawnTime + "), and would be infinite. Defaulting to " + ((defaultDespawnTime - (Short.MIN_VALUE + 1))/20) + ". For infinite values, use -1.");
 
-                age = Short.MIN_VALUE+1;
+                age = Short.MIN_VALUE + 1;
             }
 
             nms.age = age;
@@ -155,8 +150,7 @@ public class GeneralEventManager implements Listener {
     @EventHandler
     public void onPlayerInteractWithChair(PlayerInteractEvent e) {
         if (e.getClickedBlock() != null && e.getAction() == Action.RIGHT_CLICK_BLOCK && Objects.equals(e.getHand(), EquipmentSlot.HAND) &&
-                e.getPlayer().getInventory().getItemInMainHand().getType().equals(Material.AIR) && isValidChair(e.getClickedBlock()) &&
-                !(e.getPlayer().getVehicle() instanceof Egg)) {
+                e.getPlayer().getInventory().getItemInMainHand().getType().equals(Material.AIR) && isValidChair(e.getClickedBlock())) {
             Location seatLocation = e.getClickedBlock().getLocation().add(0.5, 0.1, 0.5);
             if (!seatLocation.getNearbyEntitiesByType(Egg.class, 0.2, 0.2, 0.2).isEmpty()) {
                 return;

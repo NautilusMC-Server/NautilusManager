@@ -1,5 +1,6 @@
 package org.nautilusmc.nautilusmanager.cosmetics;
 
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -20,8 +21,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class NameColor {
-
-    public static final NameColor DEFAULT_COLOR = new NameColor(FancyText.ColorType.SOLID, TextColor.color(255, 255, 255));
+    public static final NameColor UNSET_COLOR = new NameColor(FancyText.ColorType.SOLID, NamedTextColor.WHITE);
 
     private static final Map<UUID, NameColor> playerColors = new HashMap<>();
     private static SQLHandler SQL_HANDLER;
@@ -33,21 +33,21 @@ public class NameColor {
                 Map<UUID, NameColor> newColors = new HashMap<>();
                 while (results.next()) {
                     FancyText.ColorType type = FancyText.ColorType.values()[results.getInt("color_type")];
-                    TextColor[] colors = new TextColor[type.numColors];
+                    TextColor[] colors = new TextColor[type.minColors];
 
-                    for (int i = 0; i < type.numColors; i++) {
+                    for (int i = 0; i < type.minColors; i++) {
                         colors[i] = TextColor.color(results.getInt("color" + (i + 1)));
                     }
 
                     newColors.put(UUID.fromString(results.getString("uuid")), new NameColor(type, colors));
                 }
 
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    NameColor oldColor = playerColors.getOrDefault(p.getUniqueId(), DEFAULT_COLOR);
-                    NameColor newColor = newColors.getOrDefault(p.getUniqueId(), DEFAULT_COLOR);
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    NameColor oldColor = playerColors.getOrDefault(player.getUniqueId(), UNSET_COLOR);
+                    NameColor newColor = newColors.getOrDefault(player.getUniqueId(), UNSET_COLOR);
 
                     if (!oldColor.equals(newColor)) {
-                        updateNameColor(p, newColor);
+                        updateNameColor(player, newColor);
                     }
                 }
 
@@ -66,13 +66,13 @@ public class NameColor {
     public final FancyText.ColorType type;
     public final TextColor[] colors;
 
-    private NameColor copy() {
-        return new NameColor(type, colors);
-    }
-
     private NameColor(FancyText.ColorType type, TextColor... colors) {
         this.type = type;
         this.colors = colors;
+    }
+
+    private NameColor copy() {
+        return new NameColor(type, colors);
     }
 
     @Override
@@ -90,7 +90,9 @@ public class NameColor {
 
             Map<String, Object> values = new HashMap<>();
             values.put("color_type", color.type.ordinal());
-            for (int i = 0; i < color.type.numColors; i++) values.put("color" + (i + 1), color.colors[i].value());
+            for (int i = 0; i < color.type.minColors; i++) {
+                values.put("color" + (i + 1), color.colors[i].value());
+            }
             SQL_HANDLER.setSQL(uuid, values);
         }
     }
@@ -102,10 +104,12 @@ public class NameColor {
     public static void setNameColor(Player player, boolean sendMessage, NameColor color) {
         if (!color.equals(getNameColor(player))) {
             updateNameColor(player, color);
-            setNameColor(player.getUniqueId(), color.equals(DEFAULT_COLOR) ? null : color);
+            setNameColor(player.getUniqueId(), color.equals(UNSET_COLOR) ? null : color);
         }
 
-        if (sendMessage) player.sendMessage(FancyText.colorText(color.type, "Name color changed", color.colors));
+        if (sendMessage) {
+            player.sendMessage(FancyText.colorText(color.type, "Name color successfully changed.", color.colors));
+        }
     }
 
     public static void updateNameColor(Player player, NameColor color) {
@@ -117,7 +121,9 @@ public class NameColor {
         @EventHandler
         public void onPlayerJoin(PlayerJoinEvent e) {
             NameColor color = getNameColor(e.getPlayer());
-            if (color != null && !color.equals(DEFAULT_COLOR)) updateNameColor(e.getPlayer(), color);
+            if (color != null && !color.equals(UNSET_COLOR)) {
+                updateNameColor(e.getPlayer(), color);
+            }
         }
     }
 }

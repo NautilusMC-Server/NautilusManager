@@ -1,20 +1,23 @@
 package org.nautilusmc.nautilusmanager.util;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 
 import java.util.*;
 
 public class ConfirmationMessage {
+    public static final Component NO_PENDING_CONFIRM_ERROR = Component.text("No pending tasks to confirm!").color(Command.ERROR_COLOR);
+    public static final Component NO_PENDING_DENY_ERROR = Component.text("No pending tasks to deny!").color(Command.ERROR_COLOR);
+
+    private static final HashMap<UUID, Stack<ConfirmationMessage>> PENDING = new HashMap<>();
+
     private Player player;
     private BukkitRunnable runnable;
     private String taskName;
-    private static HashMap<UUID, Stack<ConfirmationMessage>> PENDING = new HashMap<>();
+
     private ConfirmationMessage(Player player, BukkitRunnable runnable) {
         this.player = player;
         this.runnable = runnable;
@@ -35,20 +38,22 @@ public class ConfirmationMessage {
     public void setRunnable(BukkitRunnable runnable) {
         this.runnable = runnable;
     }
+
     public void execute() {
         runnable.runTask(NautilusManager.INSTANCE);
     }
 
     public static void sendConfirmationMessage(Player player, Component taskName, BukkitRunnable runnable) {
-        player.sendMessage(Component.text("Are you sure you want to ").color(NautilusCommand.MAIN_COLOR)
-                .append(taskName)
-                .append(Component.text("?").color(NautilusCommand.MAIN_COLOR)));
-
-        player.sendMessage(Util.clickableCommand("/confirm", true).color(NautilusCommand.ACCENT_COLOR)
-                .append(Component.text(" to confirm").color(NautilusCommand.MAIN_COLOR)));
-
-        player.sendMessage(Util.clickableCommand("/deny", true).color(NautilusCommand.ACCENT_COLOR)
-                .append(Component.text(" to deny").color(NautilusCommand.MAIN_COLOR)));
+        player.sendMessage(Component.text("Are you sure you want to ")
+                .append(taskName).color(Command.INFO_ACCENT_COLOR)
+                .append(Component.text("?"))
+                .color(Command.INFO_COLOR));
+        player.sendMessage(Util.clickableCommand("/confirm", true).color(Command.INFO_ACCENT_COLOR)
+                .append(Component.text(" to confirm"))
+                .color(Command.INFO_COLOR));
+        player.sendMessage(Util.clickableCommand("/deny", true).color(Command.INFO_ACCENT_COLOR)
+                .append(Component.text(" to deny"))
+                .color(Command.INFO_COLOR));
 
         UUID uuid = player.getUniqueId();
         if (!PENDING.containsKey(uuid)) {
@@ -64,26 +69,32 @@ public class ConfirmationMessage {
     public static void confirm(Player player) {
         UUID uuid = player.getUniqueId();
         if (!PENDING.containsKey(uuid)) {
-            player.sendMessage(Component.text("No pending tasks to confirm!").color(NautilusCommand.ERROR_COLOR));
+            player.sendMessage(NO_PENDING_CONFIRM_ERROR);
             return;
         }
-        Stack<ConfirmationMessage> stack =  PENDING.get(uuid);
+
+        Stack<ConfirmationMessage> stack = PENDING.get(uuid);
         stack.pop().execute();
         if (stack.isEmpty()) {
             PENDING.remove(uuid);
         }
+
+        player.sendMessage(Component.text("Task confirmed.").color(Command.INFO_COLOR));
     }
+
     public static void deny(Player player) {
         UUID uuid = player.getUniqueId();
         if (!PENDING.containsKey(uuid)) {
-            player.sendMessage(Component.text("No pending tasks to deny!").color(NautilusCommand.ERROR_COLOR));
+            player.sendMessage(NO_PENDING_DENY_ERROR);
             return;
         }
-        Stack<ConfirmationMessage> stack =  PENDING.get(uuid);
+
+        Stack<ConfirmationMessage> stack = PENDING.get(uuid);
         stack.pop();
         if (stack.isEmpty()) {
             PENDING.remove(uuid);
         }
-        player.sendMessage(Component.text("Task denied!").color(NautilusCommand.ERROR_COLOR));
+
+        player.sendMessage(Component.text("Task denied.").color(Command.INFO_COLOR));
     }
 }

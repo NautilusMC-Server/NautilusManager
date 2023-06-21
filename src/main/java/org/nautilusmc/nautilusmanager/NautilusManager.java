@@ -1,22 +1,13 @@
 package org.nautilusmc.nautilusmanager;
 
-import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.nautilusmc.nautilusmanager.commands.*;
 import org.nautilusmc.nautilusmanager.cosmetics.MuteManager;
 import org.nautilusmc.nautilusmanager.crews.CrewHandler;
-import org.nautilusmc.nautilusmanager.crews.commands.CrewCommand;
-import org.nautilusmc.nautilusmanager.crews.commands.CrewsCommand;
-import org.nautilusmc.nautilusmanager.crews.commands.InviteCommand;
-import org.nautilusmc.nautilusmanager.crews.commands.WarCommand;
+import org.nautilusmc.nautilusmanager.crews.commands.*;
 import org.nautilusmc.nautilusmanager.discord.DiscordBot;
 import org.nautilusmc.nautilusmanager.teleport.TpaManager;
-import org.nautilusmc.nautilusmanager.teleport.commands.homes.BuyHomeCommand;
 import org.nautilusmc.nautilusmanager.cosmetics.NameColor;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.cosmetics.TabListManager;
@@ -25,23 +16,15 @@ import org.nautilusmc.nautilusmanager.events.*;
 import org.nautilusmc.nautilusmanager.sql.SQL;
 import org.nautilusmc.nautilusmanager.teleport.Homes;
 import org.nautilusmc.nautilusmanager.teleport.Warps;
-import org.nautilusmc.nautilusmanager.teleport.commands.BackCommand;
-import org.nautilusmc.nautilusmanager.teleport.commands.SpawnCommand;
-import org.nautilusmc.nautilusmanager.teleport.commands.homes.DelHomeCommand;
-import org.nautilusmc.nautilusmanager.teleport.commands.homes.HomeCommand;
-import org.nautilusmc.nautilusmanager.teleport.commands.homes.HomesCommand;
-import org.nautilusmc.nautilusmanager.teleport.commands.homes.SetHomeCommand;
+import org.nautilusmc.nautilusmanager.teleport.commands.*;
+import org.nautilusmc.nautilusmanager.teleport.commands.homes.*;
 import org.nautilusmc.nautilusmanager.teleport.commands.tpa.*;
 import org.nautilusmc.nautilusmanager.teleport.commands.warp.*;
-import org.nautilusmc.nautilusmanager.util.PermsUtil;
-
-import java.util.List;
+import org.nautilusmc.nautilusmanager.util.Permission;
 
 public final class NautilusManager extends JavaPlugin {
 
     public static NautilusManager INSTANCE;
-
-    public static final TextColor DEFAULT_CHAT_TEXT_COLOR = TextColor.color(200, 200, 200);
 
     @Override
     public void onEnable() {
@@ -56,7 +39,7 @@ public final class NautilusManager extends JavaPlugin {
         Warps.init();
         TpaManager.init();
         MuteManager.init();
-        PermsUtil.init();
+        Permission.init();
         CrewHandler.init();
 
         registerCommands();
@@ -70,6 +53,7 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("cosmetics").setExecutor(new CosmeticsCommand());
         this.getCommand("nickname").setExecutor(new NicknameCommand());
         this.getCommand("formatting").setExecutor(new FormattingCommand());
+        this.getCommand("emoji").setExecutor(new EmojiCommand());
         this.getCommand("msg").setExecutor(new MsgCommand());
         this.getCommand("chat").setExecutor(new ChatCommand());
         this.getCommand("reply").setExecutor(new ReplyCommand());
@@ -87,11 +71,11 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("tptrustlist").setExecutor(new TpTrustListCommand());
         this.getCommand("tpaccept").setExecutor(new TpAcceptCommand());
         this.getCommand("tpdeny").setExecutor(new TpDenyCommand());
-        this.getCommand("tpcancel").setExecutor(new TpCancel());
+        this.getCommand("tpcancel").setExecutor(new TpCancelCommand());
         this.getCommand("reloadnautilus").setExecutor(new ReloadCommand());
         this.getCommand("warp").setExecutor(new WarpCommand());
         this.getCommand("createwarp").setExecutor(new CreateWarpCommand());
-        this.getCommand("delwarp").setExecutor(new DeleteWarpCommand());
+        this.getCommand("delwarp").setExecutor(new DelWarpCommand());
         this.getCommand("vanish").setExecutor(new VanishCommand());
         this.getCommand("chatmsg").setExecutor(new ChatMsgCommand());
         this.getCommand("suicide").setExecutor(new SuicideCommand());
@@ -106,24 +90,25 @@ public final class NautilusManager extends JavaPlugin {
         this.getCommand("toggleinvisible").setExecutor(new ToggleInvisibleCommand());
         this.getCommand("mute").setExecutor(new MuteCommand());
         this.getCommand("mutelist").setExecutor(new MuteListCommand());
-        this.getCommand("timetop").setExecutor(new TimetopCommand());
-        this.getCommand("traveltop").setExecutor(new TraveltopCommand());
+        this.getCommand("timetop").setExecutor(new TimeTopCommand());
+        this.getCommand("traveltop").setExecutor(new TravelTopCommand());
         this.getCommand("language").setExecutor(new LanguageCommand());
 
         this.getCommand("ban").setExecutor(new BanCommand());
         Bukkit.getCommandMap().getKnownCommands().put("ban", this.getCommand("ban"));
+        this.getCommand("pardon").setExecutor(new PardonCommand());
+        Bukkit.getCommandMap().getKnownCommands().put("pardon", this.getCommand("pardon"));
     }
 
     private void registerEvents() {
         Bukkit.getPluginManager().registerEvents(new ChatCommand.ChatListener(), this);
         Bukkit.getPluginManager().registerEvents(new MessageStyler(), this);
 
-        Bukkit.getPluginManager().registerEvents(new AfkManager(), this);
+        Bukkit.getPluginManager().registerEvents(new AFKManager(), this);
         Bukkit.getPluginManager().registerEvents(new VanishManager(), this);
         Bukkit.getPluginManager().registerEvents(new TeleportHandler(), this);
         Bukkit.getPluginManager().registerEvents(new GeneralEventManager(), this);
         Bukkit.getPluginManager().registerEvents(new SpawnProtection(), this);
-
 
         Bukkit.getPluginManager().registerEvents(new CrewHandler(), this);
         Bukkit.getPluginManager().registerEvents(new DiscordBot(), this);

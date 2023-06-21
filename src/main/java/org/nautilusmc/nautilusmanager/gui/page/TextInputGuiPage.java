@@ -1,48 +1,48 @@
 package org.nautilusmc.nautilusmanager.gui.page;
 
-import net.kyori.adventure.text.format.TextDecoration;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.inventory.AnvilMenu;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftInventoryView;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.inventory.PrepareAnvilEvent;
+import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+import org.nautilusmc.nautilusmanager.commands.Command;
+import org.nautilusmc.nautilusmanager.util.Util;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class TextInputGuiPage extends GuiPage {
-
     private ItemStack item;
     private String windowName;
     private Consumer<InventoryClickEvent> action;
-    private Function<AnvilMenu, net.minecraft.world.item.ItemStack> generateResult;
+    private Function<AnvilInventory, ItemStack> resultGenerator;
     private boolean closeOnClick = false;
-
 
     public TextInputGuiPage setItem(ItemStack item) {
         return setItem(item, null);
     }
 
-    public TextInputGuiPage setItem(ItemStack item, net.kyori.adventure.text.Component name) {
-        return setItem(item, name, new net.kyori.adventure.text.Component[]{});
+    public TextInputGuiPage setItem(ItemStack item, Component name) {
+        return setItem(item, name, null);
     }
 
-    public TextInputGuiPage setItem(ItemStack item, net.kyori.adventure.text.Component name, net.kyori.adventure.text.Component[] lore) {
+    public TextInputGuiPage setItem(ItemStack item, Component name, List<Component> lore) {
         ItemMeta meta = item.getItemMeta();
-        if (name != null) meta.displayName(name);
-        if (lore.length > 0) meta.lore(List.of(lore));
+        if (name != null) {
+            meta.displayName(name);
+        }
+        if (lore != null && !lore.isEmpty()) {
+            meta.lore(lore);
+        }
         item.setItemMeta(meta);
 
         this.item = item;
@@ -64,12 +64,12 @@ public class TextInputGuiPage extends GuiPage {
         return this;
     }
 
-    public TextInputGuiPage setGenerateResult(Function<AnvilMenu, net.minecraft.world.item.ItemStack> generateResult) {
-        this.generateResult = generateResult;
+    public TextInputGuiPage setResultGenerator(Function<AnvilInventory, ItemStack> resultGenerator) {
+        this.resultGenerator = resultGenerator;
         return this;
     }
 
-    private AnvilMenu generateMenu(int syncId, Player p) {
+    /*private AnvilMenu generateMenu(int syncId, Player p) {
         return new AnvilMenu(syncId, ((CraftPlayer) p).getHandle().getInventory()) {
             @Override
             public void createResult() {
@@ -101,33 +101,24 @@ public class TextInputGuiPage extends GuiPage {
                 return super.getBukkitView();
             }
         };
-    }
+    }*/
 
     @Override
     public boolean load(Player player) {
-        ItemStack i = item.clone();
-        ItemMeta meta = i.getItemMeta();
-        List<net.kyori.adventure.text.Component> lore = meta.lore();
-        if (lore == null) lore = new ArrayList<>();
-        else lore.add(0, net.kyori.adventure.text.Component.text(""));
-        lore.add(0, net.kyori.adventure.text.Component.text("Click to reset")
-                .decoration(TextDecoration.ITALIC, false)
-                .color(net.kyori.adventure.text.format.TextColor.color(255, 120, 118)));
-        meta.lore(lore);
-        i.setItemMeta(meta);
-
-        ((CraftPlayer) player).getHandle().openMenu(new SimpleMenuProvider((syncId, playerInventory, playerEntity) -> {
-            AnvilMenu menu = generateMenu(syncId, player);
-            menu.setItem(0, menu.incrementStateId(), CraftItemStack.asNMSCopy(i));
-            return menu;
-        }, Component.literal(windowName == null ? "Custom Input" : windowName)));
+        InventoryView menu = player.openAnvil(null, true);
+        if (menu == null) return false;
+        menu.setTitle(Objects.requireNonNullElse(windowName, "Text Input"));
+        menu.setItem(0, Util.addActionLore(
+                item.clone(),
+                Component.text("Click to reset", Command.ERROR_COLOR)
+        ));
 
         return true;
     }
 
     @Override
     public @NotNull Inventory getInventory() {
-        return null;
+        return null; // shhhh it's okay this class shouldn't be used as an InventoryHolder anyway
     }
 
     @Override
@@ -135,10 +126,23 @@ public class TextInputGuiPage extends GuiPage {
         ItemStack clickedItem = e.getCurrentItem();
         if (e.getSlotType() == InventoryType.SlotType.RESULT && clickedItem != null && !clickedItem.getType().isAir()) {
             action.accept(e);
+
             if (closeOnClick) {
-                InventoryClickEvent.getHandlerList().unregister(getGui());
                 e.getWhoClicked().closeInventory();
             }
+        }
+    }
+
+    @Override
+    public void handleAnvil(PrepareAnvilEvent e) {
+        e.getInventory().setRepairCost(0);
+        e.getInventory().setRepairCostAmount(0);
+
+        if (resultGenerator != null) {
+            e.setResult(Util.addActionLore(
+                    resultGenerator.apply(e.getInventory()),
+                    Component.text("Click to accept", Command.SUCCESS_COLOR)
+            ));
         }
     }
 }

@@ -1,14 +1,14 @@
 package org.nautilusmc.nautilusmanager.events;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
 import io.papermc.paper.event.player.PlayerArmSwingEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -22,56 +22,58 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class AfkManager implements Listener {
-
-    private static final Map<UUID, Long> AFK = new HashMap<>();
+public class AFKManager implements Listener {
+    private static final Map<UUID, Long> AFK_START_MILLIS = new HashMap<>();
     private static final Map<UUID, BukkitRunnable> AFK_TIMERS = new HashMap<>();
 
-    public static long getTimeAfk(Player player) {
-        long timeAFKed = AFK.getOrDefault(player.getUniqueId(), -1L);
-        if (timeAFKed == -1) return -1;
+    public static long getSecondsAfk(Player player) {
+        long afkStartMillis = AFK_START_MILLIS.getOrDefault(player.getUniqueId(), -1L);
+        if (afkStartMillis == -1) return -1;
 
-        return (System.currentTimeMillis() - timeAFKed)/1000L;
+        return (System.currentTimeMillis() - afkStartMillis) / 1000L;
     }
 
-    public static boolean isAfk(Player player) {
-        return AFK.containsKey(player.getUniqueId());
+    public static boolean isAFK(Player player) {
+        return AFK_START_MILLIS.containsKey(player.getUniqueId());
     }
 
     public static void toggleAFK(Player player) {
-        setAFK(player, !isAfk(player));
+        setAFK(player, !isAFK(player));
     }
 
     public static void setAFK(Player player, boolean afk) {
         if (!afk) resetTimer(player);
-        if (isAfk(player) == afk) return;
+        if (isAFK(player) == afk) return;
 
-        String verb;
+        String status;
 
         if (afk) {
-            AFK.put(player.getUniqueId(), System.currentTimeMillis());
-            verb = "now";
+            AFK_START_MILLIS.put(player.getUniqueId(), System.currentTimeMillis());
+            status = "now AFK";
             removeTimer(player);
 
             Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> {
-                if (isAfk(player)) {
-                    ((CraftPlayer) player).getHandle().fauxSleeping = true;
-                    ((CraftWorld) Bukkit.getWorlds().get(0)).getHandle().updateSleepingPlayerList();
+                if (isAFK(player)) {
+                    player.setSleepingIgnored(true);
                 }
-            }, NautilusManager.INSTANCE.getConfig().getInt("afk.timeToIgnoreSleep") * 20L);
+            }, NautilusManager.INSTANCE.getConfig().getInt("afk.timeToIgnoreSleep") * (long) Util.TICKS_PER_SECOND);
         } else {
-            AFK.remove(player.getUniqueId());
-            verb = "no longer";
+            AFK_START_MILLIS.remove(player.getUniqueId());
+            status = "no longer AFK";
+
+            player.setSleepingIgnored(false);
         }
 
-        player.sendMessage(Component.text("You are "+verb+" AFK.")
+        player.sendMessage(Component.text("You are " + status + ".")
                 .color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p == player) continue;
-            p.sendMessage(Component.text("* ")
-                    .append(player.displayName())
-                    .append(Component.text(" is "+verb+" AFK."))
-                    .color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
+        Component message = Component.text("* ")
+                .append(player.displayName())
+                .append(Component.text(" is " + status + "."))
+                .color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC);
+        for (Player recipient : Bukkit.getOnlinePlayers()) {
+            if (recipient != player) {
+                recipient.sendMessage(message);
+            }
         }
     }
 
@@ -123,5 +125,11 @@ public class AfkManager implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryInteractEvent e) {
         if (e.getWhoClicked() instanceof Player player) setAFK(player, false);
+    }
+
+    // high priority so the "no longer AFK" message appears before the message itself
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onMessage(AsyncChatEvent e) {
+        setAFK(e.getPlayer(), false);
     }
 }

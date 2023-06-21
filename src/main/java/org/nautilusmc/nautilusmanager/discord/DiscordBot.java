@@ -1,8 +1,6 @@
 package org.nautilusmc.nautilusmanager.discord;
 
 import com.deepl.api.DeepLException;
-import io.papermc.paper.adventure.PaperAdventure;
-import io.papermc.paper.event.player.AsyncChatEvent;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -20,24 +18,19 @@ import net.dv8tion.jda.api.hooks.SubscribeEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.LayoutComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.internal.JDAImpl;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.apache.logging.log4j.core.config.builder.api.LayoutComponentBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -47,14 +40,12 @@ import org.nautilusmc.nautilusmanager.events.MessageStyler;
 import org.nautilusmc.nautilusmanager.util.CaseInsensitiveString;
 import org.nautilusmc.nautilusmanager.util.Util;
 
-import java.awt.*;
+import java.awt.Color;
 import java.time.Instant;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class DiscordBot implements Listener {
-
     private static final TextColor DISCORD_COLOR = TextColor.color(85,98,234);
     private static final TextColor DISCORD_OUTER_COLOR = TextColor.color(138, 143, 255);
 
@@ -74,7 +65,7 @@ public class DiscordBot implements Listener {
                     .addEventListeners(new DiscordBot())
                     .build();
         } catch (InvalidTokenException | IllegalArgumentException e) {
-            NautilusManager.INSTANCE.getLogger().warning("Invalid Discord token! Discord integration will be disabled");
+            NautilusManager.INSTANCE.getLogger().warning("Invalid Discord token! Discord integration will be disabled.");
             jda = null;
 
             return;
@@ -87,7 +78,7 @@ public class DiscordBot implements Listener {
                         .setGuildOnly(true)
         ).queue();
 
-        Bukkit.getScheduler().runTaskTimer(NautilusManager.INSTANCE, DiscordBot::updateStatusMessage, 0, NautilusManager.INSTANCE.getConfig().getLong("discord.status_update_interval") * 20);
+        Bukkit.getScheduler().runTaskTimer(NautilusManager.INSTANCE, DiscordBot::updateStatusMessage, 0, NautilusManager.INSTANCE.getConfig().getLong("discord.status_update_interval") * 20L);
     }
 
     public static void unload() {
@@ -97,10 +88,12 @@ public class DiscordBot implements Listener {
     }
 
     private static void updateStatusMessage() {
+        if (jda == null) return;
+
         TextChannel statusChannel = jda.getTextChannelById(NautilusManager.INSTANCE.getConfig().getLong("discord.status_channel"));
 
         MessageEmbed embed = new EmbedBuilder()
-                .setColor(new Color(27, 143, 169, 255))
+                .setColor(new Color(27, 143, 169))
                 .setTitle("Welcome to NautilusMC")
                 .setThumbnail("https://cdn.discordapp.com/icons/1100956444494401646/b255f5dea85238b811f8734fb4149302.webp")
                 .setDescription("A Minecraft server for everyone!")
@@ -136,7 +129,7 @@ public class DiscordBot implements Listener {
                         .setColor(new Color(17, 90, 107))
                         .setDescription(Bukkit.getOnlinePlayers().isEmpty() ? "No one is online :cry:" :
                             Bukkit.getOnlinePlayers().stream()
-                            .map(p-> {
+                            .map(p -> {
                                 String nick = Util.getName(p);
                                 return nick + (!nick.equals(p.getName()) ? " *(" + p.getName() + ")*" : "");
                             })
@@ -385,7 +378,7 @@ public class DiscordBot implements Listener {
 
             // TODO: maybe have a way for ppl to block discord users too but for now just send to all players
             MessageStyler.sendMessageAsUser(displayName, hasPermission, bukkitMessage, Bukkit.getOnlinePlayers());
-            e.getMessage().delete().queue(ignore->sendMinecraftMsgInDiscord(displayName, bukkitMessage));
+            e.getMessage().delete().queue(ignored -> sendMinecraftMsgInDiscord(displayName, bukkitMessage));
         }
     }
 

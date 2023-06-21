@@ -1,19 +1,16 @@
 package org.nautilusmc.nautilusmanager.crews;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
-import org.nautilusmc.nautilusmanager.util.PermsUtil;
+import org.nautilusmc.nautilusmanager.commands.Command;
+import org.nautilusmc.nautilusmanager.util.Permission;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.*;
 
 public class Invite {
+    public static final Component NO_PENDING_INVITES_ERROR = Component.text("No pending invites!").color(Command.ERROR_COLOR);
     private OfflinePlayer sender;
     private OfflinePlayer receiver;
 
@@ -45,13 +42,14 @@ public class Invite {
         if (senderCrew == null) {
             return;
         }
-        inviteReceiver.sendMessage(inviteSender.displayName().append(Component.text(" sent you an invite to their crew!").color(NautilusCommand.MAIN_COLOR)));
+        inviteReceiver.sendMessage(Component.empty().append(inviteSender.displayName()).color(Command.INFO_ACCENT_COLOR)
+                .append(Component.text(" sent you an invite to their crew!").color(Command.INFO_COLOR)));
 
-        inviteReceiver.sendMessage(Util.clickableCommand("/invite accept ", true).color(NautilusCommand.ACCENT_COLOR)
-                .append(Component.text("to accept").color(NautilusCommand.MAIN_COLOR)));
+        inviteReceiver.sendMessage(Util.clickableCommand("/invite accept", true).color(Command.INFO_ACCENT_COLOR)
+                .append(Component.text(" to accept").color(Command.INFO_COLOR)));
 
-        inviteReceiver.sendMessage(Util.clickableCommand("/invite decline ", true).color(NautilusCommand.ACCENT_COLOR)
-                .append(Component.text("to decline").color(NautilusCommand.MAIN_COLOR)));
+        inviteReceiver.sendMessage(Util.clickableCommand("/invite decline", true).color(Command.INFO_ACCENT_COLOR)
+                .append(Component.text(" to decline").color(Command.INFO_COLOR)));
 
         UUID uuid = inviteReceiver.getUniqueId();
         if (!PENDING.containsKey(uuid)) {
@@ -67,7 +65,7 @@ public class Invite {
     public static void accept(Player player) {
         UUID uuid = player.getUniqueId();
         if (!PENDING.containsKey(uuid)) {
-            player.sendMessage(Component.text("No pending invites!").color(NautilusCommand.ERROR_COLOR));
+            player.sendMessage(NO_PENDING_INVITES_ERROR);
             return;
         }
         Stack<Invite> stack =  PENDING.get(uuid);
@@ -80,18 +78,19 @@ public class Invite {
             return;
         }
         crew.addMember(invite.getReceiver());
-        PermsUtil.addGroup(invite.getReceiver(), "crewmember");
+        Permission.addGroup(invite.getReceiver(), "crewmember");
 
-        player.sendMessage(Component.text("Crew ").color(NautilusCommand.MAIN_COLOR)
-                .append(Component.text(crew.getName()).color(NautilusCommand.ACCENT_COLOR))
-                .append(Component.text(" joined!").color(NautilusCommand.MAIN_COLOR)));
-        crew.sendMessageToMembers(Component.text(Util.getName(invite.getReceiver())).color(NautilusCommand.ACCENT_COLOR)
-                .append(Component.text(" joined the crew!").color(NautilusCommand.MAIN_COLOR)));
+        player.sendMessage(Component.text("You joined \"").color(Command.INFO_COLOR)
+                .append(Component.text(crew.getName()).color(Command.INFO_ACCENT_COLOR))
+                .append(Component.text("\"!").color(Command.INFO_COLOR)));
+        crew.sendMessageToMembers(Component.text(Util.getName(invite.getReceiver())).color(Command.INFO_ACCENT_COLOR)
+                .append(Component.text(" joined the crew!").color(Command.INFO_COLOR)));
     }
+
     public static void deny(Player player) {
         UUID uuid = player.getUniqueId();
         if (!PENDING.containsKey(uuid)) {
-            player.sendMessage(Component.text("No pending invites!").color(NautilusCommand.ERROR_COLOR));
+            player.sendMessage(NO_PENDING_INVITES_ERROR);
             return;
         }
         Stack<Invite> stack =  PENDING.get(uuid);
@@ -99,12 +98,11 @@ public class Invite {
         if (stack.isEmpty()) {
             PENDING.remove(uuid);
         }
-        player.sendMessage(Component.text("Invitation declined!").color(NautilusCommand.ERROR_COLOR));
+        player.sendMessage(Component.text("Invitation declined.").color(Command.ERROR_COLOR));
         if (invite.getSender().isOnline()) {
             Player inviteSender = invite.getSender().getPlayer();
             inviteSender.sendMessage(player.displayName()
-                    .append(Component.text(" declined your invite!").color(NautilusCommand.ERROR_COLOR)));
+                    .append(Component.text(" declined your invite!").color(Command.ERROR_COLOR)));
         }
     }
-
 }

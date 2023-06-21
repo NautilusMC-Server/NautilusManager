@@ -1,66 +1,65 @@
 package org.nautilusmc.nautilusmanager.teleport.commands.tpa;
 
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.teleport.TpaManager;
+import org.nautilusmc.nautilusmanager.util.Permission;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TpaCommand extends NautilusCommand {
+public class TpaCommand extends Command {
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Component.text("Only players can use this command.").color(NautilusCommand.ERROR_COLOR));
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Command.NOT_PLAYER_ERROR);
             return true;
         }
 
-        if (!player.hasPermission(TPA_PERM)) {
-            player.sendMessage(Component.text("Not enough permissions!").color(NautilusCommand.ERROR_COLOR));
+        if (!player.hasPermission(Permission.TPA.toString())) {
+            player.sendMessage(Command.NO_PERMISSION_ERROR);
             return true;
         }
 
-        if (strings.length < 1) return false;
+        if (args.length < 1) return false;
 
-        Player recipient = Util.getOnlinePlayer(strings[0]);
+        Player recipient = Util.getOnlinePlayer(args[0]);
         if (recipient == null) {
-            commandSender.sendMessage(Component.text("Player not found").color(NautilusCommand.ERROR_COLOR));
+            sender.sendMessage(Command.INVALID_PLAYER_ERROR);
             return true;
         }
 
-        if (recipient == commandSender) {
-            commandSender.sendMessage(Component.text("You can't teleport to yourself!").color(NautilusCommand.ERROR_COLOR));
+        if (recipient.equals(sender)) {
+            sender.sendMessage(TpaManager.CANNOT_TP_TO_SELF_ERROR);
             return true;
         }
 
         if (TpaManager.isTrusted(recipient, player)) {
             recipient.sendMessage(Component.empty()
-                    .append(Component.text(Util.getName(player)).color(NautilusCommand.ACCENT_COLOR))
+                    .append(Component.text(Util.getName(player)).color(INFO_ACCENT_COLOR))
                     .append(Component.text(" is teleporting to you."))
-                    .color(NautilusCommand.MAIN_COLOR));
-            TpaManager.performTp(recipient, player, TpaManager.TpRequestType.TP_TO);
+                    .color(INFO_COLOR));
+            TpaManager.performTeleport(recipient, player, TpaManager.TeleportRequest.REQUESTER_TO_RECIPIENT);
         } else {
-            TpaManager.tpRequest(player, recipient, TpaManager.TpRequestType.TP_TO);
+            TpaManager.tpRequest(player, recipient, TpaManager.TeleportRequest.REQUESTER_TO_RECIPIENT);
         }
 
         return true;
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public @Nullable List<String> suggestionList(@NotNull CommandSender sender, @NotNull String[] args) {
         List<String> out = new ArrayList<>();
 
-        if (strings.length == 1) {
-            out.addAll(Bukkit.getOnlinePlayers().stream().map(Util::getName).toList());
+        if (args.length == 1) {
+            out.addAll(getOnlineNames());
         }
 
-        return out.stream().filter(str->str.toLowerCase().startsWith(strings[strings.length-1].toLowerCase())).toList();
+        return out;
     }
 }

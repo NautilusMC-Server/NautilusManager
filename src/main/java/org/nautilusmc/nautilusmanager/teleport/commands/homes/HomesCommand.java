@@ -2,49 +2,44 @@ package org.nautilusmc.nautilusmanager.teleport.commands.homes;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.teleport.Homes;
+import org.nautilusmc.nautilusmanager.util.ListDisplay;
+import org.nautilusmc.nautilusmanager.util.Permission;
+import org.nautilusmc.nautilusmanager.util.Util;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
-public class HomesCommand extends NautilusCommand {
+public class HomesCommand extends Command {
+    public static final ListDisplay<Map.Entry<String, Location>> HOME_LIST_DISPLAY = new ListDisplay<Map.Entry<String, Location>>("Your Homes", 6)
+            .setFormatter(home -> Component.empty()
+                    .append(Component.text(home.getKey()).color(INFO_ACCENT_COLOR))
+                    .append(Component.text(" (%d, %d, %d)".formatted(home.getValue().getBlockX(), home.getValue().getBlockY(), home.getValue().getBlockZ()))))
+            .setEmptyMessage(Component.text("No homes set. Use ")
+                    .append(Util.clickableCommand("/sethome <name>", false).color(INFO_ACCENT_COLOR))
+                    .append(Component.text(" to create your first home!")));
+
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(Component.text("Only players can use this command!").color(NautilusCommand.ERROR_COLOR));
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(NOT_PLAYER_ERROR);
             return true;
         }
 
-        if (!player.hasPermission(HOMES_PERM)) {
-            player.sendMessage(Component.text("Not enough permissions!").color(NautilusCommand.ERROR_COLOR));
+        if (!player.hasPermission(Permission.USE_HOMES.toString())) {
+            player.sendMessage(NO_PERMISSION_ERROR);
             return true;
         }
 
-        player.sendMessage(Component.text("Homes: ").color(NautilusCommand.MAIN_COLOR));
-        if (Homes.getHomes(player) == null || Homes.getHomes(player).isEmpty()) {
-            player.sendMessage(Component.text("  Nothing to see here yet, run ").color(NautilusCommand.MAIN_COLOR)
-                    .append(Component.text("/sethome <name>").color(NautilusCommand.ACCENT_COLOR))
-                    .append(Component.text("!")));
-        } else {
-            for (Map.Entry<String, Location> home : Homes.getHomes(player).entrySet()) {
-                Location loc = home.getValue();
-                player.sendMessage(Component.text(" - ").color(NautilusCommand.MAIN_COLOR).append(Component.text(home.getKey()).color(NautilusCommand.ACCENT_COLOR))
-                        .append(Component.text(" (%d,%d,%d)".formatted(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()))));
-            }
-        }
+        Map<String, Location> homes = Homes.getHomes(player);
+        HOME_LIST_DISPLAY.setList(homes == null ? null : homes.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .toList());
+        player.sendMessage(HOME_LIST_DISPLAY.fetchPageContent(args.length >= 1 ? args[0] : null));
 
         return true;
-    }
-
-    @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        return new ArrayList<>();
     }
 }

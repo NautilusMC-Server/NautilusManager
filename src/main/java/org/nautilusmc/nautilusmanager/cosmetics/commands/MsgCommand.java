@@ -3,68 +3,56 @@ package org.nautilusmc.nautilusmanager.cosmetics.commands;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.Sound;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.cosmetics.MuteManager;
-import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
-import org.nautilusmc.nautilusmanager.events.AfkManager;
+import org.nautilusmc.nautilusmanager.events.AFKManager;
+import org.nautilusmc.nautilusmanager.events.GeneralEventManager;
 import org.nautilusmc.nautilusmanager.events.MessageStyler;
-import org.nautilusmc.nautilusmanager.util.FancyText;
 import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class MsgCommand extends NautilusCommand {
+public class MsgCommand extends Command {
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (strings.length < 2) return false;
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (args.length < 2) return false;
 
-        Player recipient = Util.getOnlinePlayer(strings[0]);
+        Player recipient = Util.getOnlinePlayer(args[0]);
         if (recipient == null) {
-            commandSender.sendMessage(Component.text("Player not found").color(NautilusCommand.ERROR_COLOR));
+            sender.sendMessage(Command.INVALID_PLAYER_ERROR);
             return true;
         }
 
-        if (commandSender instanceof Player player) {
+        if (sender instanceof Player player) {
             if (MuteManager.isMuted(recipient, player)) {
-                player.sendMessage(Component.text("This player has muted you!").color(NautilusCommand.ERROR_COLOR));
+                player.sendMessage(Component.text("This player has muted you!").color(Command.ERROR_COLOR));
                 return true;
             } else if (MuteManager.isMuted(player, recipient)) {
-                player.sendMessage(Component.text("You have muted this player!").color(NautilusCommand.ERROR_COLOR));
+                player.sendMessage(Component.text("You have muted this player!").color(Command.ERROR_COLOR));
                 return true;
             }
 
-            ReplyCommand.messaged(player.getUniqueId(), recipient.getUniqueId());
+            ReplyCommand.update(player.getUniqueId(), recipient.getUniqueId());
         }
 
-        if (AfkManager.isAfk(recipient)) {
-            recipient.playSound(recipient.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 2);
-            Bukkit.getScheduler().scheduleSyncDelayedTask(NautilusManager.INSTANCE, () -> {
-                recipient.playSound(recipient.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 4F);
-            }, 2);
+        if (AFKManager.isAFK(recipient)) {
+            GeneralEventManager.pingPlayer(recipient);
         }
 
-        Component msg = MessageStyler.formatUserMessage(commandSender, Component.text(String.join(" ", Arrays.copyOfRange(strings, 1, strings.length))))
+        Component msg = MessageStyler.formatUserMessage(sender, Component.text(getMessageFromArgs(args, 1)))
                 .decorate(TextDecoration.ITALIC);
 
         Map.Entry<Component, Component> messages = styleWhisper(
-                (commandSender instanceof Player p ?
-                        p.displayName() :
-                        commandSender.name()).decorate(TextDecoration.ITALIC),
+                (sender instanceof Player p ? p.displayName() : sender.name()).decorate(TextDecoration.ITALIC),
                 recipient.displayName().decorate(TextDecoration.ITALIC),
                 msg);
-        commandSender.sendMessage(messages.getKey());
+        sender.sendMessage(messages.getKey());
         recipient.sendMessage(messages.getValue());
 
         return true;
@@ -88,13 +76,13 @@ public class MsgCommand extends NautilusCommand {
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public @Nullable List<String> suggestionList(@NotNull CommandSender sender, @NotNull String[] args) {
         List<String> out = new ArrayList<>();
 
-        if (strings.length == 1) {
-            out.addAll(Bukkit.getOnlinePlayers().stream().map(Util::getName).toList());
+        if (args.length == 1) {
+            out.addAll(getOnlineNames());
         }
 
-        return out.stream().filter(str->str.toLowerCase().startsWith(strings[strings.length-1].toLowerCase())).toList();
+        return out;
     }
 }

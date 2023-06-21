@@ -2,202 +2,205 @@ package org.nautilusmc.nautilusmanager.cosmetics.commands;
 
 import com.google.common.collect.ImmutableMap;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.minecraft.ChatFormatting;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.nautilusmc.nautilusmanager.commands.NautilusCommand;
+import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.cosmetics.CosmeticsMenu;
 import org.nautilusmc.nautilusmanager.cosmetics.NameColor;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 import org.nautilusmc.nautilusmanager.util.FancyText;
+import org.nautilusmc.nautilusmanager.util.Permission;
 
 import java.util.*;
 
-public class CosmeticsCommand extends NautilusCommand {
-
-    private static final Map<String, Integer> SUBCOMMANDS = ImmutableMap.of(
+public class CosmeticsCommand extends Command {
+    public static final Component INVALID_COLOR_ERROR = Component.text("Invalid color!", ERROR_COLOR);
+    
+    private static final Map<String, Integer> SETTINGS_ARG_COUNTS = ImmutableMap.of(
             "color", 2,
             "nickname", 1
-    ); // subcommand name to number of arguments (for setting)
+    );
 
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if (strings.length < 1) {
-            commandSender.sendMessage(getUsageMessage(strings));
+    public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(NOT_PLAYER_ERROR);
             return true;
-        };
+        }
 
-        switch (strings[0]) {
-            case "menu" -> CosmeticsMenu.openMenu(commandSender, command, s, strings);
-            case "set" -> setCosmetic(commandSender, command, s, strings);
-            case "clear" -> clearCosmetic(commandSender, command, s, strings);
-            default -> commandSender.sendMessage(getUsageMessage(strings));
+        if (args.length < 1) {
+            CosmeticsMenu.openMenu(player);
+            return true;
+        }
+
+        switch (args[0]) {
+            case "menu" -> CosmeticsMenu.openMenu(player);
+            case "set" -> setCosmetic(player, args);
+            case "clear" -> clearCosmetic(player, args);
+            default -> player.sendMessage(getUsageMessage(args));
         }
 
         return true;
     }
 
-    private Component getUsageMessage(String[] args) {
-        String out = "";
+    public Component getUsageMessage(String[] args) {
+        StringBuilder out = new StringBuilder();
 
         if (args.length < 1) {
-            out += "--------------------------------\n";
-            out += "/cosmetics menu [args] - Opens cosmetics menu\n";
-            out += "/cosmetics set [args] - Sets player cosmetic options\n";
-            out += "/cosmetics clear - Clears player cosmetic options\n";
-            out += "--------------------------------";
+            out.append("""
+                    Usage:
+                    -----------------------------------------------
+                    /cosmetics menu - Open the cosmetics menu
+                    /cosmetics set [...] - Modify a cosmetic option
+                    /cosmetics clear - Reset all cosmetic options
+                    -----------------------------------------------""");
         } else {
-            out += "Usage: /cosmetics ";
+            out.append("Usage: /cosmetics ");
             switch (args[0]) {
                 case "set" -> {
                     if (args.length < 2) {
-                        out += "set <";
-                        for (int i = 0; i < SUBCOMMANDS.size(); i++) {
-                            out += SUBCOMMANDS.keySet().stream().toList().get(i);
-                            if (i != SUBCOMMANDS.size() - 1) out += "|";
-                        }
-                        out += "> [args]";
+                        out.append("set <");
+                        out.append(String.join("|", SETTINGS_ARG_COUNTS.keySet()));
+                        out.append("> [...]");
                     } else {
                         switch (args[1]) {
                             case "color" -> {
-                                out += "set color <";
-                                for (FancyText.ColorType type : FancyText.ColorType.values()) {
-                                    out += type.name().toLowerCase()+"|";
-                                }
-                                out = out.substring(0, out.length()-1)+"> <color> [color 2]";
+                                out.append("set color <");
+                                out.append(String.join("|", Arrays.stream(FancyText.ColorType.values())
+                                        .map(type -> type.name().toLowerCase())
+                                        .toList()));
+                                out.append("> <color> [color 2]");
                             }
-                            case "nickname" -> out += "set nickname <nickname>";
+                            case "nickname" -> out.append("set nickname <nickname>");
                         }
                     }
                 }
-                case "menu" -> out += "menu";
+                case "menu" -> out.append("menu");
                 case "clear" -> {
-                    out += "clear <";
-                    for (int i = 0; i < SUBCOMMANDS.size(); i++) {
-                        out += SUBCOMMANDS.keySet().stream().toList().get(i);
-                        if (i != SUBCOMMANDS.size() - 1) out += "|";
-                    }
-                    out += ">";
+                    out.append("clear <");
+                    out.append(String.join("|", SETTINGS_ARG_COUNTS.keySet()));
+                    out.append(">");
                 }
-                default -> out += "<menu|set|clear> [args]";
+                default -> out.append("<menu|set|clear> [...]");
             }
         }
 
 
-        return Component.text(out).color(TextColor.color(186, 186, 186));
+        return Component.text(out.toString(), INFO_COLOR);
     }
 
-    private void setCosmetic(CommandSender sender, Command command, String s, String[] strings) {
-        if (strings.length < 2) {
-            sender.sendMessage(getUsageMessage(strings));
+    private void setCosmetic(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(getUsageMessage(args));
             return;
         };
 
         Player player = null;
-
-        int playerIdx = SUBCOMMANDS.containsKey(strings[1]) ? SUBCOMMANDS.get(strings[1])+3 : -1;
+        int playerIndex = SETTINGS_ARG_COUNTS.containsKey(args[1]) ? SETTINGS_ARG_COUNTS.get(args[1]) + 3 : -1;
 
         Optional<FancyText.ColorType> colorType = Optional.empty();
-        if (playerIdx != -1 && strings.length > 2 && strings[1].equalsIgnoreCase("color")) {
-            if (!(colorType = Arrays.stream(FancyText.ColorType.values()).filter(t->t.name().equalsIgnoreCase(strings[2])).findFirst()).isPresent()) {
-                sender.sendMessage(getUsageMessage(strings));
+        if (playerIndex >= 0 && args.length > 2 && args[1].equalsIgnoreCase("color")) {
+            if ((colorType = Arrays.stream(FancyText.ColorType.values())
+                    .filter(t -> t.name().equalsIgnoreCase(args[2]))
+                    .findFirst())
+                    .isEmpty()) {
+                sender.sendMessage(getUsageMessage(args));
                 return;
             }
-            playerIdx += colorType.get().numColors-1;
+            playerIndex += colorType.get().minColors - 1;
         }
 
-        if (playerIdx!= -1 && strings.length >= playerIdx) {
-            if (!sender.hasPermission(NautilusCommand.MODIFY_OTHER_PERM)) {
-                sender.sendMessage(Component.text("Not enough permissions").style(Style.style(NautilusCommand.ERROR_COLOR)));
+        if (playerIndex != -1 && args.length >= playerIndex) {
+            if (!sender.hasPermission(Permission.MODIFY_OTHER_PLAYERS.toString())) {
+                sender.sendMessage(NO_PERMISSION_ERROR);
                 return;
             }
 
-            if ((player = Bukkit.getPlayerExact(strings[playerIdx-1])) == null) {
-                sender.sendMessage(Component.text("Player not found").style(Style.style(NautilusCommand.ERROR_COLOR)));
+            if ((player = Bukkit.getPlayer(args[playerIndex - 1])) == null) {
+                sender.sendMessage(INVALID_PLAYER_ERROR);
                 return;
             }
         }
 
         if (player == null) {
             if (!(sender instanceof Player)) {
-                sender.sendMessage(Component.text("You must be or specify a player to run this command").style(Style.style(NautilusCommand.ERROR_COLOR)));
+                sender.sendMessage(NOT_PLAYER_ERROR);
                 return;
             }
             player = (Player) sender;
         }
 
-        if (strings[1].equalsIgnoreCase("color")) {
-            if (colorType.isEmpty() || strings.length < 3+colorType.get().numColors) {
-                sender.sendMessage(getUsageMessage(strings));
+        if (args[1].equalsIgnoreCase("color")) {
+            if (colorType.isEmpty() || args.length < 3 + colorType.get().minColors) {
+                sender.sendMessage(getUsageMessage(args));
                 return;
             }
 
             Component hasAccess = colorType.get().hasAccess(sender);
             if (hasAccess != null) {
-                sender.sendMessage(hasAccess.color(NautilusCommand.ERROR_COLOR));
+                sender.sendMessage(hasAccess.color(ERROR_COLOR));
                 return;
             }
 
-            net.minecraft.network.chat.TextColor[] colors = new net.minecraft.network.chat.TextColor[colorType.get().numColors];
+            net.minecraft.network.chat.TextColor[] colors = new net.minecraft.network.chat.TextColor[colorType.get().minColors];
             for (int i = 0; i < colors.length; i++) {
-                colors[i] = net.minecraft.network.chat.TextColor.parseColor(strings[3+i].toLowerCase().replace(' ', '_'));
+                colors[i] = net.minecraft.network.chat.TextColor.parseColor(args[3+i].toLowerCase().replace(' ', '_'));
             }
 
             if (Arrays.stream(colors).anyMatch(Objects::isNull)) {
-                sender.sendMessage(Component.text("Invalid color").style(Style.style(NautilusCommand.ERROR_COLOR)));
+                sender.sendMessage(INVALID_COLOR_ERROR);
                 return;
             }
 
-            NameColor.setNameColor(player, colorType.get(), true, Arrays.stream(colors).map(c->TextColor.color(c.getValue())).toArray(TextColor[]::new));
+            NameColor.setNameColor(player, colorType.get(), true, Arrays.stream(colors).map(c -> TextColor.color(c.getValue())).toArray(TextColor[]::new));
 
             return;
-        } else if (strings[1].equalsIgnoreCase("nickname")) {
-            if (!sender.hasPermission(NautilusCommand.NICKNAME_PERM)) {
-                sender.sendMessage(Component.text(NautilusCommand.SPONSOR_PERM_MESSAGE).color(NautilusCommand.ERROR_COLOR));
+        } else if (args[1].equalsIgnoreCase("nickname")) {
+            if (!sender.hasPermission(Permission.NICKNAME.toString())) {
+                sender.sendMessage(NOT_SPONSOR_ERROR);
                 return;
             }
 
-            if (strings.length < 3) {
-                sender.sendMessage(getUsageMessage(strings));
+            if (args.length < 3) {
+                sender.sendMessage(getUsageMessage(args));
                 return;
             }
 
-            String error = Nickname.validateNickname(player, strings[2]);
+            String error = Nickname.validateNickname(player, args[2]);
             if (error != null) {
-                sender.sendMessage(Component.text(error).style(Style.style(NautilusCommand.ERROR_COLOR)));
+                sender.sendMessage(Component.text(error, ERROR_COLOR));
                 return;
             }
 
-            Nickname.setNickname(player, strings[2], true);
+            Nickname.setNickname(player, args[2], true);
 
             return;
         }
 
-        sender.sendMessage(getUsageMessage(strings));
+        sender.sendMessage(getUsageMessage(args));
     }
 
-    private void clearCosmetic(CommandSender sender, Command command, String s, String[] strings) {
-        if (strings.length < 2) {
-            sender.sendMessage(getUsageMessage(strings));
+    private void clearCosmetic(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(getUsageMessage(args));
             return;
-        };
+        }
 
         Player player = null;
-        if (strings[0].equalsIgnoreCase("clear")) {
-            if (strings.length > 2) {
-                if (!sender.hasPermission(NautilusCommand.MODIFY_OTHER_PERM)) {
-                    sender.sendMessage(Component.text("Not enough permissions").style(Style.style(NautilusCommand.ERROR_COLOR)));
+        if (args[0].equalsIgnoreCase("clear")) {
+            if (args.length > 2) {
+                if (!sender.hasPermission(Permission.MODIFY_OTHER_PLAYERS.toString())) {
+                    sender.sendMessage(NO_PERMISSION_ERROR);
                     return;
                 }
 
-                if ((player = Bukkit.getPlayerExact(strings[2])) == null) {
-                    sender.sendMessage(Component.text("Player not found").style(Style.style(NautilusCommand.ERROR_COLOR)));
+                if ((player = Bukkit.getPlayer(args[2])) == null) {
+                    sender.sendMessage(INVALID_PLAYER_ERROR);
                     return;
                 }
             }
@@ -205,61 +208,70 @@ public class CosmeticsCommand extends NautilusCommand {
 
         if (player == null) {
             if (!(sender instanceof Player)) {
-                sender.sendMessage(Component.text("You must be or specify a player to run this command").style(Style.style(NautilusCommand.ERROR_COLOR)));
+                sender.sendMessage(NOT_PLAYER_ERROR);
                 return;
             }
             player = (Player) sender;
         }
 
-        if (strings[1].equalsIgnoreCase("color")) {
-            NameColor.setNameColor(player, true, NameColor.DEFAULT_COLOR);
+        if (args[1].equalsIgnoreCase("color")) {
+            NameColor.setNameColor(player, true, NameColor.UNSET_COLOR);
             return;
-        } else if (strings[1].equalsIgnoreCase("nickname")) {
+        } else if (args[1].equalsIgnoreCase("nickname")) {
             Nickname.setNickname(player, player.getName(), true);
             return;
         }
 
-        sender.sendMessage(getUsageMessage(strings));
+        sender.sendMessage(getUsageMessage(args));
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public @Nullable List<String> suggestionList(@NotNull CommandSender sender, @NotNull String[] args) {
         List<String> out = new ArrayList<>();
 
-        if (strings.length == 1) {
+        if (args.length == 1) {
             out.add("menu");
             out.add("set");
             out.add("clear");
-        } else if (strings.length == 2) {
-            if (strings[0].equalsIgnoreCase("set") || strings[0].equalsIgnoreCase("clear")) {
-                out.addAll(SUBCOMMANDS.keySet());
+        } else if (args.length == 2) {
+            if (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("clear")) {
+                out.addAll(SETTINGS_ARG_COUNTS.keySet());
             }
-        } else if (strings.length == 3) {
-            if (strings[0].equalsIgnoreCase("set")) {
-                if (strings[1].equalsIgnoreCase("color")) {
-                    for (FancyText.ColorType type : FancyText.ColorType.values()) {
-                        if (type.hasAccess(commandSender) == null) out.add(type.name().toLowerCase());
-                    }
+        } else if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("set") && args[1].equalsIgnoreCase("color")) {
+                for (FancyText.ColorType type : FancyText.ColorType.values()) {
+                    if (type.hasAccess(sender) == null) out.add(type.name().toLowerCase());
                 }
+                out.addAll(Arrays.stream(FancyText.ColorType.values())
+                        .filter(type -> type.hasAccess(sender) == null)
+                        .map(type -> type.name().toLowerCase())
+                        .toList());
             }
         }
 
-        int idx = strings.length >= 2 && SUBCOMMANDS.containsKey(strings[1]) ? SUBCOMMANDS.get(strings[1])+3 : -1;
+        int idx = args.length >= 2 && SETTINGS_ARG_COUNTS.containsKey(args[1]) ? SETTINGS_ARG_COUNTS.get(args[1])+3 : -1;
 
         Optional<FancyText.ColorType> type;
-        if (idx != -1 && strings.length > 2 && strings[1].equalsIgnoreCase("color") && (type = Arrays.stream(FancyText.ColorType.values()).filter(t->t.name().equalsIgnoreCase(strings[2])).findFirst()).isPresent()) {
-            idx += type.get().numColors-1;
-            if (strings.length-3 <= type.get().numColors) {
-                out.addAll(Arrays.stream(ChatFormatting.values()).filter(ChatFormatting::isColor).map(ChatFormatting::getName).toList());
-                out.add("#FFFFFF");
+        if (idx >= 0 && args.length > 2 && args[1].equalsIgnoreCase("color") &&
+                (type = Arrays.stream(FancyText.ColorType.values())
+                        .filter(t -> t.name().equalsIgnoreCase(args[2]))
+                        .findFirst())
+                        .isPresent()) {
+            idx += type.get().minColors - 1;
+            if (args.length - 3 <= type.get().minColors) {
+                out.addAll(Arrays.stream(ChatFormatting.values())
+                        .filter(ChatFormatting::isColor)
+                        .map(ChatFormatting::getName)
+                        .toList());
+                out.add("#ffffff");
             }
         }
 
-        if (idx != -1 && (strings[0].equalsIgnoreCase("set") || strings[0].equalsIgnoreCase("clear")) && strings.length == idx && commandSender.hasPermission(NautilusCommand.MODIFY_OTHER_PERM)
-        ) {
-            out.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
+        if (idx >= 0 && (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("clear")) && args.length == idx &&
+                sender.hasPermission(Permission.MODIFY_OTHER_PLAYERS.toString())) {
+            out.addAll(getOnlineNames());
         }
 
-        return out.stream().filter(str->str.toLowerCase().startsWith(strings[strings.length-1].toLowerCase())).toList();
+        return out;
     }
 }
