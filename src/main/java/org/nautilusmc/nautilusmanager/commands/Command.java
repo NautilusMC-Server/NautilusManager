@@ -20,16 +20,17 @@ public abstract class Command implements CommandExecutor, TabCompleter {
     public static final TextColor DEFAULT_COLOR = TextColor.color(200, 200, 200);
     public static final TextColor INFO_COLOR = TextColor.color(255, 188, 0);
     public static final TextColor INFO_ACCENT_COLOR = TextColor.color(255, 252, 162);
-    public static final TextColor ERROR_COLOR = TextColor.color(255, 42, 52);
-    public static final TextColor ERROR_ACCENT_COLOR = TextColor.color(255, 123, 130);
+    public static final TextColor SUCCESS_COLOR = TextColor.color(30, 255, 140);
+    public static final TextColor ERROR_COLOR = TextColor.color(255, 120, 118);//TextColor.color(255, 42, 52);
+    public static final TextColor ERROR_ACCENT_COLOR = TextColor.color(255, 180, 175);//TextColor.color(255, 123, 130);
 
-    public static final Component NOT_PLAYER_ERROR = Component.text("You must be a player to use that command!").color(ERROR_COLOR);
-    public static final Component NO_PERMISSION_ERROR = Component.text("You do not have permission to use that command!").color(ERROR_COLOR);
+    public static final Component NOT_PLAYER_ERROR = Component.text("You must be a player to use that command!", ERROR_COLOR);
+    public static final Component NO_PERMISSION_ERROR = Component.text("You do not have permission to use that command!", ERROR_COLOR);
     public static final Component NOT_SPONSOR_ERROR = Component.text("Become a sponsor to unlock that command! (")
             .append(Util.clickableCommand("/sponsor", true).color(ERROR_ACCENT_COLOR))
             .append(Component.text(")"))
             .color(ERROR_COLOR);
-    public static final Component INVALID_PLAYER_ERROR = Component.text("Player not found!").color(ERROR_COLOR);
+    public static final Component INVALID_PLAYER_ERROR = Component.text("Player not found!", ERROR_COLOR);
 
     protected static String getMessageFromArgs(String[] args, int start) {
         return start >= args.length ? "" : String.join(" ", Arrays.copyOfRange(args, start, args.length));

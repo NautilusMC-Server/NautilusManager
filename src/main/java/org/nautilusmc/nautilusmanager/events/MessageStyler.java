@@ -23,7 +23,7 @@ import org.bukkit.BanEntry;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -126,12 +126,12 @@ public class MessageStyler implements Listener {
         }
 
         Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> {
-            nms.connection.send(new ClientboundPlayerCombatKillPacket(nms.getCombatTracker(), PaperAdventure.asVanilla(deathMessageContent)), PacketSendListener.exceptionallySend(() -> {
+            nms.connection.send(new ClientboundPlayerCombatKillPacket(nms.getId(), PaperAdventure.asVanilla(deathMessageContent)), PacketSendListener.exceptionallySend(() -> {
                 // TODO: do something with this? currently just copying nms
                 String s = nmsMessage.getString(256);
                 MutableComponent hover = net.minecraft.network.chat.Component.translatable("death.attack.message_too_long", net.minecraft.network.chat.Component.literal(s).withStyle(ChatFormatting.YELLOW));
                 MutableComponent newComp = net.minecraft.network.chat.Component.translatable("death.attack.even_more_magic", PaperAdventure.asVanilla(e.getPlayer().displayName())).withStyle((chatmodifier) -> chatmodifier.withHoverEvent(new net.minecraft.network.chat.HoverEvent(net.minecraft.network.chat.HoverEvent.Action.SHOW_TEXT, hover)));
-                return new ClientboundPlayerCombatKillPacket(nms.getCombatTracker(), newComp);
+                return new ClientboundPlayerCombatKillPacket(nms.getId(), newComp);
             }));
         }, 1);
 

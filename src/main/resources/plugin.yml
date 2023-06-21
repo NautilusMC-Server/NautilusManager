@@ -10,7 +10,7 @@ depend:
 commands:
   cosmetics:
     description: Edit player cosmetics.
-    usage: /cosmetics <subcommand> [args...]
+    usage: /cosmetics [subcommand] [args...]
   nickname:
     description: Get a player's nickname. (Staff only)
     usage: /nickname <list|original|nickname|set> [page|name]
@@ -111,8 +111,8 @@ commands:
     aliases:
       - support
   itemname:
-    description: Set the name of the currently held item.
-    usage: /itemname <name>
+    description: Set (or reset) the name of the currently held item.
+    usage: /itemname [name]
   crews:
     description: List all crews on the server.
     usage: /crews

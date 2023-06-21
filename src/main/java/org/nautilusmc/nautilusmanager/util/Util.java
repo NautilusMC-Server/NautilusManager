@@ -18,11 +18,12 @@ import net.minecraft.world.scores.Scoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
-import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.cosmetics.Nickname;
 
 import java.util.*;
@@ -143,6 +144,25 @@ public class Util {
                 "pitch", loc.getPitch(),
                 "yaw", loc.getYaw()
         );
+    }
+
+    public static ItemStack addActionLore(ItemStack item, Component actionText) {
+        if (item == null) return null;
+
+        ItemMeta meta = item.getItemMeta();
+        List<Component> lore = meta.lore();
+
+        if (lore == null) {
+            lore = new ArrayList<>();
+        } else if (!lore.isEmpty()) {
+            lore.add(0, Component.empty());
+        }
+        lore.add(0, actionText.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+
+        meta.lore(lore);
+        item.setItemMeta(meta);
+
+        return item;
     }
 
     public static final int TICKS_PER_SECOND = 20;

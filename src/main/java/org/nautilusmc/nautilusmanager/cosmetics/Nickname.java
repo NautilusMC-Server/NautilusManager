@@ -7,6 +7,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.nautilusmc.nautilusmanager.NautilusManager;
@@ -21,7 +22,6 @@ import java.sql.SQLException;
 import java.util.*;
 
 public class Nickname {
-
     public static final int MIN_LENGTH = 3;
     public static final int MAX_LENGTH = 16;
 
@@ -39,17 +39,17 @@ public class Nickname {
 
                 // reset any invalid nicknames
                 playerNames.forEach((uuid, name) -> {
-                    OfflinePlayer p = Bukkit.getOfflinePlayer(uuid);
-                    if (validateNickname(p, name.toString()) != null) {
+                    OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
+                    if (validateNickname(player, name.toString()) != null) {
                         setNickname(uuid, null);
                     }
                 });
 
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    String nickname = playerNames.getOrDefault(p.getUniqueId(), new CaseInsensitiveString(p.getName())).toString();
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    String nickname = playerNames.getOrDefault(player.getUniqueId(), new CaseInsensitiveString(player.getName())).toString();
 
-                    if (!Util.getTextContent(p.displayName()).equals(nickname)) {
-                        updateNickname(p, nickname);
+                    if (!Util.getTextContent(player.displayName()).equals(nickname)) {
+                        updateNickname(player, nickname);
                     }
                 }
             }
@@ -75,8 +75,8 @@ public class Nickname {
     /**
      * Private helper function to actually update a player's nickname in-game.
      */
-    private static void updateNickname(Player player, String name) {
-        player.displayName(Component.text(name));
+    private static void updateNickname(Player player, String nickname) {
+        player.displayName(Component.text(nickname));
 
         NameColor nameColor = NameColor.getNameColor(player);
         if (nameColor != null) {
@@ -89,8 +89,8 @@ public class Nickname {
     /**
      * Get a player's nickname (inverse of #getPlayerFromNickname).
      */
-    public static String getNickname(OfflinePlayer p) {
-        return playerNames.getOrDefault(p.getUniqueId(), new CaseInsensitiveString(null)).toString();
+    public static String getNickname(OfflinePlayer player) {
+        return playerNames.getOrDefault(player.getUniqueId(), new CaseInsensitiveString(null)).toString();
     }
 
     /**
@@ -116,14 +116,17 @@ public class Nickname {
     /**
      * Set a player's nickname.
      */
-    public static void setNickname(Player player, String name, boolean sendMessage) {
-        if (!name.equals(getNickname(player))) {
-            setNickname(player.getUniqueId(), name.equals(player.getName()) ? null : name);
-            updateNickname(player, name);
+    public static void setNickname(Player player, String nickname, boolean sendMessage) {
+        if (!nickname.equals(getNickname(player))) {
+            setNickname(player.getUniqueId(), nickname.equals(player.getName()) ? null : nickname);
+            updateNickname(player, nickname);
         }
 
         if (sendMessage) {
-            player.sendMessage(Component.text("Nickname set to ").append(player.displayName()));
+            player.sendMessage(Component.text("Successfully set your nickname to ")
+                    .append(player.displayName().colorIfAbsent(Command.INFO_ACCENT_COLOR))
+                    .append(Component.text("."))
+                    .color(Command.INFO_COLOR));
         }
     }
 
@@ -151,7 +154,7 @@ public class Nickname {
     public static class NicknameListener implements Listener {
         public static final Component NICKNAME_CONFLICT_RESET_MESSAGE = Component.text("Your nickname was reset because a player by that name has joined.").color(Command.ERROR_COLOR);
 
-        @EventHandler(priority = org.bukkit.event.EventPriority.HIGH)
+        @EventHandler(priority = EventPriority.HIGH)
         public void onPlayerJoin(PlayerJoinEvent e) {
             String nickname = getNickname(e.getPlayer());
 

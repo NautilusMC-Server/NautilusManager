@@ -4,10 +4,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.nautilusmc.nautilusmanager.gui.page.PagedGuiPage;
 
 public class PagingGuiComponent extends ItemGuiComponent {
+    private PagedGuiPage.Direction direction;
 
-    private Direction direction;
-
-    public PagingGuiComponent setDirection(Direction direction) {
+    public PagingGuiComponent setDirection(PagedGuiPage.Direction direction) {
         this.direction = direction;
         return this;
     }
@@ -15,15 +14,8 @@ public class PagingGuiComponent extends ItemGuiComponent {
     @Override
     public void handleClick(InventoryClickEvent e) {
         if (e.getClickedInventory().getHolder() instanceof PagedGuiPage page) {
-            if (direction == Direction.FORWARD) page.nextPage();
-            else if (direction == Direction.BACK) page.previousPage();
-
+            page.changePage(direction);
             page.open();
         }
-    }
-
-    public enum Direction {
-        FORWARD,
-        BACK
     }
 }

@@ -19,7 +19,7 @@ import org.nautilusmc.nautilusmanager.util.Permission;
 import java.util.*;
 
 public class CosmeticsCommand extends Command {
-    public static final Component INVALID_COLOR_ERROR = Component.text("Invalid color!").color(ERROR_COLOR);
+    public static final Component INVALID_COLOR_ERROR = Component.text("Invalid color!", ERROR_COLOR);
     
     private static final Map<String, Integer> SETTINGS_ARG_COUNTS = ImmutableMap.of(
             "color", 2,
@@ -28,16 +28,21 @@ public class CosmeticsCommand extends Command {
 
     @Override
     public boolean execute(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(NOT_PLAYER_ERROR);
+            return true;
+        }
+
         if (args.length < 1) {
-            sender.sendMessage(getUsageMessage(args));
+            CosmeticsMenu.openMenu(player);
             return true;
         }
 
         switch (args[0]) {
-            case "menu" -> CosmeticsMenu.openMenu(sender, args);
-            case "set" -> setCosmetic(sender, args);
-            case "clear" -> clearCosmetic(sender, args);
-            default -> sender.sendMessage(getUsageMessage(args));
+            case "menu" -> CosmeticsMenu.openMenu(player);
+            case "set" -> setCosmetic(player, args);
+            case "clear" -> clearCosmetic(player, args);
+            default -> player.sendMessage(getUsageMessage(args));
         }
 
         return true;
@@ -47,30 +52,29 @@ public class CosmeticsCommand extends Command {
         StringBuilder out = new StringBuilder();
 
         if (args.length < 1) {
-            out.append("--------------------------------\n");
-            out.append("/cosmetics menu [args] - Opens cosmetics menu\n");
-            out.append("/cosmetics set [args] - Sets player cosmetic options\n");
-            out.append("/cosmetics clear - Clears player cosmetic options\n");
-            out.append("--------------------------------");
+            out.append("""
+                    Usage:
+                    -----------------------------------------------
+                    /cosmetics menu - Open the cosmetics menu
+                    /cosmetics set [...] - Modify a cosmetic option
+                    /cosmetics clear - Reset all cosmetic options
+                    -----------------------------------------------""");
         } else {
             out.append("Usage: /cosmetics ");
             switch (args[0]) {
                 case "set" -> {
                     if (args.length < 2) {
                         out.append("set <");
-                        for (int i = 0; i < SETTINGS_ARG_COUNTS.size(); i++) {
-                            out.append(SETTINGS_ARG_COUNTS.keySet().stream().toList().get(i));
-                            if (i != SETTINGS_ARG_COUNTS.size() - 1) out.append("|");
-                        }
-                        out.append("> [args]");
+                        out.append(String.join("|", SETTINGS_ARG_COUNTS.keySet()));
+                        out.append("> [...]");
                     } else {
                         switch (args[1]) {
                             case "color" -> {
                                 out.append("set color <");
-                                for (FancyText.ColorType type : FancyText.ColorType.values()) {
-                                    out.append(type.name().toLowerCase()).append("|");
-                                }
-                                out = new StringBuilder(out.substring(0, out.length() - 1) + "> <color> [color 2]");
+                                out.append(String.join("|", Arrays.stream(FancyText.ColorType.values())
+                                        .map(type -> type.name().toLowerCase())
+                                        .toList()));
+                                out.append("> <color> [color 2]");
                             }
                             case "nickname" -> out.append("set nickname <nickname>");
                         }
@@ -79,13 +83,10 @@ public class CosmeticsCommand extends Command {
                 case "menu" -> out.append("menu");
                 case "clear" -> {
                     out.append("clear <");
-                    for (int i = 0; i < SETTINGS_ARG_COUNTS.size(); i++) {
-                        out.append(SETTINGS_ARG_COUNTS.keySet().stream().toList().get(i));
-                        if (i != SETTINGS_ARG_COUNTS.size() - 1) out.append("|");
-                    }
+                    out.append(String.join("|", SETTINGS_ARG_COUNTS.keySet()));
                     out.append(">");
                 }
-                default -> out.append("<menu|set|clear> [args]");
+                default -> out.append("<menu|set|clear> [...]");
             }
         }
 
@@ -93,35 +94,34 @@ public class CosmeticsCommand extends Command {
         return Component.text(out.toString(), INFO_COLOR);
     }
 
-    private void setCosmetic(CommandSender sender, String[] strings) {
-        if (strings.length < 2) {
-            sender.sendMessage(getUsageMessage(strings));
+    private void setCosmetic(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(getUsageMessage(args));
             return;
         };
 
         Player player = null;
-
-        int playerIndex = SETTINGS_ARG_COUNTS.containsKey(strings[1]) ? SETTINGS_ARG_COUNTS.get(strings[1]) + 3 : -1;
+        int playerIndex = SETTINGS_ARG_COUNTS.containsKey(args[1]) ? SETTINGS_ARG_COUNTS.get(args[1]) + 3 : -1;
 
         Optional<FancyText.ColorType> colorType = Optional.empty();
-        if (playerIndex != -1 && strings.length > 2 && strings[1].equalsIgnoreCase("color")) {
+        if (playerIndex >= 0 && args.length > 2 && args[1].equalsIgnoreCase("color")) {
             if ((colorType = Arrays.stream(FancyText.ColorType.values())
-                    .filter(t -> t.name().equalsIgnoreCase(strings[2]))
+                    .filter(t -> t.name().equalsIgnoreCase(args[2]))
                     .findFirst())
                     .isEmpty()) {
-                sender.sendMessage(getUsageMessage(strings));
+                sender.sendMessage(getUsageMessage(args));
                 return;
             }
-            playerIndex += colorType.get().numColors - 1;
+            playerIndex += colorType.get().minColors - 1;
         }
 
-        if (playerIndex != -1 && strings.length >= playerIndex) {
+        if (playerIndex != -1 && args.length >= playerIndex) {
             if (!sender.hasPermission(Permission.MODIFY_OTHER_PLAYERS.toString())) {
                 sender.sendMessage(NO_PERMISSION_ERROR);
                 return;
             }
 
-            if ((player = Bukkit.getPlayer(strings[playerIndex - 1])) == null) {
+            if ((player = Bukkit.getPlayer(args[playerIndex - 1])) == null) {
                 sender.sendMessage(INVALID_PLAYER_ERROR);
                 return;
             }
@@ -135,9 +135,9 @@ public class CosmeticsCommand extends Command {
             player = (Player) sender;
         }
 
-        if (strings[1].equalsIgnoreCase("color")) {
-            if (colorType.isEmpty() || strings.length < 3 + colorType.get().numColors) {
-                sender.sendMessage(getUsageMessage(strings));
+        if (args[1].equalsIgnoreCase("color")) {
+            if (colorType.isEmpty() || args.length < 3 + colorType.get().minColors) {
+                sender.sendMessage(getUsageMessage(args));
                 return;
             }
 
@@ -147,9 +147,9 @@ public class CosmeticsCommand extends Command {
                 return;
             }
 
-            net.minecraft.network.chat.TextColor[] colors = new net.minecraft.network.chat.TextColor[colorType.get().numColors];
+            net.minecraft.network.chat.TextColor[] colors = new net.minecraft.network.chat.TextColor[colorType.get().minColors];
             for (int i = 0; i < colors.length; i++) {
-                colors[i] = net.minecraft.network.chat.TextColor.parseColor(strings[3+i].toLowerCase().replace(' ', '_'));
+                colors[i] = net.minecraft.network.chat.TextColor.parseColor(args[3+i].toLowerCase().replace(' ', '_'));
             }
 
             if (Arrays.stream(colors).anyMatch(Objects::isNull)) {
@@ -160,47 +160,47 @@ public class CosmeticsCommand extends Command {
             NameColor.setNameColor(player, colorType.get(), true, Arrays.stream(colors).map(c -> TextColor.color(c.getValue())).toArray(TextColor[]::new));
 
             return;
-        } else if (strings[1].equalsIgnoreCase("nickname")) {
+        } else if (args[1].equalsIgnoreCase("nickname")) {
             if (!sender.hasPermission(Permission.NICKNAME.toString())) {
-                sender.sendMessage(Command.NOT_SPONSOR_ERROR);
+                sender.sendMessage(NOT_SPONSOR_ERROR);
                 return;
             }
 
-            if (strings.length < 3) {
-                sender.sendMessage(getUsageMessage(strings));
+            if (args.length < 3) {
+                sender.sendMessage(getUsageMessage(args));
                 return;
             }
 
-            String error = Nickname.validateNickname(player, strings[2]);
+            String error = Nickname.validateNickname(player, args[2]);
             if (error != null) {
-                sender.sendMessage(Component.text(error).color(ERROR_COLOR));
+                sender.sendMessage(Component.text(error, ERROR_COLOR));
                 return;
             }
 
-            Nickname.setNickname(player, strings[2], true);
+            Nickname.setNickname(player, args[2], true);
 
             return;
         }
 
-        sender.sendMessage(getUsageMessage(strings));
+        sender.sendMessage(getUsageMessage(args));
     }
 
-    private void clearCosmetic(CommandSender sender, String[] strings) {
-        if (strings.length < 2) {
-            sender.sendMessage(getUsageMessage(strings));
+    private void clearCosmetic(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(getUsageMessage(args));
             return;
         }
 
         Player player = null;
-        if (strings[0].equalsIgnoreCase("clear")) {
-            if (strings.length > 2) {
+        if (args[0].equalsIgnoreCase("clear")) {
+            if (args.length > 2) {
                 if (!sender.hasPermission(Permission.MODIFY_OTHER_PLAYERS.toString())) {
-                    sender.sendMessage(Command.NO_PERMISSION_ERROR);
+                    sender.sendMessage(NO_PERMISSION_ERROR);
                     return;
                 }
 
-                if ((player = Bukkit.getPlayer(strings[2])) == null) {
-                    sender.sendMessage(Command.INVALID_PLAYER_ERROR);
+                if ((player = Bukkit.getPlayer(args[2])) == null) {
+                    sender.sendMessage(INVALID_PLAYER_ERROR);
                     return;
                 }
             }
@@ -208,21 +208,21 @@ public class CosmeticsCommand extends Command {
 
         if (player == null) {
             if (!(sender instanceof Player)) {
-                sender.sendMessage(Command.NOT_PLAYER_ERROR);
+                sender.sendMessage(NOT_PLAYER_ERROR);
                 return;
             }
             player = (Player) sender;
         }
 
-        if (strings[1].equalsIgnoreCase("color")) {
-            NameColor.setNameColor(player, true, NameColor.DEFAULT_COLOR);
+        if (args[1].equalsIgnoreCase("color")) {
+            NameColor.setNameColor(player, true, NameColor.UNSET_COLOR);
             return;
-        } else if (strings[1].equalsIgnoreCase("nickname")) {
+        } else if (args[1].equalsIgnoreCase("nickname")) {
             Nickname.setNickname(player, player.getName(), true);
             return;
         }
 
-        sender.sendMessage(getUsageMessage(strings));
+        sender.sendMessage(getUsageMessage(args));
     }
 
     @Override
@@ -257,8 +257,8 @@ public class CosmeticsCommand extends Command {
                         .filter(t -> t.name().equalsIgnoreCase(args[2]))
                         .findFirst())
                         .isPresent()) {
-            idx += type.get().numColors - 1;
-            if (args.length - 3 <= type.get().numColors) {
+            idx += type.get().minColors - 1;
+            if (args.length - 3 <= type.get().minColors) {
                 out.addAll(Arrays.stream(ChatFormatting.values())
                         .filter(ChatFormatting::isColor)
                         .map(ChatFormatting::getName)

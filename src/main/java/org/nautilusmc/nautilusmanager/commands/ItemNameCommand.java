@@ -28,28 +28,27 @@ public class ItemNameCommand extends Command {
             return true;
         }
 
-        if (args.length < 1) {
-            // TODO: probably should just reset the item name lol
-            player.sendMessage(Component.text("You must specify a name!").color(ERROR_COLOR));
-            return true;
-        }
+        String name = args.length > 0 ? getMessageFromArgs(args, 0) : null;
 
         ItemStack item = player.getInventory().getItemInMainHand();
-        if (item.getType().isAir()) item = player.getInventory().getItemInOffHand();
-
+        if (item.getType().isAir()) {
+            item = player.getInventory().getItemInOffHand();
+        }
         if (item.getType().isAir()) {
             player.sendMessage(NO_HELD_ITEM_ERROR);
             return true;
         }
 
-        String name = getMessageFromArgs(args, 0);
-        Component nameComponent = player.hasPermission(Permission.USE_CHAT_FORMATTING.toString()) ? Component.empty()
-                .decoration(TextDecoration.ITALIC, false)
-                .append(FancyText.parseChatFormatting("``italic" + name)) : Component.text(name);
+        Component nameComponent = null;
+        if (name != null) {
+            nameComponent = player.hasPermission(Permission.USE_CHAT_FORMATTING.toString()) ? Component.empty()
+                    .decoration(TextDecoration.ITALIC, false)
+                    .append(FancyText.parseChatFormatting("``italic" + name)) : Component.text(name);
 
-        if (Util.getTextContent(nameComponent).length() > AnvilMenu.MAX_NAME_LENGTH) {
-            player.sendMessage(NAME_TOO_LONG_ERROR);
-            return true;
+            if (Util.getTextContent(nameComponent).length() > AnvilMenu.MAX_NAME_LENGTH) {
+                player.sendMessage(NAME_TOO_LONG_ERROR);
+                return true;
+            }
         }
 
         ItemMeta meta = item.getItemMeta();

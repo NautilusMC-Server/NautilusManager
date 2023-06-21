@@ -6,8 +6,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -18,6 +16,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.nautilusmc.nautilusmanager.NautilusManager;
+import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,13 +54,14 @@ public class AFKManager implements Listener {
 
             Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> {
                 if (isAFK(player)) {
-                    ((CraftPlayer) player).getHandle().fauxSleeping = true;
-                    ((CraftWorld) Bukkit.getWorlds().get(0)).getHandle().updateSleepingPlayerList();
+                    player.setSleepingIgnored(true);
                 }
-            }, NautilusManager.INSTANCE.getConfig().getInt("afk.timeToIgnoreSleep") * 20L);
+            }, NautilusManager.INSTANCE.getConfig().getInt("afk.timeToIgnoreSleep") * (long) Util.TICKS_PER_SECOND);
         } else {
             AFK_START_MILLIS.remove(player.getUniqueId());
             status = "no longer AFK";
+
+            player.setSleepingIgnored(false);
         }
 
         player.sendMessage(Component.text("You are " + status + ".")
@@ -70,9 +70,9 @@ public class AFKManager implements Listener {
                 .append(player.displayName())
                 .append(Component.text(" is " + status + "."))
                 .color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC);
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p != player) {
-                p.sendMessage(message);
+        for (Player recipient : Bukkit.getOnlinePlayers()) {
+            if (recipient != player) {
+                recipient.sendMessage(message);
             }
         }
     }

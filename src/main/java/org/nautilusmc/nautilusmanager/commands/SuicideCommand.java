@@ -4,7 +4,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,12 +19,12 @@ public class SuicideCommand extends Command {
         }
 
         ServerPlayer nms = ((CraftPlayer) player).getHandle();
-        nms.combatTracker.recordDamage(new DamageSource(nms.level.damageSources().outOfWorld().typeHolder(), null, null) {
+        nms.combatTracker.recordDamage(new DamageSource(nms.level().damageSources().generic().typeHolder(), null, null) {
             @Override
             public @NotNull net.minecraft.network.chat.Component getLocalizedDeathMessage(@NotNull LivingEntity killed) {
                 return net.minecraft.network.chat.Component.translatable(SUICIDE_TRANSLATION_KEY);
             }
-        }, (float) player.getHealth(), (float) player.getHealth());
+        }, (float) player.getHealth());
         player.setHealth(0);
 
         return true;

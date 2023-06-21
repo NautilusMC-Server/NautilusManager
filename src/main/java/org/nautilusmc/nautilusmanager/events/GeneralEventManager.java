@@ -1,15 +1,13 @@
 package org.nautilusmc.nautilusmanager.events;
 
-import com.destroystokyo.paper.event.server.AsyncTabCompleteEvent;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.minecraft.world.entity.item.ItemEntity;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Bisected;
 import org.bukkit.block.data.type.Stairs;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftItem;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftItem;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Egg;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -20,13 +18,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.PrepareAnvilEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerCommandSendEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.event.server.ServerCommandEvent;
-import org.bukkit.event.server.TabCompleteEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -39,17 +32,16 @@ import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.util.Util;
 import org.spigotmc.event.entity.EntityDismountEvent;
 
-import java.util.Arrays;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 public class GeneralEventManager implements Listener {
-    @EventHandler
+    /*@EventHandler
     public void onAnvil(PrepareAnvilEvent e) {
         ItemStack firstItem = e.getInventory().getFirstItem();
         if (firstItem == null) return;
-        String currentName = firstItem.hasItemMeta() && firstItem.getItemMeta().displayName() != null ? Util.getTextContent(firstItem.getItemMeta().displayName()) : "";
+        Component displayName = firstItem.getItemMeta().displayName();
+        String currentName = firstItem.hasItemMeta() && displayName != null ? Util.getTextContent(displayName) : "";
 
         if (!currentName.equals(e.getInventory().getRenameText())) {
             int baseRepairCost = CraftItemStack.asNMSCopy(firstItem).getBaseRepairCost();
@@ -57,7 +49,7 @@ public class GeneralEventManager implements Listener {
 
             e.getInventory().setRepairCost(e.getInventory().getRepairCost()-1-baseRepairCost);
         }
-    }
+    }*/
 
     public static void pingPlayer(Player player) {
         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 2);
@@ -100,7 +92,7 @@ public class GeneralEventManager implements Listener {
         if (e.getEntity().getItemStack().getItemMeta().getPersistentDataContainer().has(new NamespacedKey(NautilusManager.INSTANCE, OWNER_KEY))) {
             ItemEntity nms = (ItemEntity) ((CraftItem) e.getEntity()).getHandle();
             // copied from ItemEntity#setItem
-            int defaultDespawnTime = nms.level.paperConfig().entities.spawning.altItemDespawnRate.enabled ? nms.level.paperConfig().entities.spawning.altItemDespawnRate.items.getOrDefault(nms.getItem().getItem(), nms.level.spigotConfig.itemDespawnRate) : nms.level.spigotConfig.itemDespawnRate;
+            int defaultDespawnTime = nms.level().paperConfig().entities.spawning.altItemDespawnRate.enabled ? nms.level().paperConfig().entities.spawning.altItemDespawnRate.items.getOrDefault(nms.getItem().getItem(), nms.level().spigotConfig.itemDespawnRate) : nms.level().spigotConfig.itemDespawnRate;
             int despawnTime = NautilusManager.INSTANCE.getConfig().getInt("death.itemDespawnSeconds") * 20;
             int age = defaultDespawnTime - despawnTime;
 

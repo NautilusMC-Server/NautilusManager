@@ -6,7 +6,6 @@ import org.nautilusmc.nautilusmanager.gui.page.GuiPage;
 import java.util.function.Consumer;
 
 public class ButtonGuiComponent extends ItemGuiComponent {
-
     private Consumer<InventoryClickEvent> action;
     private boolean closeOnClick = false;
 
@@ -23,8 +22,7 @@ public class ButtonGuiComponent extends ItemGuiComponent {
     @Override
     public void handleClick(InventoryClickEvent e) {
         action.accept(e);
-        if (closeOnClick && e.getInventory().getHolder() instanceof GuiPage page) {
-            InventoryClickEvent.getHandlerList().unregister(page.getGui());
+        if (closeOnClick) {
             e.getWhoClicked().closeInventory();
         }
     }
