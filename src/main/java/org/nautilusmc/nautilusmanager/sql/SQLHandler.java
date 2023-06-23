@@ -2,6 +2,7 @@ package org.nautilusmc.nautilusmanager.sql;
 
 import org.bukkit.Bukkit;
 import org.nautilusmc.nautilusmanager.NautilusManager;
+import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -13,7 +14,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 public abstract class SQLHandler {
-
     private final String table;
     private final String primaryKey;
 
@@ -26,98 +26,103 @@ public abstract class SQLHandler {
         this.primaryKey = primaryKey;
 
         Bukkit.getScheduler().runTaskTimer(NautilusManager.INSTANCE, () -> {
-            if (!SQL.SQL_ENABLED) return;
+            if (!SQL.isEnabled()) return;
 
             try {
-                Connection conn = SQL.getConnection();
-                Statement statement = conn.createStatement();
+                Connection connection = SQL.getConnection();
+                Statement statement = connection.createStatement();
 
-                updateSQL(statement.executeQuery("SELECT * FROM "+table));
+                update(statement.executeQuery("SELECT * FROM %s".formatted(table)));
 
-                conn.close();
+                connection.close();
             } catch (SQLException e) {
-                Bukkit.getLogger().log(Level.SEVERE, "Error updating SQL database", e);
+                Bukkit.getLogger().log(Level.SEVERE, "Error updating SQL database!", e);
             }
-        }, 0, SQL.SQL_UPDATE_TIME * 20L);
+        }, 0, SQL.getUpdateIntervalSeconds() * (long) Util.TICKS_PER_SECOND);
     }
 
-    public void updateSQL(ResultSet results) throws SQLException {};
+    public abstract void update(ResultSet results) throws SQLException;
 
-    public ResultSet getSQL(UUID uuid) {
-        return getSQL(uuid.toString());
+    private Object sanitize(Object value) {
+        return value instanceof String string ? string.replace("'", "\\'") : value;
     }
 
-    public void deleteSQL(UUID uuid) {
-        deleteSQL(uuid.toString());
+    public ResultSet getValues(UUID uuid) {
+        return getValues(uuid.toString());
     }
 
-    public void setSQL(UUID uuid, Map<String, Object> values) {
-        setSQL(uuid.toString(), values);
-    }
-
-    public void deleteSQL(String uuid) {
-        if (!SQL.SQL_ENABLED) return;
+    public ResultSet getValues(String uuid) {
+        if (!SQL.isEnabled()) return null;
 
         try {
-            Connection conn = SQL.getConnection();
-            Statement statement = conn.createStatement();
-            statement.executeUpdate("DELETE FROM "+table+" WHERE "+primaryKey+"='" + uuid + "'");
-            conn.close();
-        } catch (SQLException e) {
-            Bukkit.getLogger().log(Level.SEVERE, "Error deleting from SQL database", e);
-        }
-    }
-
-    public ResultSet getSQL(String uuid) {
-        if (!SQL.SQL_ENABLED) return null;
-
-        try {
-            Connection conn = SQL.getConnection();
-            Statement statement = conn.createStatement();
-            ResultSet results = statement.executeQuery("SELECT * FROM "+table+" WHERE "+primaryKey+"='" + uuid + "'");
-            conn.close();
+            Connection connection = SQL.getConnection();
+            Statement statement = connection.createStatement();
+            ResultSet results = statement.executeQuery("SELECT * FROM %s WHERE %s='%s'".formatted(table, primaryKey, uuid));
+            connection.close();
             return results;
         } catch (SQLException e) {
-            Bukkit.getLogger().log(Level.SEVERE, "Error getting from SQL database", e);
+            Bukkit.getLogger().log(Level.SEVERE, "Error retrieving from SQL database!", e);
         }
 
         return null;
     }
 
-    public void setSQL(String uuid, Map<String, Object> values) {
-        if (!SQL.SQL_ENABLED) return;
+    public void setValues(UUID uuid, Map<String, Object> values) {
+        setValues(uuid.toString(), values);
+    }
+
+    public void setValues(String uuid, Map<String, Object> values) {
+        if (!SQL.isEnabled()) return;
+
         values = new HashMap<>(values);
-        values.replaceAll((k, v)->v instanceof String s ? s.replace("'", "\\'") : v);
+        values.replaceAll((k, v) -> sanitize(v));
 
-        StringBuilder command = new StringBuilder("INSERT INTO "+table+" ("+primaryKey+",");
+        StringBuilder command = new StringBuilder("INSERT INTO ").append(table).append(" (").append(primaryKey);
 
-        for (String key : values.keySet()) command.append(key).append(",");
-        command.deleteCharAt(command.length() - 1);
+        for (String key : values.keySet()) {
+            command.append(",").append(key);
+        }
 
-        command.append(") VALUES ('").append(uuid).append("',");
+        command.append(") VALUES ('").append(uuid).append("'");
 
         for (Object value : values.values()) {
-            if (value instanceof String) command.append("'").append(value).append("',");
-            else command.append(value).append(",");
+            command.append(",");
+            if (value instanceof String) command.append("'").append(value).append("'");
+            else command.append(value);
         }
-        command.deleteCharAt(command.length() - 1);
 
         command.append(") ON DUPLICATE KEY UPDATE ");
         for (Map.Entry<String, Object> value : values.entrySet()) {
             command.append(value.getKey()).append("=");
-
             if (value.getValue() instanceof String) command.append("'").append(value.getValue()).append("',");
             else command.append(value.getValue()).append(",");
         }
         command.deleteCharAt(command.length() - 1);
 
         try {
-            Connection conn = SQL.getConnection();
-            Statement statement = conn.createStatement();
+            Connection connection = SQL.getConnection();
+            Statement statement = connection.createStatement();
             statement.executeUpdate(command.toString());
-            conn.close();
+            connection.close();
         } catch (SQLException e) {
-            Bukkit.getLogger().log(Level.SEVERE, "Error inserting into SQL database", e);
+            Bukkit.getLogger().log(Level.SEVERE, "Error inserting into SQL database!", e);
+        }
+    }
+
+    public void deleteEntry(UUID uuid) {
+        deleteEntry(uuid.toString());
+    }
+
+    public void deleteEntry(String uuid) {
+        if (!SQL.isEnabled()) return;
+
+        try {
+            Connection connection = SQL.getConnection();
+            Statement statement = connection.createStatement();
+            statement.executeUpdate("DELETE FROM %s WHERE %s='%s'".formatted(table, primaryKey, uuid));
+            connection.close();
+        } catch (SQLException e) {
+            Bukkit.getLogger().log(Level.SEVERE, "Error deleting from SQL database!", e);
         }
     }
 }

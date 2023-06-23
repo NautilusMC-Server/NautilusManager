@@ -1,6 +1,7 @@
 package org.nautilusmc.nautilusmanager.events;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.Component;
 import net.minecraft.world.entity.item.ItemEntity;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -8,6 +9,7 @@ import org.bukkit.block.data.Bisected;
 import org.bukkit.block.data.type.Stairs;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftItem;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Egg;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -18,6 +20,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -36,20 +39,18 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class GeneralEventManager implements Listener {
-    /*@EventHandler
+    @EventHandler
     public void onAnvil(PrepareAnvilEvent e) {
-        ItemStack firstItem = e.getInventory().getFirstItem();
+        ItemStack firstItem = e.getInventory().getFirstItem(), secondItem = e.getInventory().getSecondItem();
         if (firstItem == null) return;
         Component displayName = firstItem.getItemMeta().displayName();
         String currentName = firstItem.hasItemMeta() && displayName != null ? Util.getTextContent(displayName) : "";
 
         if (!currentName.equals(e.getInventory().getRenameText())) {
-            int baseRepairCost = CraftItemStack.asNMSCopy(firstItem).getBaseRepairCost();
-            if (e.getInventory().getSecondItem() != null) baseRepairCost = 0;
-
-            e.getInventory().setRepairCost(e.getInventory().getRepairCost()-1-baseRepairCost);
+            int renamePenalty = secondItem == null ? CraftItemStack.asNMSCopy(firstItem).getBaseRepairCost() + 1 : 1;
+            e.getInventory().setRepairCost(e.getInventory().getRepairCost() - renamePenalty);
         }
-    }*/
+    }
 
     public static void pingPlayer(Player player) {
         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 2);

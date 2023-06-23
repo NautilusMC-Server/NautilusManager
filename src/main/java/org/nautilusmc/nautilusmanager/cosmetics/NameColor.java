@@ -29,7 +29,7 @@ public class NameColor {
     public static void init() {
         SQL_HANDLER = new SQLHandler("name_colors") {
             @Override
-            public void updateSQL(ResultSet results) throws SQLException {
+            public void update(ResultSet results) throws SQLException {
                 Map<UUID, NameColor> newColors = new HashMap<>();
                 while (results.next()) {
                     FancyText.ColorType type = FancyText.ColorType.values()[results.getInt("color_type")];
@@ -83,7 +83,7 @@ public class NameColor {
     private static void setNameColor(UUID uuid, NameColor color) {
         if (color == null) {
             playerColors.remove(uuid);
-            SQL_HANDLER.deleteSQL(uuid);
+            SQL_HANDLER.deleteEntry(uuid);
         }
         else {
             playerColors.put(uuid, color);
@@ -93,7 +93,7 @@ public class NameColor {
             for (int i = 0; i < color.type.minColors; i++) {
                 values.put("color" + (i + 1), color.colors[i].value());
             }
-            SQL_HANDLER.setSQL(uuid, values);
+            SQL_HANDLER.setValues(uuid, values);
         }
     }
 

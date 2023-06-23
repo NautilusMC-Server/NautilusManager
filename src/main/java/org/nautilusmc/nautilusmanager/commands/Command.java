@@ -1,6 +1,7 @@
 package org.nautilusmc.nautilusmanager.commands;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
@@ -21,8 +22,8 @@ public abstract class Command implements CommandExecutor, TabCompleter {
     public static final TextColor INFO_COLOR = TextColor.color(255, 188, 0);
     public static final TextColor INFO_ACCENT_COLOR = TextColor.color(255, 252, 162);
     public static final TextColor SUCCESS_COLOR = TextColor.color(30, 255, 140);
-    public static final TextColor ERROR_COLOR = TextColor.color(255, 120, 118);//TextColor.color(255, 42, 52);
-    public static final TextColor ERROR_ACCENT_COLOR = TextColor.color(255, 180, 175);//TextColor.color(255, 123, 130);
+    public static final TextColor ERROR_COLOR = NamedTextColor.RED;
+    public static final TextColor ERROR_ACCENT_COLOR = TextColor.color(255, 140, 138);
 
     public static final Component NOT_PLAYER_ERROR = Component.text("You must be a player to use that command!", ERROR_COLOR);
     public static final Component NO_PERMISSION_ERROR = Component.text("You do not have permission to use that command!", ERROR_COLOR);

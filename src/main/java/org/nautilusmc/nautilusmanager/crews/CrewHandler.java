@@ -18,41 +18,39 @@ import java.util.*;
 import java.util.logging.Level;
 
 public class CrewHandler implements Listener {
-    private static List<Crew> crews;
-    private static List<War> wars;
+    private static final List<Crew> CREWS = new ArrayList<>();
+    private static final List<War> WARS = new ArrayList<>();
 
     public static SQLHandler crewDatabase;
     public static SQLHandler playerCrewDatabase;
     public static SQLHandler warDatabase;
 
     public static void init() {
-        crews = new ArrayList<>();
-        wars = new ArrayList<>();
         crewDatabase = new SQLHandler("crews") {
             @Override
-            public void updateSQL(ResultSet results) throws SQLException {
-                //Bukkit.getLogger().log(Level.INFO, "Updating \"crews\"");
-                crews.clear();
+            public void update(ResultSet results) throws SQLException {
+                CREWS.clear();
                 while (results.next()) {
-                    if (!Arrays.stream(Bukkit.getOfflinePlayers()).toList().contains(Bukkit.getOfflinePlayer(UUID.fromString(results.getString("captain"))))) {
+                    if (!Arrays.asList(Bukkit.getOfflinePlayers())
+                            .contains(Bukkit.getOfflinePlayer(UUID.fromString(results.getString("captain"))))) {
                         continue;
                     }
-                    crews.add(new Crew(
+                    CREWS.add(new Crew(
                             UUID.fromString(results.getString("uuid")),
                             Bukkit.getOfflinePlayer(UUID.fromString(results.getString("captain"))),
                             results.getString("name"),
                             results.getBoolean("open"),
-                            results.getString("prefix")));
+                            results.getString("prefix")
+                    ));
                 }
             }
         };
 
         Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> playerCrewDatabase = new SQLHandler("player_crews") {
             @Override
-            public void updateSQL(ResultSet results) throws SQLException {
-                //Bukkit.getLogger().log(Level.INFO, "Updating \"player_crews\"");
-                crews.forEach(crew -> crew.getMembers().clear());
-                crews.forEach(Crew::clearTeam);
+            public void update(ResultSet results) throws SQLException {
+                CREWS.forEach(crew -> crew.getMembers().clear());
+                CREWS.forEach(Crew::clearTeam);
                 while (results.next()) {
                     UUID uuid = UUID.fromString(results.getString("uuid"));
 
@@ -62,79 +60,77 @@ public class CrewHandler implements Listener {
                     }
                     OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
 
-                    if (getCrew(UUID.fromString(results.getString("crew"))) == null) {
+                    Crew crew = getCrew(UUID.fromString(results.getString("crew")));
+                    if (crew == null) {
                         Bukkit.getLogger().log(Level.WARNING, "Crew " + results.getString("crew") + " not found!");
                         continue;
                     }
-                    Crew crew = getCrew(UUID.fromString(results.getString("crew")));
                     crew.addMember(player);
                 }
-                //If crews are empty -> delete them
-                List<Crew> emptyCrews = crews.stream().filter(crew -> crew.getMembers().isEmpty()).toList();
-                for (Crew crew : emptyCrews) {
-                    deleteCrew(crew);
+                // Clean up empty crews if they exist
+                for (Crew crew : CREWS) {
+                    if (crew.getMembers().isEmpty()) {
+                        deleteCrew(crew);
+                    }
                 }
             }
         },0);
         Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> warDatabase = new SQLHandler("wars") {
             @Override
-            public void updateSQL(ResultSet results) throws SQLException {
-                //Bukkit.getLogger().log(Level.INFO, "Updating \"wars\"");
-                wars.clear();
-                crews.forEach(crew -> crew.getWars().clear());
+            public void update(ResultSet results) throws SQLException {
+                WARS.clear();
+                CREWS.forEach(crew -> crew.getWars().clear());
                 while (results.next()) {
                     UUID uuid = UUID.fromString(results.getString("uuid"));
                     if (getWar(uuid) != null) {
                         continue;
                     }
-                    //make sure attacker exists
-                    if (getCrew(UUID.fromString(results.getString("attacker"))) == null) {
-                        this.deleteSQL(uuid.toString());
-                        continue;
-                    };
                     Crew attacker = getCrew(UUID.fromString(results.getString("attacker")));
-
-                    if (getCrew(UUID.fromString(results.getString("defender"))) == null) {
-                        this.deleteSQL(uuid.toString());
+                    if (attacker == null) {
+                        this.deleteEntry(uuid.toString());
                         continue;
-                    };
+                    }
                     Crew defender = getCrew(UUID.fromString(results.getString("defender")));
+                    if (defender == null) {
+                        this.deleteEntry(uuid.toString());
+                        continue;
+                    }
 
                     War war = new War(attacker, defender);
                     attacker.getWars().add(war);
                     defender.getWars().add(war);
-                    wars.add(war);
+                    WARS.add(war);
                 }
             }
         }, 0);
     }
 
     public static void registerCrew(Crew crew) {
-        crews.add(crew);
-        crewDatabase.setSQL(crew.getUuid().toString(), Map.of(
+        CREWS.add(crew);
+        crewDatabase.setValues(crew.getUuid().toString(), Map.of(
                 "name", crew.getName(),
                 "captain",crew.getCaptain().getUniqueId().toString(),
                 "open", crew.isOpen(),
                 "prefix", crew.getPrefix()));
-        playerCrewDatabase.setSQL(crew.getCaptain().getUniqueId().toString(), Map.of("crew", crew.getUuid().toString()));
+        playerCrewDatabase.setValues(crew.getCaptain().getUniqueId().toString(), Map.of("crew", crew.getUuid().toString()));
     }
 
     public static void deleteCrew(Crew crew) {
-        crews.remove(crew);
+        CREWS.remove(crew);
         crew.removeAllMembers();
         List<War> endedWars = crew.getWars();
         endedWars.forEach(CrewHandler::endWar);
 
         crew.deleteTeam();
-        crewDatabase.deleteSQL(crew.getUuid().toString());
+        crewDatabase.deleteEntry(crew.getUuid().toString());
     }
 
     public static List<Crew> getCrews() {
-        return crews;
+        return CREWS;
     }
 
     public static List<War> getWars() {
-        return wars;
+        return WARS;
     }
 
     public static boolean isCrewMember(OfflinePlayer player) {
@@ -146,7 +142,7 @@ public class CrewHandler implements Listener {
     }
 
     public static Crew getCrew(OfflinePlayer player) {
-        for (Crew crew : crews) {
+        for (Crew crew : CREWS) {
             if (crew.containsPlayer(player)) {
                 return crew;
             }
@@ -155,7 +151,7 @@ public class CrewHandler implements Listener {
     }
 
     public static Crew getCrew(String name) {
-        for (Crew crew : crews) {
+        for (Crew crew : CREWS) {
             if (crew.getName().equals(name)) {
                 return crew;
             }
@@ -164,7 +160,7 @@ public class CrewHandler implements Listener {
     }
 
     public static Crew getCrew(UUID uuid) {
-        for (Crew crew : crews) {
+        for (Crew crew : CREWS) {
             if (crew.getUuid().equals(uuid)) {
                 return crew;
             }
@@ -173,24 +169,24 @@ public class CrewHandler implements Listener {
     }
 
     public static void registerWar(War war) {
-        wars.add(war);
+        WARS.add(war);
         war.getAttacker().addWar(war);
         war.getDefender().addWar(war);
-        warDatabase.setSQL(war.getUuid().toString(), Map.of(
+        warDatabase.setValues(war.getUuid().toString(), Map.of(
                 "attacker", war.getAttacker().getUuid().toString(),
                 "defender", war.getDefender().getUuid().toString()
         ));
     }
 
     public static void endWar(War war) {
-        wars.remove(war);
+        WARS.remove(war);
         war.getAttacker().removeWar(war);
         war.getDefender().removeWar(war);
-        warDatabase.deleteSQL(war.getUuid().toString());
+        warDatabase.deleteEntry(war.getUuid().toString());
     }
 
     public static War getWar(UUID uuid) {
-        for (War war : wars) {
+        for (War war : WARS) {
             if (war.getUuid().equals(uuid)) {
                 return war;
             }

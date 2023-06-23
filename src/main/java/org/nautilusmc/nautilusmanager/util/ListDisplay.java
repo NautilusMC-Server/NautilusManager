@@ -1,11 +1,14 @@
 package org.nautilusmc.nautilusmanager.util;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.nautilusmc.nautilusmanager.commands.Command;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class ListDisplay<T> {
@@ -18,7 +21,7 @@ public class ListDisplay<T> {
         private final Function<Integer, String> generator;
 
         Prefix(String content) {
-            this.generator = number -> content;
+            this(number -> content);
         }
 
         Prefix(Function<Integer, String> generator) {
@@ -37,10 +40,10 @@ public class ListDisplay<T> {
 
     private String title;
     private int pageSize;
-    private Function<T, Component> formatter;
-    private Prefix prefix;
-    private Component emptyMessage;
-    private List<T> list;
+    private Function<T, Component> formatter = null;
+    private Prefix prefix = null;
+    private Component emptyMessage = null;
+    private List<T> list = null;
 
     public ListDisplay(String title) {
         this(title, DEFAULT_PAGE_SIZE);
@@ -49,10 +52,6 @@ public class ListDisplay<T> {
     public ListDisplay(String title, int pageSize) {
         this.title = title;
         this.pageSize = pageSize;
-        this.formatter = null;
-        this.prefix = null;
-        this.emptyMessage = null;
-        this.list = null;
     }
 
     public String getTitle() {
@@ -121,17 +120,25 @@ public class ListDisplay<T> {
         }
     }
 
-    public Component fetchPageContent(int page) {
+    public Component fetchPageContent(int pageNumber) {
         if (list == null || list.isEmpty()) {
             return Objects.requireNonNullElse(emptyMessage, DEFAULT_EMPTY_MESSAGE).colorIfAbsent(Command.INFO_COLOR);
         }
 
-        int pageCount = getPageCount();
-        page = Math.max(Math.min(page, pageCount), 1);
+        final int pageCount = getPageCount();
+        final int page = Math.max(Math.min(pageNumber, pageCount), 1);
 
-        Component content = Component.text("----- ")
+        Component content = Component.empty()
+                .append(page == 1 ? Component.text("]----- ") : Component.empty()
+                        .append(Component.text(Emoji.LEFT + "----- ", Command.INFO_ACCENT_COLOR))
+                        .hoverEvent(HoverEvent.showText(Component.text("Previous Page")))
+                        .clickEvent(ClickEvent.callback(clicker -> clicker.sendMessage(fetchPageContent(page - 1)))))
                 .append(Component.text(title, Command.INFO_ACCENT_COLOR, TextDecoration.BOLD))
-                .append(Component.text(" (page " + page + " of " + pageCount + ") -----"));
+                .append(Component.text(" (page " + page + " of " + pageCount + ")"))
+                .append(page == pageCount ? Component.text(" -----[") : Component.empty()
+                        .append(Component.text(" -----" + Emoji.RIGHT, Command.INFO_ACCENT_COLOR))
+                        .hoverEvent(HoverEvent.showText(Component.text("Next Page")))
+                        .clickEvent(ClickEvent.callback(clicker -> clicker.sendMessage(fetchPageContent(page + 1)))));
 
         for (int row = 0; row < pageSize; row++) {
             int index = (page - 1) * pageSize + row;

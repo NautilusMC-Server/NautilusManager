@@ -21,13 +21,13 @@ public class Homes {
     private static final Map<UUID, Map<CaseInsensitiveString, Location>> PLAYER_HOMES = new HashMap<>();
     private static final Map<UUID, Integer> PLAYER_HOME_CAPACITIES = new HashMap<>();
 
-    public static SQLHandler HOME_LOCATION_DB;
-    public static SQLHandler HOME_CAPACITY_DB;
+    public static SQLHandler homeDatabase;
+    public static SQLHandler homeCapacityDatabase;
 
     public static void init() {
-        HOME_LOCATION_DB = new SQLHandler("homes", "uuid_name") {
+        homeDatabase = new SQLHandler("homes", "uuid_name") {
             @Override
-            public void updateSQL(ResultSet results) throws SQLException {
+            public void update(ResultSet results) throws SQLException {
                 while (results.next()) {
                     String[] uuidName = results.getString("uuid_name").split("/");
                     UUID uuid = UUID.fromString(uuidName[0]);
@@ -47,9 +47,9 @@ public class Homes {
             }
         };
 
-        HOME_CAPACITY_DB = new SQLHandler("home_amounts", "uuid") {
+        homeCapacityDatabase = new SQLHandler("home_amounts", "uuid") {
             @Override
-            public void updateSQL(ResultSet results) throws SQLException {
+            public void update(ResultSet results) throws SQLException {
                 while (results.next()) {
                     PLAYER_HOME_CAPACITIES.put(UUID.fromString(results.getString("uuid")), results.getInt("amount"));
                 }
@@ -81,16 +81,16 @@ public class Homes {
         String key = uuid + "/" + name;
         if (loc == null) {
             PLAYER_HOMES.get(uuid).remove(new CaseInsensitiveString(name));
-            HOME_LOCATION_DB.deleteSQL(key);
+            homeDatabase.deleteEntry(key);
         } else {
             PLAYER_HOMES.get(uuid).put(new CaseInsensitiveString(name), loc);
-            HOME_LOCATION_DB.setSQL(key, Util.locationAsMap(loc));
+            homeDatabase.setValues(key, Util.locationAsMap(loc));
         }
     }
 
     public static void setMaxHomes(Player player, int homes) {
         PLAYER_HOME_CAPACITIES.put(player.getUniqueId(), homes);
-        HOME_CAPACITY_DB.setSQL(player.getUniqueId().toString(), Map.of("amount", homes));
+        homeCapacityDatabase.setValues(player.getUniqueId().toString(), Map.of("amount", homes));
     }
 
     public static int getMaxHomes(Player player) {

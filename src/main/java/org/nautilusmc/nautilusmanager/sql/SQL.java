@@ -7,12 +7,10 @@ import org.nautilusmc.nautilusmanager.NautilusManager;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.logging.Level;
 
 public class SQL {
-
-    public static boolean SQL_ENABLED = false;
-    protected static int SQL_UPDATE_TIME;
+    private static boolean enabled = false;
+    private static int updateInterval;
 
     private static final BasicDataSource DATABASE = new BasicDataSource();
 
@@ -30,15 +28,23 @@ public class SQL {
 
         try {
             getConnection().close();
-            SQL_ENABLED = true;
+            enabled = true;
         } catch (SQLException ignored) {
-            Bukkit.getLogger().log(Level.WARNING, "Can't connect to SQL server! Data will not be saved.");
+            Bukkit.getLogger().warning("Can't connect to SQL server! Data will not be saved.");
         }
 
-        SQL_UPDATE_TIME = config.getInt("sql.update_interval");
+        updateInterval = config.getInt("sql.update_interval");
     }
 
     public static Connection getConnection() throws SQLException {
         return DATABASE.getConnection();
+    }
+
+    public static boolean isEnabled() {
+        return enabled;
+    }
+
+    public static int getUpdateIntervalSeconds() {
+        return updateInterval;
     }
 }

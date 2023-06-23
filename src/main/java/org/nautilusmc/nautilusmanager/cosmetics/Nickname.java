@@ -31,7 +31,7 @@ public class Nickname {
     public static void init() {
         SQL_HANDLER = new SQLHandler("nicknames") {
             @Override
-            public void updateSQL(ResultSet results) throws SQLException {
+            public void update(ResultSet results) throws SQLException {
                 playerNames.clear();
                 while (results.next()) {
                     playerNames.put(UUID.fromString(results.getString("uuid")), new CaseInsensitiveString(results.getString("nickname")));
@@ -64,11 +64,11 @@ public class Nickname {
     private static void setNickname(UUID uuid, String nickname) {
         if (nickname == null) {
             playerNames.remove(uuid);
-            SQL_HANDLER.deleteSQL(uuid);
+            SQL_HANDLER.deleteEntry(uuid);
         }
         else {
             playerNames.put(uuid, new CaseInsensitiveString(nickname));
-            SQL_HANDLER.setSQL(uuid, Map.of("nickname", nickname));
+            SQL_HANDLER.setValues(uuid, Map.of("nickname", nickname));
         }
     }
 

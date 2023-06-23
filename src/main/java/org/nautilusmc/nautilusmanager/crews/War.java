@@ -35,10 +35,8 @@ public class War {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        War war = (War) o;
-        return (Objects.equals(attacker, war.attacker) && Objects.equals(defender, war.defender) || Objects.equals(defender, war.attacker) && Objects.equals(attacker, war.defender));
+    public boolean equals(Object that) {
+        return this == that
+                || that instanceof War war && (Objects.equals(attacker, war.attacker) && Objects.equals(defender, war.defender) || Objects.equals(defender, war.attacker) && Objects.equals(attacker, war.defender));
     }
 }

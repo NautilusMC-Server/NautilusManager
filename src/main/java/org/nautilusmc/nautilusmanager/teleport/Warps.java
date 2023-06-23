@@ -20,7 +20,7 @@ public class Warps {
     public static void init() {
         WARP_LOCATION_DB = new SQLHandler("warps", "name") {
             @Override
-            public void updateSQL(ResultSet results) throws SQLException {
+            public void update(ResultSet results) throws SQLException {
                 while (results.next()) {
                     WARPS.put(new CaseInsensitiveString(results.getString("name")), new Location(
                             Bukkit.getWorld(UUID.fromString(results.getString("world"))),
@@ -45,11 +45,11 @@ public class Warps {
 
     public static void createWarp(String name, Location location) {
         WARPS.put(new CaseInsensitiveString(name), location);
-        WARP_LOCATION_DB.setSQL(name, Util.locationAsMap(location));
+        WARP_LOCATION_DB.setValues(name, Util.locationAsMap(location));
     }
 
     public static void removeWarp(String name) {
         WARPS.remove(new CaseInsensitiveString(name));
-        WARP_LOCATION_DB.deleteSQL(name);
+        WARP_LOCATION_DB.deleteEntry(name);
     }
 }
