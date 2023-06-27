@@ -147,4 +147,7 @@ public abstract class SQLHandler {
                 "pitch", loc.getPitch(),
                 "yaw", loc.getYaw());
     }
+    public static UUID getUuidFromSQL(ResultSet results, String column) throws SQLException {
+        return UUID.fromString(results.getString(column));
+    }
 }

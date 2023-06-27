@@ -18,7 +18,7 @@ public class InviteCommand extends Command {
             sender.sendMessage(NOT_PLAYER_ERROR);
             return true;
         }
-        if (!player.hasPermission(Permission.INVITE_TO_CREW.toString())) {
+        if (!player.hasPermission(Permission.JOIN_CREW.toString())) {
             player.sendMessage(NO_PERMISSION_ERROR);
             return true;
         }
