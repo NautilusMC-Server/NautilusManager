@@ -47,3 +47,24 @@ discord:
   synced_channel: 0
   status_channel: 0
   status_update_interval: 0
+portals:
+  recipes:
+    -
+        shape:
+          - '   '
+          - ' D '
+          - '   '
+        ingredients:
+          D:
+            id: 'dirt'
+    -
+        shape:
+          - 'PDP'
+          - 'DPD'
+          - 'PDP'
+        ingredients:
+          P:
+            id: 'prismarine'
+          D:
+            id: 'dirt'
+            count: 3

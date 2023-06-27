@@ -20,7 +20,10 @@ import org.nautilusmc.nautilusmanager.teleport.commands.*;
 import org.nautilusmc.nautilusmanager.teleport.commands.homes.*;
 import org.nautilusmc.nautilusmanager.teleport.commands.tpa.*;
 import org.nautilusmc.nautilusmanager.teleport.commands.warp.*;
+import org.nautilusmc.nautilusmanager.teleport.portals.Portals;
 import org.nautilusmc.nautilusmanager.util.Permission;
+
+import java.util.List;
 
 public final class NautilusManager extends JavaPlugin {
 
@@ -36,6 +39,7 @@ public final class NautilusManager extends JavaPlugin {
         NameColor.init();
         Nickname.init();
         Homes.init();
+//        Portals.init();
         Warps.init();
         TpaManager.init();
         MuteManager.init();
@@ -106,6 +110,7 @@ public final class NautilusManager extends JavaPlugin {
 
         Bukkit.getPluginManager().registerEvents(new AFKManager(), this);
         Bukkit.getPluginManager().registerEvents(new VanishManager(), this);
+//        Bukkit.getPluginManager().registerEvents(new PortalHandler(), this);
         Bukkit.getPluginManager().registerEvents(new TeleportHandler(), this);
         Bukkit.getPluginManager().registerEvents(new GeneralEventManager(), this);
         Bukkit.getPluginManager().registerEvents(new SpawnProtection(), this);

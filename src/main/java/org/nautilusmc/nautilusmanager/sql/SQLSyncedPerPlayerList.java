@@ -5,10 +5,12 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.function.Function;
 
-public class SQLSyncedPerPlayerList<V, T> extends HashMap<UUID, List<V>> {
+public class SQLSyncedPerPlayerList<V, T> {
+
     private final Class<T> serializedType;
     private final Function<T, V> valueParser;
     private final Function<V, T> valueSerializer;
+    private final HashMap<UUID, List<V>> map = new HashMap<>();
 
     private final String valueColumn;
     private final int maxSize;
@@ -28,14 +30,14 @@ public class SQLSyncedPerPlayerList<V, T> extends HashMap<UUID, List<V>> {
         database = new SQLHandler(table) {
             @Override
             public void update(ResultSet results) throws SQLException {
-                clear();
+                map.clear();
 
                 while (results.next()) {
                     UUID player = decodePlayer(results.getString("uuid"));
                     V value = valueParser.apply(results.getObject(valueColumn, serializedType));
 
-                    putIfAbsent(player, new ArrayList<>());
-                    get(player).add(value);
+                    map.putIfAbsent(player, new ArrayList<>());
+                    map.get(player).add(value);
                 }
             }
         };
@@ -54,8 +56,8 @@ public class SQLSyncedPerPlayerList<V, T> extends HashMap<UUID, List<V>> {
     }
 
     public boolean add(UUID player, V value) {
-        putIfAbsent(player, new ArrayList<>());
-        List<V> list = get(player);
+        map.putIfAbsent(player, new ArrayList<>());
+        List<V> list = map.get(player);
 
         int index = list.indexOf(null);
         if (index == -1) {
@@ -71,9 +73,9 @@ public class SQLSyncedPerPlayerList<V, T> extends HashMap<UUID, List<V>> {
     }
 
     public boolean remove(UUID player, V value) {
-        if (!containsKey(player)) return false;
+        if (!map.containsKey(player)) return false;
 
-        List<V> list = get(player);
+        List<V> list = map.get(player);
 
         if (!list.contains(value)) return false;
 
@@ -83,7 +85,28 @@ public class SQLSyncedPerPlayerList<V, T> extends HashMap<UUID, List<V>> {
         return true;
     }
 
+    public boolean remove(UUID player) {
+        if (!map.containsKey(player)) return false;
+
+        List<V> list = map.get(player);
+
+        for (int i = 0; i < list.size(); i++) {
+            database.deleteEntry(encodeIdentifier(player, i));
+        }
+
+        map.remove(player);
+        return true;
+    }
+
     public boolean contains(UUID player, V value) {
-        return containsKey(player) && get(player).contains(value);
+        return map.containsKey(player) && map.get(player).contains(value);
+    }
+
+    public List<V> get(UUID player) {
+        return map.containsKey(player) ? new ArrayList<>(map.get(player)) : null;
+    }
+
+    public List<V> getOrDefault(UUID player, List<V> def) {
+        return new ArrayList<>(map.getOrDefault(player, def));
     }
 }

@@ -1,7 +1,7 @@
 name: NautilusManager
 version: '${project.version}'
 main: org.nautilusmc.nautilusmanager.NautilusManager
-api-version: 1.19
+api-version: '1.20'
 authors: [MaliciousFiles, longbread, Pants, xarkenz]
 description: Runs the Nautilus Minecraft server.
 depend:

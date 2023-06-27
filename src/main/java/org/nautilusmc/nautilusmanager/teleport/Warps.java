@@ -22,14 +22,7 @@ public class Warps {
             @Override
             public void update(ResultSet results) throws SQLException {
                 while (results.next()) {
-                    WARPS.put(new CaseInsensitiveString(results.getString("name")), new Location(
-                            Bukkit.getWorld(UUID.fromString(results.getString("world"))),
-                            results.getDouble("x"),
-                            results.getDouble("y"),
-                            results.getDouble("z"),
-                            results.getFloat("yaw"),
-                            results.getFloat("pitch")
-                    ));
+                    WARPS.put(new CaseInsensitiveString(results.getString("name")), sqlToLocation(results));
                 }
             }
         };
@@ -45,7 +38,7 @@ public class Warps {
 
     public static void createWarp(String name, Location location) {
         WARPS.put(new CaseInsensitiveString(name), location);
-        WARP_LOCATION_DB.setValues(name, Util.locationAsMap(location));
+        WARP_LOCATION_DB.setValues(name, SQLHandler.locationToSql(location));
     }
 
     public static void removeWarp(String name) {

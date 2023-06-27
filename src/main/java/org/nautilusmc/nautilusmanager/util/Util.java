@@ -8,18 +8,29 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.NonNullList;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftRecipe;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftShapedRecipe;
+import org.bukkit.craftbukkit.v1_20_R1.util.CraftNamespacedKey;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.RecipeChoice;
+import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scoreboard.Team;
@@ -135,17 +146,6 @@ public class Util {
         return component.decoration(decoration, !component.hasDecoration(decoration));
     }
 
-    public static Map<String, Object> locationAsMap(Location loc) {
-        return Map.of(
-                "world", loc.getWorld().getUID().toString(),
-                "x", loc.getX(),
-                "y", loc.getY(),
-                "z", loc.getZ(),
-                "pitch", loc.getPitch(),
-                "yaw", loc.getYaw()
-        );
-    }
-
     public static ItemStack addActionLore(ItemStack item, Component actionText) {
         if (item == null) return null;
 
@@ -181,5 +181,24 @@ public class Util {
             minutes %= MINUTES_PER_HOUR;
             return "%dh %dm".formatted(hours, minutes);
         }
+    }
+
+
+    /** copied straight from {@link CraftShapedRecipe#addToCraftingManager} */
+    public static net.minecraft.world.item.crafting.ShapedRecipe getShapedNMSRecipe(ShapedRecipe recipe) {
+        String[] shape = recipe.getShape();
+        Map<Character, RecipeChoice> ingredients = recipe.getChoiceMap();
+        int width = shape[0].length();
+        NonNullList<Ingredient> data = NonNullList.withSize(shape.length * width, Ingredient.EMPTY);
+
+        for(int i = 0; i < shape.length; ++i) {
+            String row = shape[i];
+
+            for(int j = 0; j < row.length(); ++j) {
+                data.set(i * width + j, CraftShapedRecipe.fromBukkitRecipe(recipe).toNMS(ingredients.get(row.charAt(j)), false));
+            }
+        }
+
+        return new net.minecraft.world.item.crafting.ShapedRecipe(CraftNamespacedKey.toMinecraft(recipe.getKey()), recipe.getGroup(), CraftRecipe.getCategory(recipe.getCategory()), width, shape.length, data, CraftItemStack.asNMSCopy(recipe.getResult()));
     }
 }

@@ -31,14 +31,7 @@ public class Homes {
                 while (results.next()) {
                     String[] uuidName = results.getString("uuid_name").split("/");
                     UUID uuid = UUID.fromString(uuidName[0]);
-                    Location loc = new Location(
-                            Bukkit.getWorld(UUID.fromString(results.getString("world"))),
-                            results.getDouble("x"),
-                            results.getDouble("y"),
-                            results.getDouble("z"),
-                            results.getFloat("yaw"),
-                            results.getFloat("pitch")
-                    );
+                    Location loc = sqlToLocation(results);
 
                     if (!PLAYER_HOMES.containsKey(uuid)) PLAYER_HOMES.put(uuid, new HashMap<>());
 
@@ -84,7 +77,7 @@ public class Homes {
             homeDatabase.deleteEntry(key);
         } else {
             PLAYER_HOMES.get(uuid).put(new CaseInsensitiveString(name), loc);
-            homeDatabase.setValues(key, Util.locationAsMap(loc));
+            homeDatabase.setValues(key, SQLHandler.locationToSql(loc));
         }
     }
 

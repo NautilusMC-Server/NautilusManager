@@ -1,6 +1,7 @@
 package org.nautilusmc.nautilusmanager.sql;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.util.Util;
 
@@ -124,5 +125,26 @@ public abstract class SQLHandler {
         } catch (SQLException e) {
             Bukkit.getLogger().log(Level.SEVERE, "Error deleting from SQL database!", e);
         }
+    }
+
+    public static Location sqlToLocation(ResultSet results) throws SQLException {
+        return new Location(
+                Bukkit.getWorld(UUID.fromString(results.getString("world"))),
+                results.getDouble("x"),
+                results.getDouble("y"),
+                results.getDouble("z"),
+                results.getFloat("yaw"),
+                results.getFloat("pitch")
+        );
+    }
+
+    public static Map<String, Object> locationToSql(Location loc) {
+        return Map.of(
+                "world", loc.getWorld().getUID().toString(),
+                "x", loc.getX(),
+                "y", loc.getY(),
+                "z", loc.getZ(),
+                "pitch", loc.getPitch(),
+                "yaw", loc.getYaw());
     }
 }
