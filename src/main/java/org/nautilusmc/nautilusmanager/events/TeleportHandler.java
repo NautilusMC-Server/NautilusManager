@@ -65,7 +65,7 @@ public class TeleportHandler implements Listener {
                 if (failCallback != null) failCallback.run();
             }
         };
-        runnable.runTaskLater(NautilusManager.INSTANCE, tickDelay);
+        runnable.runTaskLater(NautilusManager.getPlugin(), tickDelay);
         TELEPORT_INFO.put(player.getUniqueId(), Map.entry(player.getLocation(), runnable));
     }
 

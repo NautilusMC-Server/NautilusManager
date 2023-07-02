@@ -1,12 +1,10 @@
 package org.nautilusmc.nautilusmanager.teleport;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.nautilusmc.nautilusmanager.NautilusManager;
 import org.nautilusmc.nautilusmanager.sql.SQLHandler;
 import org.nautilusmc.nautilusmanager.util.CaseInsensitiveString;
-import org.nautilusmc.nautilusmanager.util.Util;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -87,6 +85,6 @@ public class Homes {
     }
 
     public static int getMaxHomes(Player player) {
-        return PLAYER_HOME_CAPACITIES.getOrDefault(player.getUniqueId(), NautilusManager.INSTANCE.getConfig().getInt("homes.startingAmount"));
+        return PLAYER_HOME_CAPACITIES.getOrDefault(player.getUniqueId(), NautilusManager.getPlugin().getConfig().getInt("homes.startingAmount"));
     }
 }

@@ -52,11 +52,11 @@ public class AFKManager implements Listener {
             status = "now AFK";
             removeTimer(player);
 
-            Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> {
+            Bukkit.getScheduler().runTaskLater(NautilusManager.getPlugin(), () -> {
                 if (isAFK(player)) {
                     player.setSleepingIgnored(true);
                 }
-            }, NautilusManager.INSTANCE.getConfig().getInt("afk.timeToIgnoreSleep") * (long) Util.TICKS_PER_SECOND);
+            }, NautilusManager.getPlugin().getConfig().getInt("afk.timeToIgnoreSleep") * (long) Util.TICKS_PER_SECOND);
         } else {
             AFK_START_MILLIS.remove(player.getUniqueId());
             status = "no longer AFK";
@@ -64,9 +64,15 @@ public class AFKManager implements Listener {
             player.setSleepingIgnored(false);
         }
 
-        player.sendMessage(Component.text("You are " + status + ".")
+        player.sendMessage(Component.empty()
+                .append(MessageStyler.getTimeStamp())
+                .appendSpace()
+                .append(Component.text("* You are " + status + "."))
                 .color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
-        Component message = Component.text("* ")
+        Component message = Component.empty()
+                .append(MessageStyler.getTimeStamp())
+                .appendSpace()
+                .append(Component.text("* ", NamedTextColor.GRAY, TextDecoration.ITALIC))
                 .append(player.displayName())
                 .append(Component.text(" is " + status + "."))
                 .color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC);
@@ -94,7 +100,7 @@ public class AFKManager implements Listener {
                 setAFK(Bukkit.getPlayer(uuid), true);
             }
         };
-        timer.runTaskLater(NautilusManager.INSTANCE, NautilusManager.INSTANCE.getConfig().getInt("afk.timeToAfk") * 20L);
+        timer.runTaskLater(NautilusManager.getPlugin(), NautilusManager.getPlugin().getConfig().getInt("afk.timeToAfk") * 20L);
 
         AFK_TIMERS.put(uuid, timer);
     }

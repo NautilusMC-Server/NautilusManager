@@ -35,7 +35,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.cosmetics.commands.MsgCommand;
 import org.nautilusmc.nautilusmanager.events.MessageStyler;
 import org.nautilusmc.nautilusmanager.util.CaseInsensitiveString;
 import org.nautilusmc.nautilusmanager.util.Util;
@@ -56,7 +55,7 @@ public class DiscordBot implements Listener {
     public static void init() {
         try {
             jda = JDABuilder
-                    .createDefault(NautilusManager.INSTANCE.getConfig().getString("discord.token"), GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_EMOJIS_AND_STICKERS)
+                    .createDefault(NautilusManager.getPlugin().getConfig().getString("discord.token"), GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_EMOJIS_AND_STICKERS)
                     .setActivity(Activity.playing("play.nautilusmc.org"))
                     .setMemberCachePolicy(MemberCachePolicy.ALL)
                     .setChunkingFilter(ChunkingFilter.ALL)
@@ -65,7 +64,7 @@ public class DiscordBot implements Listener {
                     .addEventListeners(new DiscordBot())
                     .build();
         } catch (InvalidTokenException | IllegalArgumentException e) {
-            NautilusManager.INSTANCE.getLogger().warning("Invalid Discord token! Discord integration will be disabled.");
+            NautilusManager.getPlugin().getLogger().warning("Invalid Discord token! Discord integration will be disabled.");
             jda = null;
 
             return;
@@ -78,7 +77,7 @@ public class DiscordBot implements Listener {
                         .setGuildOnly(true)
         ).queue();
 
-        Bukkit.getScheduler().runTaskTimer(NautilusManager.INSTANCE, DiscordBot::updateStatusMessage, 0, NautilusManager.INSTANCE.getConfig().getLong("discord.status_update_interval") * 20L);
+        Bukkit.getScheduler().runTaskTimer(NautilusManager.getPlugin(), DiscordBot::updateStatusMessage, 0, NautilusManager.getPlugin().getConfig().getLong("discord.status_update_interval") * 20L);
     }
 
     public static void unload() {
@@ -90,7 +89,7 @@ public class DiscordBot implements Listener {
     private static void updateStatusMessage() {
         if (jda == null) return;
 
-        TextChannel statusChannel = jda.getTextChannelById(NautilusManager.INSTANCE.getConfig().getLong("discord.status_channel"));
+        TextChannel statusChannel = jda.getTextChannelById(NautilusManager.getPlugin().getConfig().getLong("discord.status_channel"));
 
         MessageEmbed embed = new EmbedBuilder()
                 .setColor(new Color(27, 143, 169))
@@ -98,15 +97,15 @@ public class DiscordBot implements Listener {
                 .setThumbnail("https://cdn.discordapp.com/icons/1100956444494401646/b255f5dea85238b811f8734fb4149302.webp")
                 .setDescription("A Minecraft server for everyone!")
                 .addField("Player Count", Bukkit.getOnlinePlayers().size() + "/" + Bukkit.getMaxPlayers(), true)
-                .addField("Version", "Survival " + Bukkit.getMinecraftVersion(), true)
+                .addField("Version", NautilusManager.getVersion(), true)
                 .setFooter("play.nautilusmc.org")
                 .setTimestamp(Instant.now())
                 .build();
 
-        MessageHistory.getHistoryFromBeginning(statusChannel).queue(history-> {
+        MessageHistory.getHistoryFromBeginning(statusChannel).queue(history -> {
             Optional<Message> message = history.getRetrievedHistory()
                     .stream()
-                    .filter(m->m.getAuthor() == jda.getSelfUser()).findFirst();
+                    .filter(m -> m.getAuthor() == jda.getSelfUser()).findFirst();
 
             if (message.isPresent()) {
                 message.get().editMessageEmbeds(embed).queue();
@@ -196,16 +195,16 @@ public class DiscordBot implements Listener {
         return component.append(building);
     }
 
-    private static void parseBukkitMsg(Component component, List<Component> parents, List<Map.Entry<Character, List<TextDecoration>>> output) {
-        TextDecoration[] possibleDecorations = new TextDecoration[] {
-                TextDecoration.BOLD,
-                TextDecoration.ITALIC,
-                TextDecoration.UNDERLINED,
-                TextDecoration.STRIKETHROUGH
-        };
+    private static final TextDecoration[] CONVERTABLE_DECORATIONS = {
+            TextDecoration.BOLD,
+            TextDecoration.ITALIC,
+            TextDecoration.UNDERLINED,
+            TextDecoration.STRIKETHROUGH
+    };
 
+    private static void parseBukkitMsg(Component component, List<Component> parents, List<Map.Entry<Character, List<TextDecoration>>> output) {
         if (component instanceof TextComponent text) {
-            List<TextDecoration> decorations = Arrays.stream(possibleDecorations)
+            List<TextDecoration> decorations = Arrays.stream(CONVERTABLE_DECORATIONS)
                     .filter(t->text.hasDecoration(t) || parents.stream().anyMatch(c->c.hasDecoration(t)))
                     .toList();
 
@@ -223,7 +222,7 @@ public class DiscordBot implements Listener {
     }
 
     private static void formatBukkitMentions(List<Map.Entry<Character, List<TextDecoration>>> message) {
-        Guild guild = jda.getGuildById(NautilusManager.INSTANCE.getConfig().getLong("discord.guild"));
+        Guild guild = jda.getGuildById(NautilusManager.getPlugin().getConfig().getLong("discord.guild"));
 
         Map<CaseInsensitiveString, Member> members = guild.getMemberCache()
                 .stream()
@@ -314,7 +313,7 @@ public class DiscordBot implements Listener {
         parseBukkitMsg(component, List.of(), msg);
         formatBukkitMentions(msg);
 
-        String building = "";
+        StringBuilder building = new StringBuilder();
         List<TextDecoration> activeDecorations = new ArrayList<>();
 
         for (Map.Entry<Character, List<TextDecoration>> entry : msg) {
@@ -328,9 +327,9 @@ public class DiscordBot implements Listener {
             activeDecorations.addAll(toAdd);
 
             // TODO: deal with "``boldh``reset``italici" case
-            building += getFormatting(toRemove, false);
-            building += getFormatting(toAdd, true);
-            building += c;
+            building.append(getFormatting(toRemove, false));
+            building.append(getFormatting(toAdd, true));
+            building.append(c);
         }
 
         return building + getFormatting(activeDecorations, false);
@@ -353,12 +352,12 @@ public class DiscordBot implements Listener {
     }
 
     public static Role getSponsorRole() {
-        return jda.getRoleById(NautilusManager.INSTANCE.getConfig().getLong("discord.sponsor_role"));
+        return jda.getRoleById(NautilusManager.getPlugin().getConfig().getLong("discord.sponsor_role"));
     }
 
     private static boolean inChannelAndGuild(Channel channel) {
-        return channel.getIdLong() == NautilusManager.INSTANCE.getConfig().getLong("discord.synced_channel") &&
-                channel instanceof GuildChannel guild && guild.getGuild().getIdLong() == NautilusManager.INSTANCE.getConfig().getLong("discord.guild");
+        return channel.getIdLong() == NautilusManager.getPlugin().getConfig().getLong("discord.synced_channel") &&
+                channel instanceof GuildChannel guild && guild.getGuild().getIdLong() == NautilusManager.getPlugin().getConfig().getLong("discord.guild");
     }
 
     private static Component getDisplayName(Member user) {
@@ -407,25 +406,21 @@ public class DiscordBot implements Listener {
                 String player = e.getOption("player").getAsString();
                 String message = e.getOption("message").getAsString();
 
-                Component msg = discordToBukkit(e.getMember(), message)
+                Component bukkitMessage = discordToBukkit(e.getMember(), message)
                         .decorate(TextDecoration.ITALIC);
 
                 Player bukkitPlayer = Util.getOnlinePlayer(player);
                 if (bukkitPlayer != null) {
-                    Map.Entry<Component, Component> messages = MsgCommand.styleWhisper(
-                            getDisplayName(e.getMember()),
-                            bukkitPlayer.displayName(),
-                            msg);
-                    bukkitPlayer.sendMessage(messages.getValue());
+                    bukkitPlayer.sendMessage(MessageStyler.styleOutgoingWhisper(bukkitPlayer.displayName(), bukkitMessage));
                     e.reply("*You whispered to **%s** »* %s".formatted(
-                            Util.getName(bukkitPlayer), bukkitToDiscord(msg))).setEphemeral(true).queue();
+                            Util.getName(bukkitPlayer), bukkitToDiscord(bukkitMessage))).setEphemeral(true).queue();
                 } else {
                     e.reply("Player not found").setEphemeral(true).queue();
                 }
             }
         } else {
             e.reply("This command can only be used in <#%d>"
-                    .formatted(NautilusManager.INSTANCE.getConfig().getLong("discord.synced_channel")))
+                    .formatted(NautilusManager.getPlugin().getConfig().getLong("discord.synced_channel")))
                     .setEphemeral(true).queue();
         }
     }
@@ -446,7 +441,7 @@ public class DiscordBot implements Listener {
                 .append(Component.text(" » "))
                 .append(message);
 
-        jda.getTextChannelById(NautilusManager.INSTANCE.getConfig().getLong("discord.synced_channel"))
+        jda.getTextChannelById(NautilusManager.getPlugin().getConfig().getLong("discord.synced_channel"))
                 .sendMessage(bukkitToDiscord(message)).queue();
     }
 }

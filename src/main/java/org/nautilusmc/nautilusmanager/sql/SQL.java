@@ -15,7 +15,7 @@ public class SQL {
     private static final BasicDataSource DATABASE = new BasicDataSource();
 
     public static void init() {
-        FileConfiguration config = NautilusManager.INSTANCE.getConfig();
+        FileConfiguration config = NautilusManager.getPlugin().getConfig();
 
         DATABASE.setUrl("jdbc:%s://%s:%s@%s:%d/%s".formatted(
                 config.getString("sql.protocol"),

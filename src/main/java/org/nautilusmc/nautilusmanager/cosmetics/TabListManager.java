@@ -29,7 +29,7 @@ public class TabListManager {
     public static final int UPDATE_INTERVAL_TICKS = 20;
 
     public static void init() {
-        Bukkit.getScheduler().runTaskTimer(NautilusManager.INSTANCE, () -> {
+        Bukkit.getScheduler().runTaskTimer(NautilusManager.getPlugin(), () -> {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 Component tabEntry = Component.empty();
 

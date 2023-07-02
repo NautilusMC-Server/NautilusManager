@@ -28,26 +28,26 @@ public class SpawnProtection implements Listener {
     public static final TextColor ALERT_COLOR = NamedTextColor.RED;
 
     public SpawnProtection() {
-        Location loc1 = NautilusManager.INSTANCE.getConfig().getLocation("spawnProtection.loc1");
-        Location loc2 = NautilusManager.INSTANCE.getConfig().getLocation("spawnProtection.loc2");
+        Location loc1 = NautilusManager.getPlugin().getConfig().getLocation("spawnProtection.loc1");
+        Location loc2 = NautilusManager.getPlugin().getConfig().getLocation("spawnProtection.loc2");
 
         if (loc1 == null || loc2 == null || loc1.equals(loc2)) {
-            NautilusManager.INSTANCE.getLogger().warning("Spawn protection disabled. To enable, provide values for loc1 and loc2.");
+            NautilusManager.getPlugin().getLogger().warning("Spawn protection disabled. To enable, provide values for loc1 and loc2.");
         } else if (!loc1.getWorld().equals(loc2.getWorld())) {
-            NautilusManager.INSTANCE.getLogger().warning("Spawn protection is configured improperly! loc1 and loc2 are not in the same world (loc2's world will be ignored).");
+            NautilusManager.getPlugin().getLogger().warning("Spawn protection is configured improperly! loc1 and loc2 are not in the same world (loc2's world will be ignored).");
         }
     }
 
     private void sendAlert(Player player) {
         player.sendActionBar(Component.text(PROTECTED_AREA_ALERT).color(ALERT_FLASH_COLOR));
-        Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> {
+        Bukkit.getScheduler().runTaskLater(NautilusManager.getPlugin(), () -> {
             player.sendActionBar(Component.text(PROTECTED_AREA_ALERT).color(ALERT_COLOR));
         }, ALERT_FLASH_TICKS);
     }
 
     public boolean isProtected(Location location) {
-        Location loc1 = NautilusManager.INSTANCE.getConfig().getLocation("spawnProtection.loc1");
-        Location loc2 = NautilusManager.INSTANCE.getConfig().getLocation("spawnProtection.loc2");
+        Location loc1 = NautilusManager.getPlugin().getConfig().getLocation("spawnProtection.loc1");
+        Location loc2 = NautilusManager.getPlugin().getConfig().getLocation("spawnProtection.loc2");
 
         if (loc1 == null || loc2 == null) {
             return false;

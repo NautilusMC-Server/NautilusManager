@@ -93,7 +93,7 @@ public class ChatCommand extends Command {
                 e.setCancelled(true);
 
                 String name = chat.uuid != null ? " " + Util.getName(Bukkit.getPlayer(chat.uuid)) : "";
-                Bukkit.getScheduler().runTask(NautilusManager.INSTANCE, () -> {
+                Bukkit.getScheduler().runTask(NautilusManager.getPlugin(), () -> {
                     e.getPlayer().performCommand("chatmsg " + chat.commandOption + name + " " + Util.getTextContent(e.originalMessage()));
                 });
             }

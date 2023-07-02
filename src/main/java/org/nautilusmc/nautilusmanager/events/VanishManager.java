@@ -43,9 +43,9 @@ public class VanishManager implements Listener {
 
     private static void setVanished(Player vanisher, Player player, boolean vanished) {
         if (!vanished) {
-            player.showPlayer(NautilusManager.INSTANCE, vanisher);
+            player.showPlayer(NautilusManager.getPlugin(), vanisher);
         } else if (!player.hasPermission(Permission.VANISH.toString())) {
-            player.hidePlayer(NautilusManager.INSTANCE, vanisher);
+            player.hidePlayer(NautilusManager.getPlugin(), vanisher);
         }
     }
 

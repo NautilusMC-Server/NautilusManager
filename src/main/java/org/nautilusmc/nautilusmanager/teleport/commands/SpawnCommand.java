@@ -19,7 +19,7 @@ public class SpawnCommand extends Command {
             return true;
         }
 
-        Location spawn = NautilusManager.INSTANCE.getConfig().getLocation("spawn.tpLocation");
+        Location spawn = NautilusManager.getPlugin().getConfig().getLocation("spawn.tpLocation");
         if (spawn == null) {
             sender.sendMessage(NO_SPAWN_SET_ERROR);
             return true;

@@ -1,7 +1,6 @@
 package org.nautilusmc.nautilusmanager.events;
 
 import com.deepl.api.DeepLException;
-import com.deepl.api.TextResult;
 import com.deepl.api.Translator;
 import com.google.common.collect.EvictingQueue;
 import io.papermc.paper.adventure.PaperAdventure;
@@ -22,6 +21,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.bukkit.BanEntry;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -53,6 +53,12 @@ import java.util.regex.Pattern;
 
 @SuppressWarnings("UnstableApiUsage")
 public class MessageStyler implements Listener {
+    public static final TextColor DEFAULT_COLOR = TextColor.color(200, 200, 200);
+    public static final TextColor DARKER_COLOR = TextColor.color(150, 150, 150);
+    public static final TextColor URL_COLOR = TextColor.color(57, 195, 255);
+
+    public static final Component STATUS_SEPARATOR = Component.text(" | ", DARKER_COLOR);
+    public static final Component MESSAGE_SEPARATOR = Component.text(" » ", DARKER_COLOR);
 
     public static final Pattern URL_PATTERN = Pattern.compile("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)");
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
@@ -62,8 +68,8 @@ public class MessageStyler implements Listener {
 
     public static Translator translator = new Translator("4e426403-9add-46cc-5fba-daa5bc78e602:fx");
 
-    private static TranslatableComponent styleMessage(TranslatableComponent message) {
-        List<Component> args = new ArrayList<>(message.args());
+    private static TranslatableComponent styleTranslatable(TranslatableComponent translatable) {
+        List<Component> args = new ArrayList<>(translatable.args());
 
         for (int i = 0; i < args.size(); i++) {
             if (!(args.get(i) instanceof TextComponent component)) continue;
@@ -77,7 +83,7 @@ public class MessageStyler implements Listener {
             }
         }
 
-        return message.args(args);
+        return translatable.args(args);
     }
 
     private static Component replace(Component component, String target, String replace) {
@@ -90,25 +96,21 @@ public class MessageStyler implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDeath(PlayerDeathEvent e) {
-        if (e.deathMessage() == null) return;
+        if (!(e.deathMessage() instanceof TranslatableComponent originalMessage)) return;
 
-        Component deathMessageContent;
-        if (e.deathMessage() instanceof TranslatableComponent t && t.key().equals(SuicideCommand.SUICIDE_TRANSLATION_KEY)) {
-            deathMessageContent = Component.empty()
+        Component deathMessageContent = originalMessage.key().equals(SuicideCommand.SUICIDE_TRANSLATION_KEY)
+                ? Component.empty()
                     .append(e.getPlayer().displayName())
-                    .append(Component.text(" took the easy way out"));
-        } else {
-            deathMessageContent = styleMessage((TranslatableComponent) e.deathMessage());
-        }
+                    .append(Component.text(" took the easy way out"))
+                : styleTranslatable(originalMessage);
 
         Component deathMessage = Component.empty()
                 .append(getTimeStamp())
                 .appendSpace()
                 .append(Component.text(Emoji.SKULL + " ")
                         .append(Component.text("Death").decorate(TextDecoration.BOLD))
-                        .color(TextColor.color(46, 230, 255)))
-                .append(Component.text(" | ")
-                        .color(TextColor.color(87, 87, 87)))
+                        .color(NamedTextColor.AQUA))
+                .append(STATUS_SEPARATOR)
                 .append(deathMessageContent);
 
         ServerPlayer nms = ((CraftPlayer) e.getPlayer()).getHandle();
@@ -125,7 +127,7 @@ public class MessageStyler implements Listener {
             nms.server.getPlayerList().broadcastSystemMessage(nmsMessage, false);
         }
 
-        Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> {
+        Bukkit.getScheduler().runTaskLater(NautilusManager.getPlugin(), () -> {
             nms.connection.send(new ClientboundPlayerCombatKillPacket(nms.getId(), PaperAdventure.asVanilla(deathMessageContent)), PacketSendListener.exceptionallySend(() -> {
                 // TODO: do something with this? currently just copying nms
                 String s = nmsMessage.getString(256);
@@ -149,16 +151,20 @@ public class MessageStyler implements Listener {
                 .append(Component.text(Emoji.CHECK + " ")
                         .append(Component.text("Advancement")/*.decorate(TextDecoration.BOLD)*/)
                         .color(NamedTextColor.GREEN))
-                .append(Component.text(" | ")
-                        .color(TextColor.color(87, 87, 87)))
-                .append(styleMessage((TranslatableComponent) e.message())));
+                .append(STATUS_SEPARATOR)
+                .append(styleTranslatable((TranslatableComponent) e.message())));
         runningMessages.add(e.message());
     }
 
     @EventHandler
     public void onRespawn(PlayerRespawnEvent e) {
-        e.getPlayer().sendMessage(Component.text("Your death coordinates: (" + Math.round(e.getPlayer().getLocation().getX()) + ", " +
-                Math.round(e.getPlayer().getLocation().getZ()) + ")").color(TextColor.color(200, 200, 200)).decorate(TextDecoration.BOLD));
+        Location deathLocation = e.getPlayer().getLocation();
+        e.getPlayer().sendMessage(Component.text(
+                "Your death coordinates: (%d, %d)"
+                        .formatted(Math.round(deathLocation.getX()), Math.round(deathLocation.getZ())),
+                DARKER_COLOR,
+                TextDecoration.BOLD
+        ));
     }
 
     @EventHandler
@@ -177,14 +183,12 @@ public class MessageStyler implements Listener {
     public static Component getBanMessage(BanEntry entry) {
         return Component.empty()
                 .append(Component.text("You are banned from NautilusMC. If this is a mistake, please contact a staff member on Discord.", Command.ERROR_COLOR, TextDecoration.BOLD))
-                .append(Component.newline())
-                .append(Component.newline())
-                .append(Component.text("Reason: ")
-                        .color(Command.INFO_COLOR))
-                .append(Component.text(entry.getReason()))
-                .append(Component.newline())
-                .append(Component.text("Expires: ")
-                        .color(Command.INFO_COLOR))
+                .appendNewline()
+                .appendNewline()
+                .append(Component.text("Reason: ", Command.INFO_COLOR))
+                .append(Component.text(Objects.requireNonNullElse(entry.getReason(), "None given")))
+                .appendNewline()
+                .append(Component.text("Expires: ", Command.INFO_COLOR))
                 .append(Component.text(entry.getExpiration() == null ? "Never" : DATE_FORMAT.format(entry.getExpiration())))
                 .color(Command.ERROR_COLOR);
     }
@@ -200,24 +204,25 @@ public class MessageStyler implements Listener {
         Util.updateNameTag(e.getPlayer(),e.getPlayer().displayName(), Bukkit.getOnlinePlayers());
 
         e.joinMessage(Component.empty()
-                        .append(Component.text("Join").color(TextColor.color(83, 255, 126)))
-                        .append(Component.text(" | ").color(TextColor.color(87, 87, 87)))
-                        .append(e.getPlayer().displayName()));
+                .append(getTimeStamp())
+                .appendSpace()
+                .append(Component.text("Join", NamedTextColor.GREEN))
+                .append(STATUS_SEPARATOR)
+                .append(e.getPlayer().displayName()));
 
         runningMessages.forEach(message -> e.getPlayer().sendMessage(message));
         runningMessages.add(e.joinMessage());
 
-        Component obfuscation = Component.text("x").decorate(TextDecoration.OBFUSCATED).color(TextColor.color(47, 250, 255));
+        Component obfuscation = Component.text("x", NautilusManager.WORDMARK_LIGHT_COLOR, TextDecoration.OBFUSCATED);
         Component welcomeMessage = Component.empty()
                 .append(obfuscation)
-                .append(Component.text(" Feel welcome at ").color(TextColor.color(170, 170, 170)))
-                .append(Component.text("Nautilus").color(TextColor.color(34, 150, 155)))
-                .append(Component.text("MC").color(TextColor.color(47, 250, 255)))
-                .append(Component.text(", ").color(TextColor.color(170, 170, 170)))
+                .append(Component.text(" Feel welcome at ", DEFAULT_COLOR))
+                .append(NautilusManager.WORDMARK)
+                .append(Component.text(", ", DEFAULT_COLOR))
                 .append(e.getPlayer().displayName())
-                .append(Component.text("! ").color(TextColor.color(170, 170, 170)))
+                .append(Component.text("! ", DEFAULT_COLOR))
                 .append(obfuscation);
-        Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> e.getPlayer().sendMessage(welcomeMessage), 1);
+        Bukkit.getScheduler().runTaskLater(NautilusManager.getPlugin(), () -> e.getPlayer().sendMessage(welcomeMessage), 1);
 
         languages.put(e.getPlayer(), "en-US");
     }
@@ -227,8 +232,10 @@ public class MessageStyler implements Listener {
         if (e.quitMessage() == null) return;
 
         e.quitMessage(Component.empty()
-                .append(Component.text("Quit").color(TextColor.color(255, 58, 30)))
-                .append(Component.text(" | ").color(TextColor.color(87, 87, 87)))
+                .append(getTimeStamp())
+                .appendSpace()
+                .append(Component.text("Quit", NamedTextColor.RED))
+                .append(STATUS_SEPARATOR)
                 .append(e.getPlayer().displayName()));
 
         runningMessages.add(e.quitMessage());
@@ -301,8 +308,8 @@ public class MessageStyler implements Listener {
                 .append(getTimeStamp())
                 .appendSpace()
                 .append(displayName)
-                .append(Component.text(" » ", TextColor.color(150, 150, 150)))
-                .append(formatUserMessage(Component.text(message), applyFormatting).colorIfAbsent(Command.DEFAULT_COLOR))
+                .append(MESSAGE_SEPARATOR)
+                .append(formatUserMessage(Component.text(message), applyFormatting).colorIfAbsent(DEFAULT_COLOR))
                 .clickEvent(ClickEvent.copyToClipboard(message));
     }
 
@@ -321,11 +328,33 @@ public class MessageStyler implements Listener {
         return styleURL(message);
     }
 
+    public static Component styleOutgoingWhisper(Component recipientName, Component message) {
+        return Component.empty()
+                .append(getTimeStamp())
+                .appendSpace()
+                .append(Component.text("You whispered to ", DARKER_COLOR))
+                .append(recipientName)
+                .append(MESSAGE_SEPARATOR)
+                .append(message)
+                .decorate(TextDecoration.ITALIC);
+    }
+
+    public static Component styleIncomingWhisper(Component senderName, Component message) {
+        return Component.empty()
+                .append(getTimeStamp())
+                .appendSpace()
+                .append(senderName)
+                .append(Component.text(" whispered to you", DARKER_COLOR))
+                .append(MESSAGE_SEPARATOR)
+                .append(message)
+                .decorate(TextDecoration.ITALIC);
+    }
+
     public static Component styleURL(Component component, String url) {
         return component.clickEvent(ClickEvent.openUrl(url))
                 .hoverEvent(HoverEvent.showText(Component.text("Go to ")
-                        .append(Component.text(url, NamedTextColor.YELLOW, TextDecoration.UNDERLINED))))
-                .color(TextColor.color(57, 195, 255))
+                        .append(Component.text(url, URL_COLOR, TextDecoration.UNDERLINED))))
+                .color(URL_COLOR)
                 .decorate(TextDecoration.UNDERLINED);
     }
 
@@ -391,14 +420,12 @@ public class MessageStyler implements Listener {
     }
 
     public static String translate(String message, String to) {
-        TextResult result;
         try {
-            result = translator.translateText(message, null, to);
+            return translator.translateText(message, null, to).getText();
         } catch (DeepLException | InterruptedException e) {
             e.printStackTrace();
             return message;
         }
-        return result.getText();
     }
 
     public static Component getTimeStamp() {
@@ -406,6 +433,8 @@ public class MessageStyler implements Listener {
         int hour = Math.floorMod(calendar.get(Calendar.HOUR) - 1, 12) + 1;
         int minute = calendar.get(Calendar.MINUTE);
 
-        return Component.text("%2d:%02d".formatted(hour, minute)).color(TextColor.color(34, 150, 155));
+        return Component.text("%2d:%02d".formatted(hour, minute), NamedTextColor.DARK_AQUA)
+                .decoration(TextDecoration.BOLD, false)
+                .decoration(TextDecoration.ITALIC, false);
     }
 }

@@ -1,11 +1,10 @@
-package org.nautilusmc.nautilusmanager.cosmetics.commands;
+package org.nautilusmc.nautilusmanager.commands;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.nautilusmc.nautilusmanager.commands.Command;
 import org.nautilusmc.nautilusmanager.cosmetics.MuteManager;
 import org.nautilusmc.nautilusmanager.util.ListDisplay;
 import org.nautilusmc.nautilusmanager.util.Permission;

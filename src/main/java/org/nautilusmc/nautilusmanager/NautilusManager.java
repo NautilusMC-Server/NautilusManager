@@ -1,5 +1,9 @@
 package org.nautilusmc.nautilusmanager;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.nautilusmc.nautilusmanager.commands.*;
@@ -20,18 +24,29 @@ import org.nautilusmc.nautilusmanager.teleport.commands.*;
 import org.nautilusmc.nautilusmanager.teleport.commands.homes.*;
 import org.nautilusmc.nautilusmanager.teleport.commands.tpa.*;
 import org.nautilusmc.nautilusmanager.teleport.commands.warp.*;
-import org.nautilusmc.nautilusmanager.teleport.portals.Portals;
 import org.nautilusmc.nautilusmanager.util.Permission;
 
-import java.util.List;
-
 public final class NautilusManager extends JavaPlugin {
+    public static final TextColor WORDMARK_DARK_COLOR = NamedTextColor.DARK_AQUA;
+    public static final TextColor WORDMARK_LIGHT_COLOR = NamedTextColor.AQUA;
 
-    public static NautilusManager INSTANCE;
+    public static final Component WORDMARK = Component.empty()
+            .append(Component.text("Nautilus", WORDMARK_DARK_COLOR).decoration(TextDecoration.BOLD, false))
+            .append(Component.text("MC", WORDMARK_LIGHT_COLOR).decoration(TextDecoration.BOLD, true));
+
+    private static NautilusManager plugin;
+
+    public static NautilusManager getPlugin() {
+        return plugin;
+    }
+
+    public static String getVersion() {
+        return "Survival " + Bukkit.getMinecraftVersion();
+    }
 
     @Override
     public void onEnable() {
-        INSTANCE = this;
+        plugin = this;
 
         saveDefaultConfig();
         SQL.init();

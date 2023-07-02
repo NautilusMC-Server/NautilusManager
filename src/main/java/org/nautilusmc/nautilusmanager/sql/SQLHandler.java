@@ -26,7 +26,7 @@ public abstract class SQLHandler {
         this.table = table;
         this.primaryKey = primaryKey;
 
-        Bukkit.getScheduler().runTaskTimer(NautilusManager.INSTANCE, () -> {
+        Bukkit.getScheduler().runTaskTimer(NautilusManager.getPlugin(), () -> {
             if (!SQL.isEnabled()) return;
 
             try {

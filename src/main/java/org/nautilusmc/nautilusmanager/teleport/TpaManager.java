@@ -95,7 +95,7 @@ public class TpaManager implements Listener {
                 .append(Component.text(" to deny."))
                 .color(Command.INFO_COLOR));
 
-        Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> {
+        Bukkit.getScheduler().runTaskLater(NautilusManager.getPlugin(), () -> {
             if (REQUESTS.get(requester.getUniqueId()) == entry) {
                 recipient.sendMessage(Component.text("The teleport request from ")
                         .append(Component.empty().append(requester.displayName()).color(Command.INFO_ACCENT_COLOR))

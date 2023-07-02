@@ -54,7 +54,7 @@ public class GeneralEventManager implements Listener {
 
     public static void pingPlayer(Player player) {
         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 2);
-        Bukkit.getScheduler().scheduleSyncDelayedTask(NautilusManager.INSTANCE, () -> {
+        Bukkit.getScheduler().scheduleSyncDelayedTask(NautilusManager.getPlugin(), () -> {
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 10, 4);
         }, 2);
     }
@@ -82,23 +82,23 @@ public class GeneralEventManager implements Listener {
             ItemMeta meta = item.getItemMeta();
             if (meta == null) continue;
 
-            meta.getPersistentDataContainer().set(new NamespacedKey(NautilusManager.INSTANCE, SLOT_KEY), PersistentDataType.INTEGER, i);
-            meta.getPersistentDataContainer().set(new NamespacedKey(NautilusManager.INSTANCE, OWNER_KEY), PersistentDataType.STRING, e.getPlayer().getUniqueId().toString());
+            meta.getPersistentDataContainer().set(new NamespacedKey(NautilusManager.getPlugin(), SLOT_KEY), PersistentDataType.INTEGER, i);
+            meta.getPersistentDataContainer().set(new NamespacedKey(NautilusManager.getPlugin(), OWNER_KEY), PersistentDataType.STRING, e.getPlayer().getUniqueId().toString());
             item.setItemMeta(meta);
         }
     }
 
     @EventHandler
     public void itemSpawnEvent(ItemSpawnEvent e) {
-        if (e.getEntity().getItemStack().getItemMeta().getPersistentDataContainer().has(new NamespacedKey(NautilusManager.INSTANCE, OWNER_KEY))) {
+        if (e.getEntity().getItemStack().getItemMeta().getPersistentDataContainer().has(new NamespacedKey(NautilusManager.getPlugin(), OWNER_KEY))) {
             ItemEntity nms = (ItemEntity) ((CraftItem) e.getEntity()).getHandle();
             // copied from ItemEntity#setItem
             int defaultDespawnTime = nms.level().paperConfig().entities.spawning.altItemDespawnRate.enabled ? nms.level().paperConfig().entities.spawning.altItemDespawnRate.items.getOrDefault(nms.getItem().getItem(), nms.level().spigotConfig.itemDespawnRate) : nms.level().spigotConfig.itemDespawnRate;
-            int despawnTime = NautilusManager.INSTANCE.getConfig().getInt("death.itemDespawnSeconds") * 20;
+            int despawnTime = NautilusManager.getPlugin().getConfig().getInt("death.itemDespawnSeconds") * 20;
             int age = defaultDespawnTime - despawnTime;
 
             if (age <= Short.MIN_VALUE) {
-                NautilusManager.INSTANCE.getLogger().warning("Despawn time for death items is too low (" + despawnTime + "), and would be infinite. Defaulting to " + ((defaultDespawnTime - (Short.MIN_VALUE + 1))/20) + ". For infinite values, use -1.");
+                NautilusManager.getPlugin().getLogger().warning("Despawn time for death items is too low (" + despawnTime + "), and would be infinite. Defaulting to " + ((defaultDespawnTime - (Short.MIN_VALUE + 1))/20) + ". For infinite values, use -1.");
 
                 age = Short.MIN_VALUE + 1;
             }
@@ -114,12 +114,12 @@ public class GeneralEventManager implements Listener {
         if (meta == null) return;
         PersistentDataContainer container = meta.getPersistentDataContainer();
 
-        if (!container.has(new NamespacedKey(NautilusManager.INSTANCE, SLOT_KEY), PersistentDataType.INTEGER)) return;
-        String owner = container.get(new NamespacedKey(NautilusManager.INSTANCE, OWNER_KEY), PersistentDataType.STRING);
-        int slot = container.get(new NamespacedKey(NautilusManager.INSTANCE, SLOT_KEY), PersistentDataType.INTEGER);
+        String owner = container.get(new NamespacedKey(NautilusManager.getPlugin(), OWNER_KEY), PersistentDataType.STRING);
+        Integer slot = container.get(new NamespacedKey(NautilusManager.getPlugin(), SLOT_KEY), PersistentDataType.INTEGER);
+        if (owner == null || slot == null) return;
 
-        container.remove(new NamespacedKey(NautilusManager.INSTANCE, OWNER_KEY));
-        container.remove(new NamespacedKey(NautilusManager.INSTANCE, SLOT_KEY));
+        container.remove(new NamespacedKey(NautilusManager.getPlugin(), OWNER_KEY));
+        container.remove(new NamespacedKey(NautilusManager.getPlugin(), SLOT_KEY));
 
         item.setItemMeta(meta);
         e.getItem().setItemStack(item);

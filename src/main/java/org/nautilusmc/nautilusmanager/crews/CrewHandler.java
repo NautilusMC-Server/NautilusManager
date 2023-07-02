@@ -46,7 +46,7 @@ public class CrewHandler implements Listener {
             }
         };
 
-        Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> playerCrewDatabase = new SQLHandler("player_crews") {
+        Bukkit.getScheduler().runTaskLater(NautilusManager.getPlugin(), () -> playerCrewDatabase = new SQLHandler("player_crews") {
             @Override
             public void update(ResultSet results) throws SQLException {
                 CREWS.forEach(crew -> crew.getMembers().clear());
@@ -75,7 +75,7 @@ public class CrewHandler implements Listener {
                 }
             }
         },0);
-        Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> warDatabase = new SQLHandler("wars") {
+        Bukkit.getScheduler().runTaskLater(NautilusManager.getPlugin(), () -> warDatabase = new SQLHandler("wars") {
             @Override
             public void update(ResultSet results) throws SQLException {
                 WARS.clear();

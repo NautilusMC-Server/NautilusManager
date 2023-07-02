@@ -45,7 +45,7 @@ public class FancyText {
             this.requiredAdvancement = requiredAdvancement == null ? null : Bukkit.getAdvancement(NamespacedKey.fromString(requiredAdvancement));
 
             this.example = new ItemStack(example);
-            Bukkit.getScheduler().runTaskLater(NautilusManager.INSTANCE, () -> {
+            Bukkit.getScheduler().runTaskLater(NautilusManager.getPlugin(), () -> {
                 ItemMeta meta = this.example.getItemMeta();
 
                 meta.displayName(FancyText.colorText(this, WordUtils.capitalizeFully(name().replace("_", " ")), colors)

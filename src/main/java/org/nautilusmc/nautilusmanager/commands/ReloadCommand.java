@@ -31,7 +31,7 @@ public class ReloadCommand extends Command {
         Bukkit.getScheduler().runTaskLater(PluginManager.getInstance(), () -> {
             Bukkit.broadcast(Component.text("Reloading...").color(ERROR_COLOR));
             NautilusManager.unload();
-            PluginManager.getInstance().getPluginUtils().reloadPlugin(NautilusManager.INSTANCE);
+            PluginManager.getInstance().getPluginUtils().reloadPlugin(NautilusManager.getPlugin());
             Bukkit.broadcast(Component.text("Done!").color(ERROR_COLOR));
         }, reloadNow ? 0L : RELOAD_DELAY_SECONDS * 20L);
 

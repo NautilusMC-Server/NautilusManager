@@ -492,7 +492,7 @@ public class CrewCommand extends Command {
         }
         Player invited = Util.getOnlinePlayer(name);
         if (invited == null) {
-            invited = NautilusManager.INSTANCE.getServer().getPlayer(name);
+            invited = NautilusManager.getPlugin().getServer().getPlayer(name);
         }
         if (invited == null) {
             player.sendMessage(Component.text("Player not online!").color(ERROR_COLOR));

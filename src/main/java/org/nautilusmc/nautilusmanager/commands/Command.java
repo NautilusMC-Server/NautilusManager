@@ -4,9 +4,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -17,8 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class Command implements CommandExecutor, TabCompleter {
-    public static final TextColor DEFAULT_COLOR = TextColor.color(200, 200, 200);
+public abstract class Command implements TabExecutor {
     public static final TextColor INFO_COLOR = TextColor.color(255, 188, 0);
     public static final TextColor INFO_ACCENT_COLOR = TextColor.color(255, 252, 162);
     public static final TextColor SUCCESS_COLOR = TextColor.color(30, 255, 140);

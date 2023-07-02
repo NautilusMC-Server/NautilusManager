@@ -14,14 +14,10 @@ import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.Container;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
@@ -171,8 +167,8 @@ public class Util {
 
     public record TimeAmount(int ticks) implements Comparable<TimeAmount> {
         @Override
-        public int compareTo(@NotNull Util.TimeAmount other) {
-            return Integer.compare(ticks, other.ticks);
+        public int compareTo(@NotNull TimeAmount that) {
+            return Integer.compare(this.ticks, that.ticks);
         }
 
         public String toHoursMinutes() {
@@ -183,6 +179,9 @@ public class Util {
         }
     }
 
+    public static String getCurrentTPS() {
+        return "%.1f".formatted(Bukkit.getServer().getTPS()[0]);
+    }
 
     /** copied straight from {@link CraftShapedRecipe#addToCraftingManager} */
     public static net.minecraft.world.item.crafting.ShapedRecipe getShapedNMSRecipe(ShapedRecipe recipe) {

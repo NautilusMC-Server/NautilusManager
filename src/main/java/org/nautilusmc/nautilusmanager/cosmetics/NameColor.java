@@ -56,7 +56,7 @@ public class NameColor {
             }
         };
 
-        Bukkit.getPluginManager().registerEvents(new NameColorListener(), NautilusManager.INSTANCE);
+        Bukkit.getPluginManager().registerEvents(new NameColorListener(), NautilusManager.getPlugin());
     }
 
     public static NameColor getNameColor(OfflinePlayer player) {

@@ -248,6 +248,6 @@ public class CosmeticsMenu {
                                         })
                                 )
                         )
-                        .display(player), NautilusManager.INSTANCE);
+                        .display(player), NautilusManager.getPlugin());
     }
 }

@@ -40,7 +40,7 @@ public class ConfirmationMessage {
     }
 
     public void execute() {
-        runnable.runTask(NautilusManager.INSTANCE);
+        runnable.runTask(NautilusManager.getPlugin());
     }
 
     public static void sendConfirmationMessage(Player player, Component taskName, BukkitRunnable runnable) {

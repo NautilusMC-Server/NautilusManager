@@ -55,7 +55,7 @@ public class Nickname {
             }
         };
 
-        Bukkit.getPluginManager().registerEvents(new NicknameListener(), NautilusManager.INSTANCE);
+        Bukkit.getPluginManager().registerEvents(new NicknameListener(), NautilusManager.getPlugin());
     }
 
     /**

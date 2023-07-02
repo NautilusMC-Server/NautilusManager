@@ -25,7 +25,7 @@ public class BuyHomeCommand extends Command {
         }
 
         int maxHomes = Homes.getMaxHomes(player);
-        int maxHomesLimit = NautilusManager.INSTANCE.getConfig().getInt("homes.maxAmount");
+        int maxHomesLimit = NautilusManager.getPlugin().getConfig().getInt("homes.maxAmount");
 
         if (maxHomes >= maxHomesLimit) {
             player.sendMessage(Component.text("Home limit reached!")

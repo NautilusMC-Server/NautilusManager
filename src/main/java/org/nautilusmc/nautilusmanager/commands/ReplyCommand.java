@@ -1,4 +1,4 @@
-package org.nautilusmc.nautilusmanager.cosmetics.commands;
+package org.nautilusmc.nautilusmanager.commands;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.nautilusmc.nautilusmanager.NautilusManager;
-import org.nautilusmc.nautilusmanager.commands.Command;
 
 import java.util.*;
 
@@ -57,7 +56,7 @@ public class ReplyCommand extends Command {
                     PLAYER_REPLY_TIMERS.remove(replyFrom);
                 }
             };
-            replyTimer.runTaskLater(NautilusManager.INSTANCE, REPLY_TIMEOUT_SECONDS * 20L);
+            replyTimer.runTaskLater(NautilusManager.getPlugin(), REPLY_TIMEOUT_SECONDS * 20L);
             PLAYER_REPLY_TIMERS.put(replyFrom, replyTimer);
         }
     }

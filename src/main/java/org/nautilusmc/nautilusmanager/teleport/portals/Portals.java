@@ -1,23 +1,16 @@
 package org.nautilusmc.nautilusmanager.teleport.portals;
 
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.protocol.game.ClientboundRecipePacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateRecipesPacket;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.inventory.CraftingContainer;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.Recipe;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.Configuration;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftRecipe;
-import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftShapedRecipe;
 import org.bukkit.craftbukkit.v1_20_R1.util.CraftNamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -31,7 +24,6 @@ import org.nautilusmc.nautilusmanager.util.Util;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Portals {
 
@@ -65,11 +57,11 @@ public class Portals {
         linkedPortalsSQL.initSQL("linked_portals");
 
         try {
-            Configuration config = NautilusManager.INSTANCE.getConfig();
+            Configuration config = NautilusManager.getPlugin().getConfig();
             int i = 0;
 
             for (LinkedHashMap<String, Object> configRecipe : (List<LinkedHashMap<String, Object>>) config.getList("portals.recipes")) {
-                ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(NautilusManager.INSTANCE, "portal" + i++), getPortalItem());
+                ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(NautilusManager.getPlugin(), "portal" + i++), getPortalItem());
                 recipe.setCategory(CraftingBookCategory.MISC);
 
                 recipe.shape(((List<String>) configRecipe.get("shape")).toArray(String[]::new));
@@ -86,7 +78,7 @@ public class Portals {
                 RECIPES.add(recipe);
             }
         } catch (Exception e) {
-            NautilusManager.INSTANCE.getLogger().warning("Failed to load portal recipes: " + e.getMessage());
+            NautilusManager.getPlugin().getLogger().warning("Failed to load portal recipes: " + e.getMessage());
         }
     }
 
@@ -95,7 +87,7 @@ public class Portals {
     }
 
     public static ShapedRecipe getRecipe(NamespacedKey key) {
-        if (!key.getNamespace().equals(NautilusManager.INSTANCE.getName().toLowerCase()) || !key.getKey().matches("^portal\\d+$")) return null;
+        if (!key.getNamespace().equals(NautilusManager.getPlugin().getName().toLowerCase()) || !key.getKey().matches("^portal\\d+$")) return null;
         return RECIPES.get(Integer.parseInt(key.getKey().substring("portal".length())));
     }
 
